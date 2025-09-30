@@ -12,7 +12,7 @@ for å tilfredsstille ett relativt lett ønske.
 ### I første omgang: 
  - produsert for å hjelpe utvikling av AutoRelasjon.
 
-I første omgang kommer det til å være ganske begrenset hvilke resurser man kan produsere, hovedsakelig:
+I første omgang kommer det til å være ganske begrenset hvilke resurser man kan produsere, spesifikt:
 - Utdanning/Elev/Elevfravar
 - Utdanning/Elev/Fravarsregistrering
 
