@@ -1,7 +1,8 @@
 plugins {
     kotlin("jvm") version "2.0.0"
+    application
     kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.5.6"
+    id("org.springframework.boot") version "3.5.6" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jetbrains.compose") version "1.9.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.0"
@@ -50,6 +51,14 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+application {
+    mainClass.set("no.fintlabs.dynamiskadapter.MainKt")
 }
 
 kotlin {

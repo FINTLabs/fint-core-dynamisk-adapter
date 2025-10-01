@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import no.fintlabs.dynamiskadapter.constructors.utdanning.elevFactory
 
 fun main() =
     application {
@@ -39,6 +42,17 @@ fun configMenu() {
             "utdanning-elev",
             "utdanning-elevfravar",
         )
+
+    var newestDataset: String = ""
+
+    fun createData() {
+        if (amountOfResources.toIntOrNull() != null) {
+            val data = elevFactory(amountOfResources.toInt())
+            newestDataset = data.toString()
+        } else {
+            currentErrorMessage = "Antall ønskede Resurser må være ett tall"
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -97,6 +111,9 @@ fun configMenu() {
                         }
                     }
                 }
+                Button(onClick = { createData() }) {
+                    Text("Produser data til Kafka")
+                }
             }
             Column(
                 modifier =
@@ -122,6 +139,27 @@ fun configMenu() {
                             Text("ERROR:", style = MaterialTheme.typography.h6)
                             Text(currentErrorMessage!!)
                         }
+                    }
+                }
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("Newest dataset preview:")
+                        val scrollState = rememberScrollState()
+                        Text(
+                            text = newestDataset,
+                            modifier =
+                                Modifier
+                                    .verticalScroll(scrollState)
+                                    .border(2.dp, Color.Gray),
+                        )
                     }
                 }
             }

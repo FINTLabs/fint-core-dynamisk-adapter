@@ -7,12 +7,12 @@ import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fintlabs.dynamiskadapter.constructors.felles.createPerson
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 
-fun elevFactory(Count: Int): List<ElevResource> {
+fun elevFactory(count: Int): List<ElevResource> {
     val faker = Faker()
     val thePerson = createPerson()
 
     val elevList = mutableListOf<ElevResource>()
-    for (i in 0 until Count) {
+    for (i in 0 until count) {
         val username =
             Identifikator().apply {
                 identifikatorverdi = faker.funnyName.name()
