@@ -1,11 +1,9 @@
 plugins {
     kotlin("jvm") version "2.0.0"
-    application
-    kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.5.6" apply false
-    id("io.spring.dependency-management") version "1.1.7"
-    id("org.jetbrains.compose") version "1.9.0"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.0"
+    kotlin("plugin.spring") version "2.0.0"
+    id("org.springframework.boot") version "3.3.4"
+    id("io.spring.dependency-management") version "1.1.5"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
 group = "no.fintlabs"
@@ -30,20 +28,26 @@ val fintVersion = "3.19.0"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
     implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("io.github.serpro69:kotlin-faker:1.14.0") {
+        exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
+    }
+
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.apache.kafka:kafka-streams")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.5")
 
-    implementation("io.github.serpro69:kotlin-faker:1.6.0")
-
-    implementation(compose.desktop.currentOs)
+    implementation("org.jetbrains.skiko:skiko-awt-runtime-macos-arm64:0.8.0")
+    implementation("org.jetbrains.compose.ui:ui-desktop:1.6.11")
+    implementation("org.jetbrains.compose.foundation:foundation-desktop:1.6.11")
+    implementation("org.jetbrains.compose.material:material-desktop:1.6.11")
+    implementation("org.jetbrains.compose.runtime:runtime-desktop:1.6.11")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
@@ -53,12 +57,8 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-application {
-    mainClass.set("no.fintlabs.dynamiskadapter.MainKt")
 }
 
 kotlin {
@@ -69,8 +69,4 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-tasks.bootBuildImage {
-    runImage = "paketobuildpacks/ubuntu-noble-run-base:latest"
 }
