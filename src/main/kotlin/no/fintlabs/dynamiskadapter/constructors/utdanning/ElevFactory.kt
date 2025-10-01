@@ -2,6 +2,7 @@ package no.fintlabs.dynamiskadapter.constructors.utdanning
 
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Identifikator
+import no.fint.model.resource.Link
 import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 
@@ -23,6 +24,8 @@ fun elevFactory(Count: Int): List<ElevResource> {
 
         val elev: ElevResource =
             ElevResource().apply {
+                addPerson(Link.with("fodselsnummer/${thePerson.fodselsnummer.identifikatorverdi}"))
+
                 brukernavn = username
                 elevnummer = studentNumber
                 feidenavn = username
@@ -31,6 +34,9 @@ fun elevFactory(Count: Int): List<ElevResource> {
                 kontaktinformasjon = thePerson.kontaktinformasjon
                 systemId = studentNumber
             }
+        thePerson.apply {
+            addElev(Link.with("systemId/${elev.systemId.identifikatorverdi}"))
+        }
 
         elevList.add(elev)
     }
