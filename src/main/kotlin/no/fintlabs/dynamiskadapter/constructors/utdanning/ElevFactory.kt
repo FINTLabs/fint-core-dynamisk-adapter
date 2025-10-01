@@ -4,6 +4,7 @@ import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.resource.Link
 import no.fint.model.resource.utdanning.elev.ElevResource
+import no.fintlabs.dynamiskadapter.constructors.felles.createPerson
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 
 fun elevFactory(Count: Int): List<ElevResource> {
