@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.utdanning.elevFactory
 
 @Composable
 fun configMenu() {
+    val gson = GsonBuilder().setPrettyPrinting().create()
     var orgId by remember { mutableStateOf<String>("fint-no") }
     var amountOfResources by remember { mutableStateOf<String>("4") }
     var domainContext by remember { mutableStateOf<String>("fint-core") }
@@ -32,12 +34,13 @@ fun configMenu() {
             "utdanning-elevfravar",
         )
 
-    var newestDataset: String = ""
+    var newestDataset by remember { mutableStateOf<String>("") }
 
     fun createData() {
         if (amountOfResources.toIntOrNull() != null) {
             val data = elevFactory(amountOfResources.toInt())
-            newestDataset = data.toString()
+
+            newestDataset = gson.toJson(data)
         } else {
             currentErrorMessage = "Antall ønskede Resurser må være ett tall"
         }

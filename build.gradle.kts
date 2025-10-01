@@ -42,6 +42,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.5")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("org.jetbrains.skiko:skiko-awt-runtime-macos-arm64:0.8.0")
     implementation("org.jetbrains.compose.ui:ui-desktop:1.6.11")
