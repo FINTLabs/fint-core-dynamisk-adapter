@@ -7,8 +7,7 @@ object KafkaBootstrap {
     val kafka =
         KafkaContainer(
             DockerImageName
-                .parse("confluentinc/cp-kafka:7.4.0")
-                .asCompatibleSubstituteFor("apache/kafka"),
+                .parse("apache/kafka:4.1.0"),
         )
 
     fun start(): String {

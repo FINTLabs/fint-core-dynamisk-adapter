@@ -3,6 +3,7 @@ package no.fintlabs.dynamiskadapter
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import no.fintlabs.dynamiskadapter.kafka.KafkaBootstrap
+import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.awt.Dimension
@@ -11,9 +12,11 @@ import java.awt.Dimension
 class Application
 
 fun main(args: Array<String>) {
+    val bootstrapServers = KafkaBootstrap.start()
+    KafkaSingleton.init(bootstrapServers)
+
     Thread {
         runApplication<Application>(*args)
-        KafkaBootstrap.start()
     }.start()
 
     application {

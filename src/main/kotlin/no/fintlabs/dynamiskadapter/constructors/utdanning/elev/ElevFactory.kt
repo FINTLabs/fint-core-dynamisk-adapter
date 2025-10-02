@@ -3,10 +3,13 @@ package no.fintlabs.dynamiskadapter.constructors.utdanning.elev
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.resource.Link
+import no.fint.model.resource.felles.PersonResource
 import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fint.model.resource.utdanning.elev.ElevforholdResource
 import no.fintlabs.dynamiskadapter.constructors.felles.createPerson
+import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
+import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
 
 fun elevFactory(
     count: Int,
@@ -16,6 +19,9 @@ fun elevFactory(
     val faker = Faker()
 
     val elevList = mutableListOf<ElevResource>()
+    val personList = mutableListOf<PersonResource>()
+    val elevforholdList = mutableListOf<ElevforholdResource>()
+
     for (i in 0 until count) {
         val thePerson = createPerson()
         val theElevForhold = createElevForhold()
@@ -49,9 +55,13 @@ fun elevFactory(
         theElevForhold.apply {
             addElev(Link.with("systemId/${elev.systemId.identifikatorverdi}"))
         }
-
+        personList.add(thePerson)
+        elevforholdList.add(theElevForhold)
         elevList.add(elev)
     }
+    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-person"), personList)
+    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-elevforhold"), elevforholdList)
+    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev"), elevList)
     return elevList
 }
 

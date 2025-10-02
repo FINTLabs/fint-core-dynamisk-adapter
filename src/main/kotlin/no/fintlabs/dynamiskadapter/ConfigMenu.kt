@@ -18,6 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
+import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.fravarsRegistreringFactory
+import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.noStudentsException
+import no.fintlabs.dynamiskadapter.util.infoBox
+import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
 
 @Composable
 fun configMenu() {
@@ -28,10 +32,10 @@ fun configMenu() {
     var selectedResource by remember { mutableStateOf<String>("utdanning-elev") }
     var resourceMenuOpen by remember { mutableStateOf<Boolean>(false) }
     var currentErrorMessage by remember { mutableStateOf<String?>(null) }
+    var headsUpInformation by remember { mutableStateOf<String?>(null) }
     val resourceOptionList =
         listOf(
             "utdanning-elev",
-            "utdanning-elevfravar",
             "utdanning-fravarsregistrering",
         )
 
@@ -39,9 +43,22 @@ fun configMenu() {
 
     fun createData() {
         if (amountOfResources.toIntOrNull() != null) {
-            val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
-
-            newestDataset = gson.toJson(data)
+            when (selectedResource) {
+                "utdanning-elev" -> {
+                    val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
+                    headsUpInformation = "Data also added to" +
+                        " ${makeKafkaTopic(orgId, domainContext, "utdanning-elev-person")}" +
+                        "and ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")}"
+                    newestDataset = gson.toJson(data)
+                }
+                "utdanning-fravarsregistrering" -> {
+                    try {
+                        val data = fravarsRegistreringFactory(amountOfResources.toInt(), orgId, domainContext)
+                    } catch (ex: noStudentsException) {
+                        currentErrorMessage = ex.message
+                    }
+                }
+            }
         } else {
             currentErrorMessage = "Antall ønskede Resurser må være ett tall"
         }
@@ -127,22 +144,10 @@ fun configMenu() {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (currentErrorMessage != null) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .border(2.dp, Color.Red)
-                                .padding(16.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text("ERROR:", style = MaterialTheme.typography.h6)
-                            Text(currentErrorMessage!!)
-                        }
-                    }
+                    infoBox("Error", currentErrorMessage!!)
+                }
+                if (headsUpInformation != null) {
+                    infoBox("", headsUpInformation!!)
                 }
                 Box(
                     modifier =
