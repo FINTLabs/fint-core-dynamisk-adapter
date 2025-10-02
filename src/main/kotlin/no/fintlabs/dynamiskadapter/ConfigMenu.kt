@@ -17,13 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
-import no.fintlabs.dynamiskadapter.constructors.utdanning.elevFactory
+import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
 
 @Composable
 fun configMenu() {
     val gson = GsonBuilder().setPrettyPrinting().create()
     var orgId by remember { mutableStateOf<String>("fint-no") }
-    var amountOfResources by remember { mutableStateOf<String>("4") }
+    var amountOfResources by remember { mutableStateOf<String>("2") }
     var domainContext by remember { mutableStateOf<String>("fint-core") }
     var selectedResource by remember { mutableStateOf<String>("utdanning-elev") }
     var resourceMenuOpen by remember { mutableStateOf<Boolean>(false) }
@@ -32,13 +32,14 @@ fun configMenu() {
         listOf(
             "utdanning-elev",
             "utdanning-elevfravar",
+            "utdanning-fravarsregistrering",
         )
 
     var newestDataset by remember { mutableStateOf<String>("") }
 
     fun createData() {
         if (amountOfResources.toIntOrNull() != null) {
-            val data = elevFactory(amountOfResources.toInt())
+            val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
 
             newestDataset = gson.toJson(data)
         } else {
@@ -47,6 +48,9 @@ fun configMenu() {
     }
 
     Column(
+        //
+        // ## HEADER ##
+        //
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -57,11 +61,15 @@ fun configMenu() {
         )
         Text(text = "Denne tjenesten lager Kafka Topics du kan utnytte til lokal testing av tjenester under utvikling.")
         Text(text = "Fyll inn ønskede dataparameter under. Om du ikke velger blir default verdiene brukt.")
+        Text(text = "Kafka containeren kjører på localhost:9092.")
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Column(
+                //
+                // ## CONTROL COLUMN ##
+                //
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -108,6 +116,9 @@ fun configMenu() {
                 }
             }
             Column(
+                //
+                // ## DATA COLUMN ##
+                //
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -140,6 +151,7 @@ fun configMenu() {
                             .padding(8.dp),
                 ) {
                     Column(
+                        Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
@@ -149,6 +161,7 @@ fun configMenu() {
                             text = newestDataset,
                             modifier =
                                 Modifier
+                                    .fillMaxWidth()
                                     .verticalScroll(scrollState)
                                     .border(2.dp, Color.Gray),
                         )

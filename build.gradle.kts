@@ -35,10 +35,12 @@ dependencies {
         exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
     }
 
-    implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.apache.kafka:kafka-streams")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.apache.kafka:kafka-streams")
+    implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.apache.kafka:kafka-clients")
+    implementation("org.testcontainers:kafka")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.5")
