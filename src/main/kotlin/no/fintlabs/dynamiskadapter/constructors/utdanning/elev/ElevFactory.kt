@@ -33,7 +33,7 @@ fun elevFactory(
 
         val studentNumber =
             Identifikator().apply {
-                identifikatorverdi = createPersonNumber().trim()
+                identifikatorverdi = createPersonNumber()
             }
 
         val elev: ElevResource =
@@ -64,12 +64,3 @@ fun elevFactory(
     KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev"), elevList)
     return elevList
 }
-
-fun createElevForhold(): ElevforholdResource =
-    ElevforholdResource()
-        .apply {
-            systemId =
-                Identifikator().apply {
-                    identifikatorverdi = createPersonNumber().trim()
-                }
-        }

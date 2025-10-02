@@ -34,10 +34,10 @@ object KafkaSingleton {
         println("Published to $topic")
     }
 
-    fun readAll(
+    inline fun <reified T> readAll(
         topic: String,
         groupId: String = "default-group",
-    ): List<String> {
+    ): List<T> {
         val consumer =
             KafkaConsumer<String, String>(
                 Properties().apply {
@@ -48,9 +48,11 @@ object KafkaSingleton {
                     put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
                 },
             )
+
         consumer.subscribe(listOf(topic))
         val records = consumer.poll(Duration.ofSeconds(1))
         consumer.close()
-        return records.map { it.value() }
+
+        return records.map { jacksonObjectMapper().readValue(it.value(), T::class.java) }
     }
 }

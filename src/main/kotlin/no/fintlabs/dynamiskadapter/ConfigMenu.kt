@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
+import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.NoStudentsException
 import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.fravarsRegistreringFactory
-import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.noStudentsException
 import no.fintlabs.dynamiskadapter.util.infoBox
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
 
@@ -54,7 +54,11 @@ fun configMenu() {
                 "utdanning-fravarsregistrering" -> {
                     try {
                         val data = fravarsRegistreringFactory(amountOfResources.toInt(), orgId, domainContext)
-                    } catch (ex: noStudentsException) {
+                        headsUpInformation = "Data also added to" +
+                            " ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar")}." +
+                            "Data updated in ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")}"
+                        newestDataset = gson.toJson(data)
+                    } catch (ex: NoStudentsException) {
                         currentErrorMessage = ex.message
                     }
                 }
