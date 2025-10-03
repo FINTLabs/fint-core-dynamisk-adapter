@@ -42,21 +42,25 @@ fun configMenu() {
     var newestDataset by remember { mutableStateOf<String>("") }
 
     fun createData() {
+        currentErrorMessage = null
+        headsUpInformation = null
         if (amountOfResources.toIntOrNull() != null) {
             when (selectedResource) {
                 "utdanning-elev" -> {
                     val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
-                    headsUpInformation = "Data also added to" +
-                        " ${makeKafkaTopic(orgId, domainContext, "utdanning-elev-person")}" +
-                        "and ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")}"
+                    headsUpInformation = """
+                        Data also added to
+                        ${makeKafkaTopic(orgId, domainContext, "utdanning-elev-person")}
+                        and ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")} """
                     newestDataset = gson.toJson(data)
                 }
                 "utdanning-fravarsregistrering" -> {
                     try {
                         val data = fravarsRegistreringFactory(amountOfResources.toInt(), orgId, domainContext)
-                        headsUpInformation = "Data also added to" +
-                            " ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar")}." +
-                            "Data updated in ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")}"
+                        headsUpInformation = """
+                            Data also added to
+                            ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar")}.
+                            Data updated in ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")} """
                         newestDataset = gson.toJson(data)
                     } catch (ex: NoStudentsException) {
                         currentErrorMessage = ex.message
@@ -82,7 +86,7 @@ fun configMenu() {
         )
         Text(text = "Denne tjenesten lager Kafka Topics du kan utnytte til lokal testing av tjenester under utvikling.")
         Text(text = "Fyll inn ønskede dataparameter under. Om du ikke velger blir default verdiene brukt.")
-        Text(text = "Kafka containeren kjører på localhost:9092.")
+        Text(text = "Kafka containeren kjører på localhost:62763.")
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),

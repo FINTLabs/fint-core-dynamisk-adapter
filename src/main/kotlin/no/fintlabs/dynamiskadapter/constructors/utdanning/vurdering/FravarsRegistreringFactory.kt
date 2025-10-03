@@ -43,7 +43,7 @@ fun fravarsRegistreringFactory(
                             identifikatorverdi = createPersonNumber()
                         }
                 }
-            val randomElevForhold = elevForholdList.random()
+            val randomElevForhold: ElevforholdResource = elevForholdList.random()
 
             val elevfravar: ElevfravarResource =
                 elevFravarFactory().apply {
@@ -55,15 +55,16 @@ fun fravarsRegistreringFactory(
                     addElevforhold(Link.with("systemId/${randomElevForhold.systemId.identifikatorverdi}"))
                 }
             randomElevForhold.apply { addElevfravar(Link.with("systemId/${elevfravar.systemId.identifikatorverdi}")) }
+            fravarsRegistrering.apply { addElevfravar(Link.with("systemId/${elevfravar.systemId.identifikatorverdi}")) }
 
-            newElevForholdList.add(randomElevForhold)
             elevFravarList.add(elevfravar)
+            newElevForholdList.add(randomElevForhold)
             elevFravarsRegistreringList.add(fravarsRegistrering)
         }
 
-        KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-fravarsregistrering"), elevFravarsRegistreringList)
-        KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-elevfravar"), elevFravarList)
         KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-elevforhold"), newElevForholdList)
+        KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-elevfravar"), elevFravarList)
+        KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-fravarsregistrering"), elevFravarsRegistreringList)
 
         return elevFravarsRegistreringList
     } else {

@@ -49,18 +49,22 @@ fun elevFactory(
                 kontaktinformasjon = thePerson.kontaktinformasjon
                 systemId = studentNumber
             }
+
         thePerson.apply {
             addElev(Link.with("systemId/${elev.systemId.identifikatorverdi}"))
         }
+
         theElevForhold.apply {
             addElev(Link.with("systemId/${elev.systemId.identifikatorverdi}"))
         }
+
         personList.add(thePerson)
         elevforholdList.add(theElevForhold)
         elevList.add(elev)
     }
     KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-person"), personList)
-    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-vurdering-elevforhold"), elevforholdList)
+    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-elevforhold"), elevforholdList)
     KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev"), elevList)
+
     return elevList
 }

@@ -1,6 +1,7 @@
 package no.fintlabs.dynamiskadapter.kafka
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -53,6 +54,6 @@ object KafkaSingleton {
         val records = consumer.poll(Duration.ofSeconds(1))
         consumer.close()
 
-        return records.map { jacksonObjectMapper().readValue(it.value(), T::class.java) }
+        return records.map { objectMapper.readValue<List<T>>(it.value()) }.flatten()
     }
 }
