@@ -1,7 +1,6 @@
 package no.fintlabs.dynamiskadapter.kafka
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -28,17 +27,21 @@ object KafkaSingleton {
 
     fun <T> publish(
         topic: String,
-        data: T,
+        data: List<T>,
     ) {
-        val json = objectMapper.writeValueAsString(data)
-        producer.send(ProducerRecord(topic, "key", json))
+        for (resource in data) {
+            val json = objectMapper.writeValueAsString(resource)
+            producer.send(ProducerRecord(topic, "key", json))
+            println("Published $resource")
+        }
+
         println("Published to $topic")
     }
 
     inline fun <reified T> readAll(
         topic: String,
         groupId: String = "default-group",
-    ): List<T> {
+    ): List<T>? {
         val consumer =
             KafkaConsumer<String, String>(
                 Properties().apply {
@@ -51,9 +54,11 @@ object KafkaSingleton {
             )
 
         consumer.subscribe(listOf(topic))
-        val records = consumer.poll(Duration.ofSeconds(1))
+        val records = consumer.poll(Duration.ofMillis(200))
         consumer.close()
 
-        return records.map { objectMapper.readValue<List<T>>(it.value()) }.flatten()
+        if (records.isEmpty) return null
+
+        return records.map { objectMapper.readValue(it.value(), T::class.java) }
     }
 }

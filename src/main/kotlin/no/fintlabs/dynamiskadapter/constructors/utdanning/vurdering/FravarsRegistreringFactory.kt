@@ -26,9 +26,10 @@ fun fravarsRegistreringFactory(
     val elevFravarList = mutableListOf<ElevfravarResource>()
     val newElevForholdList = mutableListOf<ElevforholdResource>()
 
-    val elevForholdList: List<ElevforholdResource> = KafkaSingleton.readAll(makeKafkaTopic(org, domain, "utdanning-elev-elevforhold"))
+    val elevForholdList = KafkaSingleton.readAll<ElevforholdResource>(makeKafkaTopic(org, domain, "utdanning-elev-elevforhold"))
 
-    if (elevForholdList.isNotEmpty()) {
+    if (!elevForholdList.isNullOrEmpty()) {
+        @Suppress("UNUSED_VARIABLE")
         for (i in 0 until count) {
             val fravarsRegistrering: FravarsregistreringResource =
                 FravarsregistreringResource().apply {

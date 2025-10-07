@@ -56,7 +56,7 @@ fun configMenu() {
                         listOf(
                             "Data also added to: ",
                             makeKafkaTopic(orgId, domainContext, "utdanning-elev-person"),
-                            "and ",
+                            "and: ",
                             makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold"),
                         )
                     newestDataset = gson.toJson(data)

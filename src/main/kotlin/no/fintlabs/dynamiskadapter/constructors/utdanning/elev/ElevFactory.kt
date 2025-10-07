@@ -22,6 +22,7 @@ fun elevFactory(
     val personList = mutableListOf<PersonResource>()
     val elevforholdList = mutableListOf<ElevforholdResource>()
 
+    @Suppress("UNUSED_VARIABLE")
     for (i in 0 until count) {
         val thePerson = createPerson()
         val theElevForhold = createElevForhold()
