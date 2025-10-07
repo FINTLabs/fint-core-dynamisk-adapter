@@ -37,7 +37,7 @@ fun infoBox(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(type.toString(), style = MaterialTheme.typography.h6)
+            Text("$type: ", style = MaterialTheme.typography.h6)
             for (line in info) {
                 Text(line)
             }

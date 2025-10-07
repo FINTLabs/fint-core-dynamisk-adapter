@@ -9,14 +9,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
@@ -129,7 +132,12 @@ fun configMenu() {
                 )
                 Text("Selected Resource: ")
                 Text(selectedResource, style = MaterialTheme.typography.h6)
-                Button(onClick = { resourceMenuOpen = !resourceMenuOpen }) {
+                Button(
+                    onClick = { resourceMenuOpen = !resourceMenuOpen },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(),
+                ) {
                     Text("select another resource")
                 }
                 DropdownMenu(
@@ -145,8 +153,15 @@ fun configMenu() {
                         }
                     }
                 }
-                Button(onClick = { createData() }) {
-                    Text("Produser data til Kafka")
+                Button(
+                    onClick = { createData() },
+                    modifier =
+                        Modifier
+                            .padding(top = 16.dp)
+                            .height(48.dp)
+                            .fillMaxWidth(),
+                ) {
+                    Text("Produser data til Kafka", fontWeight = FontWeight.Bold)
                 }
             }
             Column(
@@ -173,19 +188,21 @@ fun configMenu() {
                 Box(
                     modifier =
                         Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
+                            .fillMaxWidth(),
                 ) {
                     Column(
                         Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     )
                     //
                     // Data Preview
                     //
                     {
-                        Text("Newest dataset preview:")
+                        Text(
+                            "Newest dataset preview:",
+                            style = MaterialTheme.typography.h6,
+                            modifier = Modifier.padding(16.dp),
+                        )
                         val scrollState = rememberScrollState()
                         Text(
                             text = newestDataset,
