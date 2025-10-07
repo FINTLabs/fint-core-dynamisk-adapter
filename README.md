@@ -1,5 +1,7 @@
 # Fint Core Dynamisk Adapter
 
+## V1 Complete: 
+
 Dette er en tjeneste designet og utviklet for intern bruk av utviklere i Novari IKS, 
 for å tilfredsstille ett relativt lett ønske. 
 
@@ -38,6 +40,22 @@ Støtte for forskjellige Informasjonsmodell versjoner kan komme senere. Enn så 
 - ha docker daemon kjørende på maskinen.
 - importer og bygg applikasjonen.
 - kjør Application.kt.
+
+## Fremtidige planer: 
+
+- Produsere mock data dynamisk fra informasjonsmodellen ( ikke hardkodede constructors )
+
+Denne skal da kunne produsere hva som helst fra informasjonsmodellen etter etterspørsel. 
+
+- Basic og Recursive
+
+Skal kunne (etter ønske) produsere enten kun etterspurte resurser, 
+eller produsere etterspurt resurs plus relaterte resurser. 
+
+- Bibliotek
+
+Separere funksjonene fra nåværende UI, så den funksjonale delen kan importeres i hvilket som helst 
+prosjekt og ta nytte av konstruksjonslogikken for mock data i tester. 
 
 
 
