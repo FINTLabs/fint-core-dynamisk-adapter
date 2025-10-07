@@ -30,6 +30,9 @@ link til den andre.
 Du kan ikke produsere fravarsregistreringer uten elever. Når du har produsert elever vil hver fravarsregistrering 
 kobles til en tilfeldig elev du har produsert, og eleven vil oppdateres til å linke til fravarsregistreringen (indirekte gjennom elevfravar og elevforhold).
 
+Over tid kan den utvikles til å forhåpentligvis støtte alle de største dataene vi håndterer i FINT.
+Støtte for forskjellige Informasjonsmodell versjoner kan komme senere. Enn så lenge følger den v3.19.0
+
 ### HOW TO RUN: 
 
 - ha docker daemon kjørende på maskinen.
@@ -37,6 +40,4 @@ kobles til en tilfeldig elev du har produsert, og eleven vil oppdateres til å l
 - kjør Application.kt.
 
 
-Over tid kan den utvikles til å forhåpentligvis støtte alle de største dataene vi håndterer i FINT.
 
-Støtte for forskjellige Informasjonsmodell versjoner kan komme senere. Enn så lenge følger den v3.19.0
