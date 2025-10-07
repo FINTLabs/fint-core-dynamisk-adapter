@@ -22,9 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
-import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
-import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.NoStudentsException
-import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.fravarsRegistreringFactory
+import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.elev.elevFactory
+import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.NoStudentsException
+import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.fravarsRegistreringFactory
 import no.fintlabs.dynamiskadapter.util.BoxType
 import no.fintlabs.dynamiskadapter.util.infoBox
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
