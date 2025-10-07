@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering
+package no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering
 
 import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.resource.utdanning.vurdering.ElevfravarResource

@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.constructors.felles
+package no.fintlabs.dynamiskadapter.constructors.premade.felles
 
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Identifikator

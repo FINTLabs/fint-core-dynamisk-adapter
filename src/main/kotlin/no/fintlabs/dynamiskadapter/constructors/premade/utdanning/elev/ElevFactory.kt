@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.constructors.utdanning.elev
+package no.fintlabs.dynamiskadapter.constructors.premade.utdanning.elev
 
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Identifikator
@@ -6,7 +6,7 @@ import no.fint.model.resource.Link
 import no.fint.model.resource.felles.PersonResource
 import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fint.model.resource.utdanning.elev.ElevforholdResource
-import no.fintlabs.dynamiskadapter.constructors.felles.createPerson
+import no.fintlabs.dynamiskadapter.constructors.premade.felles.createPerson
 import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
