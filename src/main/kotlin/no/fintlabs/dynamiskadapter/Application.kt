@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
             },
             title = "FINT Dynamisk Adapter",
         ) {
-            window.minimumSize = Dimension(500, 700)
+            window.minimumSize = Dimension(800, 800)
             configMenu()
         }
     }

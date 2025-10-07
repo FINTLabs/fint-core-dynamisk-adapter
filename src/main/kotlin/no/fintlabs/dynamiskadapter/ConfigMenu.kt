@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package no.fintlabs.dynamiskadapter
 
 import androidx.compose.foundation.border
@@ -20,6 +22,7 @@ import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.utdanning.elev.elevFactory
 import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.NoStudentsException
 import no.fintlabs.dynamiskadapter.constructors.utdanning.vurdering.fravarsRegistreringFactory
+import no.fintlabs.dynamiskadapter.util.BoxType
 import no.fintlabs.dynamiskadapter.util.infoBox
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
 
@@ -31,8 +34,9 @@ fun configMenu() {
     var domainContext by remember { mutableStateOf<String>("fint-core") }
     var selectedResource by remember { mutableStateOf<String>("utdanning-elev") }
     var resourceMenuOpen by remember { mutableStateOf<Boolean>(false) }
-    var currentErrorMessage by remember { mutableStateOf<String?>(null) }
-    var headsUpInformation by remember { mutableStateOf<String?>(null) }
+    var currentErrorMessage by remember { mutableStateOf(listOf<String>()) }
+    var headsUpInformation by remember { mutableStateOf(listOf<String>()) }
+
     val resourceOptionList =
         listOf(
             "utdanning-elev",
@@ -42,33 +46,39 @@ fun configMenu() {
     var newestDataset by remember { mutableStateOf<String>("") }
 
     fun createData() {
-        currentErrorMessage = null
-        headsUpInformation = null
+        currentErrorMessage = emptyList()
+        headsUpInformation = emptyList()
         if (amountOfResources.toIntOrNull() != null) {
             when (selectedResource) {
                 "utdanning-elev" -> {
                     val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
-                    headsUpInformation = """
-                        Data also added to
-                        ${makeKafkaTopic(orgId, domainContext, "utdanning-elev-person")}
-                        and ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")} """
+                    headsUpInformation =
+                        listOf(
+                            "Data also added to: ",
+                            makeKafkaTopic(orgId, domainContext, "utdanning-elev-person"),
+                            "and ",
+                            makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold"),
+                        )
                     newestDataset = gson.toJson(data)
                 }
                 "utdanning-fravarsregistrering" -> {
                     try {
                         val data = fravarsRegistreringFactory(amountOfResources.toInt(), orgId, domainContext)
-                        headsUpInformation = """
-                            Data also added to
-                            ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar")}.
-                            Data updated in ${makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold")} """
+                        headsUpInformation =
+                            listOf(
+                                "Data also added to: ",
+                                makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar"),
+                                "Data updated in: ",
+                                makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold"),
+                            )
                         newestDataset = gson.toJson(data)
                     } catch (ex: NoStudentsException) {
-                        currentErrorMessage = ex.message
+                        currentErrorMessage = listOf(ex.message!!)
                     }
                 }
             }
         } else {
-            currentErrorMessage = "Antall ønskede Resurser må være ett tall"
+            currentErrorMessage = listOf("Antall ønskede Resurser må være ett tall")
         }
     }
 
@@ -86,7 +96,6 @@ fun configMenu() {
         )
         Text(text = "Denne tjenesten lager Kafka Topics du kan utnytte til lokal testing av tjenester under utvikling.")
         Text(text = "Fyll inn ønskede dataparameter under. Om du ikke velger blir default verdiene brukt.")
-        Text(text = "Kafka containeren kjører på localhost:62763.")
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -95,7 +104,7 @@ fun configMenu() {
                 //
                 // ## CONTROL COLUMN ##
                 //
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(0.40f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
@@ -147,15 +156,19 @@ fun configMenu() {
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .weight(0.60f)
                         .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                if (currentErrorMessage != null) {
-                    infoBox("Error", currentErrorMessage!!)
+            )
+            //
+            // Warnings
+            //
+            {
+                if (currentErrorMessage.isNotEmpty()) {
+                    infoBox(BoxType.ERROR, currentErrorMessage)
                 }
-                if (headsUpInformation != null) {
-                    infoBox("", headsUpInformation!!)
+                if (headsUpInformation.isNotEmpty()) {
+                    infoBox(BoxType.INFO, headsUpInformation)
                 }
                 Box(
                     modifier =
@@ -167,7 +180,11 @@ fun configMenu() {
                         Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
+                    )
+                    //
+                    // Data Preview
+                    //
+                    {
                         Text("Newest dataset preview:")
                         val scrollState = rememberScrollState()
                         Text(

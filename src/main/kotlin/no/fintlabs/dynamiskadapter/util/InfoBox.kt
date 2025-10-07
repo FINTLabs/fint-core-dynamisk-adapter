@@ -14,25 +14,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+enum class BoxType {
+    ERROR,
+    INFO,
+}
+
 @Composable
 fun infoBox(
-    type: String,
-    info: String,
+    type: BoxType?,
+    info: List<String>,
 ) {
+    val outline: Color = if (type == BoxType.INFO) Color.Gray else Color.Red
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .border(2.dp, Color.Red)
+                .border(2.dp, outline)
                 .padding(16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(type, style = MaterialTheme.typography.h6)
-            Text(info)
+            Text(type.toString(), style = MaterialTheme.typography.h6)
+            for (line in info) {
+                Text(line)
+            }
         }
     }
 }
