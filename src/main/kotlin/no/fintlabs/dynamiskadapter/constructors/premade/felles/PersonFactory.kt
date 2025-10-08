@@ -9,7 +9,7 @@ import no.fintlabs.dynamiskadapter.util.createAddress
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import java.util.Date
 
-fun createPerson(): PersonResource {
+fun personFactory(): PersonResource {
     val faker = Faker()
 
     val address = createAddress()

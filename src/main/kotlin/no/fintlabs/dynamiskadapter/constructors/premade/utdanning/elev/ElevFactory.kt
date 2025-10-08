@@ -6,7 +6,7 @@ import no.fint.model.resource.Link
 import no.fint.model.resource.felles.PersonResource
 import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fint.model.resource.utdanning.elev.ElevforholdResource
-import no.fintlabs.dynamiskadapter.constructors.premade.felles.createPerson
+import no.fintlabs.dynamiskadapter.constructors.premade.felles.personFactory
 import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
@@ -24,8 +24,8 @@ fun elevFactory(
 
     @Suppress("UNUSED_VARIABLE")
     for (i in 0 until count) {
-        val thePerson = createPerson()
-        val theElevForhold = createElevForhold()
+        val thePerson = personFactory()
+        val theElevForhold = elevForholdFactory()
 
         val username =
             Identifikator().apply {

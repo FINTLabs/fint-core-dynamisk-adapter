@@ -4,7 +4,7 @@ import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.resource.utdanning.elev.ElevforholdResource
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 
-fun createElevForhold(): ElevforholdResource =
+fun elevForholdFactory(): ElevforholdResource =
     ElevforholdResource()
         .apply {
             systemId =
