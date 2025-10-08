@@ -65,7 +65,7 @@ fun elevFactory(
     }
     KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-person"), personList)
     KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-elevforhold"), elevforholdList)
-    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev"), elevList)
+    KafkaSingleton.publish(makeKafkaTopic(org, domain, "utdanning-elev-elev"), elevList)
 
     return elevList
 }
