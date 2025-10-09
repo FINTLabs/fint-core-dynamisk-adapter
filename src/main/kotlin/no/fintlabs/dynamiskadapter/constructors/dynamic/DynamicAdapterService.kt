@@ -6,18 +6,20 @@ import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
 import no.fint.model.felles.kompleksedatatyper.Periode
 import no.fint.model.felles.kompleksedatatyper.Personnavn
+import no.fint.model.utdanning.kodeverk.Tilrettelegging
 import no.fintlabs.dynamiskadapter.util.createAddress
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import org.springframework.stereotype.Service
+import java.util.Date
 import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
 @Service
-class DynamicMockService {
+class DynamicAdapterService {
     private val faker = Faker()
 
-    fun <T : Any> generateMockDataFromModel(clazz: KClass<T>): Map<String, Any> {
+    private fun <T : Any> generateMockDataFromModel(clazz: KClass<T>): Map<String, Any> {
         val result = mutableMapOf<String, Any>()
 
         clazz.memberProperties.forEach { prop ->
@@ -38,6 +40,12 @@ class DynamicMockService {
                             "id" in name -> createPersonNumber()
                             else -> faker.name
                         }
+                    // Advanced Classes
+
+                    // TODO datetime / dateTime?
+                    //  Utdanning-fagvurdering: vurderingsdato
+                    //  Utdanning-timeplan-eksamen: oppmøtetidspunkt
+                    //  OSV
 
                     // Custom Types
                     Identifikator::class ->
@@ -63,11 +71,15 @@ class DynamicMockService {
                     Periode::class ->
                         Periode().apply {
                             beskrivelse = faker.starWars.quote()
+                            start =
+                                Date(
+                                    System.currentTimeMillis() -
+                                        Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                )
                         }
                     Adresse::class -> createAddress()
-
                     else -> {
-                        println("DynamicMockService.kt - Type not specified: ${prop.returnType}")
+                        println("DynamicAdapterService.kt - Type not specified: ${prop.returnType}")
                     }
                 }
         }

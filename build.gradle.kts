@@ -31,7 +31,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
+    implementation("no.fint:fint-utdanning-model-java:$fintVersion")
     implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
+
     implementation("io.github.serpro69:kotlin-faker:1.14.0") {
         exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
     }
