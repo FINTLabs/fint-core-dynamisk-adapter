@@ -1,6 +1,7 @@
 package no.fintlabs.dynamiskadapter.constructors.dynamic
 
 import io.github.serpro69.kfaker.Faker
+import no.fint.model.FintModelObject
 import no.fint.model.felles.kompleksedatatyper.Adresse
 import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
@@ -12,12 +13,12 @@ import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import org.springframework.stereotype.Service
 import java.util.Date
 import kotlin.random.Random
-import kotlin.reflect.KClass
-import kotlin.reflect.full.memberProperties
 
 @Service
 class DynamicAdapterService {
     private val faker = Faker()
+
+    fun getClass(enum: ResourceEnum): FintModelObject = enum.clazz.getDeclaredConstructor().newInstance()
 
     fun create(
         resource: ResourceEnum,
@@ -25,19 +26,19 @@ class DynamicAdapterService {
     ) {
     }
 
-    private fun <T : Any> generateMockDataFromModel(clazz: KClass<T>): Map<String, Any> {
+    private fun <T : Any> generateMockDataFromModel(clazz: Class<T>): Map<String, Any> {
         val result = mutableMapOf<String, Any>()
 
-        clazz.memberProperties.forEach { prop ->
-
+        clazz.declaredFields.forEach { prop ->
             val name = prop.name.lowercase()
+
             val value =
-                when (prop.returnType.classifier) {
+                when (prop.type) {
                     // Basic Types
-                    Int::class -> Random.nextInt()
-                    Long::class -> Random.nextLong()
-                    Boolean::class -> Random.nextBoolean()
-                    String::class ->
+                    Int::class.java -> Random.nextInt()
+                    Long::class.java -> Random.nextLong()
+                    Boolean::class.java -> Random.nextBoolean()
+                    String::class.java ->
                         when {
                             "beskrivelse" in name -> faker.starWars.quote()
                             "kommentar" in name -> faker.starWars.quote()
@@ -48,10 +49,10 @@ class DynamicAdapterService {
                         }
                     // Advanced Classes
 
-                    Date::class -> Date()
+                    Date::class.java -> Date()
 
                     // Custom Complex Class Types
-                    Identifikator::class ->
+                    Identifikator::class.java ->
                         Identifikator().apply {
                             identifikatorverdi =
                                 when {
@@ -61,17 +62,17 @@ class DynamicAdapterService {
                                     else -> createPersonNumber()
                                 }
                         }
-                    Personnavn::class ->
+                    Personnavn::class.java ->
                         Personnavn().apply {
                             fornavn = faker.name.firstName()
                             etternavn = faker.name.lastName()
                             mellomnavn = faker.name.name()
                         }
-                    Kontaktinformasjon::class ->
+                    Kontaktinformasjon::class.java ->
                         Kontaktinformasjon().apply {
                             epostadresse = faker.funnyName.name().trim() + "@hotmail.com"
                         }
-                    Periode::class ->
+                    Periode::class.java ->
                         Periode().apply {
                             beskrivelse = faker.starWars.quote()
                             start =
@@ -80,19 +81,19 @@ class DynamicAdapterService {
                                         Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                 )
                         }
-                    Fravarsprosent::class ->
+                    Fravarsprosent::class.java ->
                         Fravarsprosent().apply {
                             fravarstimer = 3
                             prosent = 10
                             undervisningstimer = 3
                         }
-                    Adresse::class -> createAddress()
+                    Adresse::class.java -> createAddress()
                     else -> {
-                        println("DynamicAdapterService.kt - Type not specified: ${prop.returnType}")
+                        println("DynamicAdapterService.kt - Type not specified: ${prop.type}")
                     }
                 }
+            result[prop.name] = value
         }
-
         return result
     }
 }
