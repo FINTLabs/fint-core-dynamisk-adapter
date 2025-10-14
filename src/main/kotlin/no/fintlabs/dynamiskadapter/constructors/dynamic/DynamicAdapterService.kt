@@ -6,7 +6,7 @@ import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
 import no.fint.model.felles.kompleksedatatyper.Periode
 import no.fint.model.felles.kompleksedatatyper.Personnavn
-import no.fint.model.utdanning.kodeverk.Tilrettelegging
+import no.fint.model.utdanning.vurdering.Fravarsprosent
 import no.fintlabs.dynamiskadapter.util.createAddress
 import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import org.springframework.stereotype.Service
@@ -18,6 +18,12 @@ import kotlin.reflect.full.memberProperties
 @Service
 class DynamicAdapterService {
     private val faker = Faker()
+
+    fun create(
+        resource: ResourceEnum,
+        amount: Int,
+    ) {
+    }
 
     private fun <T : Any> generateMockDataFromModel(clazz: KClass<T>): Map<String, Any> {
         val result = mutableMapOf<String, Any>()
@@ -42,12 +48,9 @@ class DynamicAdapterService {
                         }
                     // Advanced Classes
 
-                    // TODO datetime / dateTime?
-                    //  Utdanning-fagvurdering: vurderingsdato
-                    //  Utdanning-timeplan-eksamen: oppmøtetidspunkt
-                    //  OSV
+                    Date::class -> Date()
 
-                    // Custom Types
+                    // Custom Complex Class Types
                     Identifikator::class ->
                         Identifikator().apply {
                             identifikatorverdi =
@@ -76,6 +79,12 @@ class DynamicAdapterService {
                                     System.currentTimeMillis() -
                                         Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                 )
+                        }
+                    Fravarsprosent::class ->
+                        Fravarsprosent().apply {
+                            fravarstimer = 3
+                            prosent = 10
+                            undervisningstimer = 3
                         }
                     Adresse::class -> createAddress()
                     else -> {
