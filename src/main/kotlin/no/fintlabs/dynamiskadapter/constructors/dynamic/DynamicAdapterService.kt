@@ -38,6 +38,10 @@ class DynamicAdapterService {
     private fun <T : Any> generateBlueprint(clazz: Class<T>): Map<String, () -> Any?> {
         val generators = mutableMapOf<String, () -> Any?>()
 
+        // reflections: find the ones that are notNull
+        // OOOOOR.... Just skip the ones that aren't these types?
+        // Maybe there's a better way...?
+
         clazz.declaredFields.forEach { field ->
             val name = field.name.lowercase()
 
@@ -69,6 +73,10 @@ class DynamicAdapterService {
                                     { faker.name }
                                 }
                             }
+                        List::class.java -> {
+                            arrayListOf("")
+                        }
+
                         // Advanced Classes
 
                         Date::class.java -> {
@@ -77,14 +85,12 @@ class DynamicAdapterService {
 
                         // Custom Complex Class Types
                         Identifikator::class.java -> {
-                            {
-                                Identifikator().apply {
-                                    identifikatorverdi =
-                                        when {
-                                            "navn" in name -> faker.funnyName.name()
-                                            else -> createPersonNumber()
-                                        }
-                                }
+                            Identifikator().apply {
+                                identifikatorverdi =
+                                    when {
+                                        "navn" in name -> faker.funnyName.name()
+                                        else -> createPersonNumber()
+                                    }
                             }
                         }
 
@@ -124,6 +130,7 @@ class DynamicAdapterService {
                         Adresse::class.java -> {
                             { createAddress() }
                         }
+
                         else -> {
                             { println("DynamicAdapterService.kt - generateBlueprint : Type not specified: ${field.type}") }
                         }

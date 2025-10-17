@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
+import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
+import no.fintlabs.dynamiskadapter.constructors.dynamic.ResourceEnum
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.elev.elevFactory
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.NoStudentsException
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.fravarsRegistreringFactory
@@ -30,7 +32,7 @@ import no.fintlabs.dynamiskadapter.util.infoBox
 import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
 
 @Composable
-fun configMenu() {
+fun configMenu(service: DynamicAdapterService) {
     val gson = GsonBuilder().setPrettyPrinting().create()
     var orgId by remember { mutableStateOf<String>("fint-no") }
     var amountOfResources by remember { mutableStateOf<String>("2") }
@@ -179,6 +181,17 @@ fun configMenu() {
             // Warnings
             //
             {
+                Button(
+                    onClick = { println(service.create(ResourceEnum.UTDANNING_ELEV_ELEV, 20)) },
+                    modifier =
+                        Modifier
+                            .padding(top = 16.dp)
+                            .height(48.dp)
+                            .fillMaxWidth(),
+                ) {
+                    Text("Test DynamiskAdapterService til konsoll", fontWeight = FontWeight.Bold)
+                }
+
                 if (currentErrorMessage.isNotEmpty()) {
                     infoBox(BoxType.ERROR, currentErrorMessage)
                 }

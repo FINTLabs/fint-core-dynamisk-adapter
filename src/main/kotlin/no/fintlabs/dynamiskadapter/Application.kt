@@ -2,6 +2,7 @@ package no.fintlabs.dynamiskadapter
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
 import no.fintlabs.dynamiskadapter.kafka.KafkaBootstrap
 import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -28,7 +29,7 @@ fun main(args: Array<String>) {
             title = "FINT Dynamisk Adapter",
         ) {
             window.minimumSize = Dimension(800, 800)
-            configMenu()
+            configMenu(DynamicAdapterService())
         }
     }
 }
