@@ -18,82 +18,134 @@ import kotlin.random.Random
 class DynamicAdapterService {
     private val faker = Faker()
 
-    fun getClass(enum: ResourceEnum): FintModelObject = enum.clazz.getDeclaredConstructor().newInstance()
+    private val blueprintCache = mutableMapOf<ResourceEnum, Map<String, Any>>()
+
+    private fun getClass(enum: ResourceEnum): FintModelObject = enum.clazz.getDeclaredConstructor().newInstance()
 
     fun create(
         resource: ResourceEnum,
         amount: Int,
-    ) {
+    ): List<FintModelObject> {
+        val resourceClass = resource.clazz
+
+        @Suppress("UNCHECKED_CAST")
+        val concreteClass = resourceClass as Class<FintModelObject>
+        val blueprint = generateBlueprint(resourceClass)
+
+        return List(amount) { createInstanceFromBlueprint(concreteClass, blueprint) }
     }
 
-    private fun <T : Any> generateMockDataFromModel(clazz: Class<T>): Map<String, Any> {
-        val result = mutableMapOf<String, Any>()
+    private fun <T : Any> generateBlueprint(clazz: Class<T>): Map<String, () -> Any?> {
+        val generators = mutableMapOf<String, () -> Any?>()
 
-        clazz.declaredFields.forEach { prop ->
-            val name = prop.name.lowercase()
+        clazz.declaredFields.forEach { field ->
+            val name = field.name.lowercase()
 
-            val value =
-                when (prop.type) {
-                    // Basic Types
-                    Int::class.java -> Random.nextInt()
-                    Long::class.java -> Random.nextLong()
-                    Boolean::class.java -> Random.nextBoolean()
-                    String::class.java ->
-                        when {
-                            "beskrivelse" in name -> faker.starWars.quote()
-                            "kommentar" in name -> faker.starWars.quote()
-                            "nummer" in name -> createPersonNumber()
-                            "kode" in name -> createPersonNumber()
-                            "id" in name -> createPersonNumber()
-                            else -> faker.name
+            val generator: () -> Any? =
+                {
+                    when (field.type) {
+                        // Basic Types
+                        Int::class.java -> {
+                            { Random.nextInt() }
                         }
-                    // Advanced Classes
 
-                    Date::class.java -> Date()
+                        Long::class.java -> {
+                            { Random.nextLong() }
+                        }
 
-                    // Custom Complex Class Types
-                    Identifikator::class.java ->
-                        Identifikator().apply {
-                            identifikatorverdi =
-                                when {
-                                    "navn" in name -> faker.funnyName.name()
-                                    "nummer" in name -> createPersonNumber()
-                                    "id" in name -> createPersonNumber()
-                                    else -> createPersonNumber()
+                        Boolean::class.java -> {
+                            { Random.nextBoolean() }
+                        }
+
+                        String::class.java ->
+                            when {
+                                "beskrivelse" in name || "kommentar" in name -> {
+                                    { faker.starWars.quote() }
                                 }
+                                "nummer" in name || "kode" in name || "id" in name -> {
+                                    { createPersonNumber() }
+                                }
+                                else -> {
+                                    { faker.name }
+                                }
+                            }
+                        // Advanced Classes
+
+                        Date::class.java -> {
+                            { Date() }
                         }
-                    Personnavn::class.java ->
-                        Personnavn().apply {
-                            fornavn = faker.name.firstName()
-                            etternavn = faker.name.lastName()
-                            mellomnavn = faker.name.name()
+
+                        // Custom Complex Class Types
+                        Identifikator::class.java -> {
+                            {
+                                Identifikator().apply {
+                                    identifikatorverdi =
+                                        when {
+                                            "navn" in name -> faker.funnyName.name()
+                                            else -> createPersonNumber()
+                                        }
+                                }
+                            }
                         }
-                    Kontaktinformasjon::class.java ->
-                        Kontaktinformasjon().apply {
-                            epostadresse = faker.funnyName.name().trim() + "@hotmail.com"
+
+                        Personnavn::class.java -> {
+                            Personnavn().apply {
+                                fornavn = faker.name.firstName()
+                                etternavn = faker.name.lastName()
+                                mellomnavn = faker.name.name()
+                            }
                         }
-                    Periode::class.java ->
-                        Periode().apply {
-                            beskrivelse = faker.starWars.quote()
-                            start =
-                                Date(
-                                    System.currentTimeMillis() -
-                                        Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
-                                )
+
+                        Kontaktinformasjon::class.java -> {
+                            Kontaktinformasjon().apply {
+                                epostadresse = faker.funnyName.name().trim() + "@hotmail.com"
+                            }
                         }
-                    Fravarsprosent::class.java ->
-                        Fravarsprosent().apply {
-                            fravarstimer = 3
-                            prosent = 10
-                            undervisningstimer = 3
+
+                        Periode::class.java -> {
+                            Periode().apply {
+                                beskrivelse = faker.starWars.quote()
+                                start =
+                                    Date(
+                                        System.currentTimeMillis() -
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                    )
+                            }
                         }
-                    Adresse::class.java -> createAddress()
-                    else -> {
-                        println("DynamicAdapterService.kt - Type not specified: ${prop.type}")
+
+                        Fravarsprosent::class.java -> {
+                            Fravarsprosent().apply {
+                                fravarstimer = 3
+                                prosent = 10
+                                undervisningstimer = 3
+                            }
+                        }
+
+                        Adresse::class.java -> {
+                            { createAddress() }
+                        }
+                        else -> {
+                            { println("DynamicAdapterService.kt - generateBlueprint : Type not specified: ${field.type}") }
+                        }
                     }
                 }
-            result[prop.name] = value
+            generators[field.name] = generator
         }
-        return result
+        return generators
+    }
+
+    private fun <T : FintModelObject> createInstanceFromBlueprint(
+        clazz: Class<T>,
+        blueprint: Map<String, () -> Any?>,
+    ): T {
+        val instance = clazz.getDeclaredConstructor().newInstance()
+
+        blueprint.forEach { (fieldName, generator) ->
+            val field = clazz.getDeclaredField(fieldName)
+            field.isAccessible = true
+            field.set(instance, generator())
+        }
+
+        return instance
     }
 }
