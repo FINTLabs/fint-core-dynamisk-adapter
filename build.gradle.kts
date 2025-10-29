@@ -33,11 +33,13 @@ dependencies {
 
     implementation("no.fint:fint-utdanning-model-java:$fintVersion")
     implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
+    implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
 
     implementation("io.github.serpro69:kotlin-faker:1.14.0") {
         exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
     }
 
+    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.apache.kafka:kafka-streams")
     implementation("org.springframework.kafka:spring-kafka")
@@ -45,7 +47,6 @@ dependencies {
     implementation("org.testcontainers:kafka")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.5")
     implementation("com.google.code.gson:gson:2.10.1")
 
