@@ -41,14 +41,18 @@ fun configMenu(service: DynamicAdapterService) {
     var resourceMenuOpen by remember { mutableStateOf<Boolean>(false) }
     var currentErrorMessage by remember { mutableStateOf(listOf<String>()) }
     var headsUpInformation by remember { mutableStateOf(listOf<String>()) }
+    var newestDataset by remember { mutableStateOf<String>("") }
+
+    fun runDynamicAdapterCreateFunction() {
+        val data = service.create(ResourceEnum.UTDANNING_VURDERING_FRAVARSREGISTRERING, 1)
+        newestDataset = gson.toJson(data)
+    }
 
     val resourceOptionList =
         listOf(
             "utdanning-elev",
             "utdanning-fravarsregistrering",
         )
-
-    var newestDataset by remember { mutableStateOf<String>("") }
 
     fun createData() {
         currentErrorMessage = emptyList()
@@ -182,7 +186,7 @@ fun configMenu(service: DynamicAdapterService) {
             //
             {
                 Button(
-                    onClick = { println(service.create(ResourceEnum.UTDANNING_ELEV_ELEV, 20)) },
+                    onClick = { runDynamicAdapterCreateFunction() },
                     modifier =
                         Modifier
                             .padding(top = 16.dp)
