@@ -1,7 +1,6 @@
 package no.fintlabs.dynamiskadapter.constructors.dynamic
 
 import io.github.serpro69.kfaker.Faker
-import jakarta.validation.constraints.NotNull
 import no.fint.model.FintModelObject
 import no.fint.model.felles.kompleksedatatyper.Adresse
 import no.fint.model.felles.kompleksedatatyper.Identifikator
@@ -9,9 +8,10 @@ import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
 import no.fint.model.felles.kompleksedatatyper.Periode
 import no.fint.model.felles.kompleksedatatyper.Personnavn
 import no.fint.model.utdanning.vurdering.Fravarsprosent
-import no.fintlabs.dynamiskadapter.util.createAddress
-import no.fintlabs.dynamiskadapter.util.createPersonNumber
+import no.fintlabs.dynamiskadapter.util.general.createAddress
+import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
 import org.springframework.stereotype.Service
+import java.lang.reflect.Field
 import java.util.Date
 import kotlin.random.Random
 
@@ -39,14 +39,30 @@ class DynamicAdapterService {
             blueprint = generateBlueprint(resourceClass)
             blueprintCache[resource] = blueprint
         }
-
+        println("CREATE::: Blueprint : $blueprint")
         return List(amount) { createInstanceFromBlueprint(concreteClass, blueprint) }
+    }
+
+    private fun getAllUniqueFields(clazz: Class<*>): List<Field> {
+        val fields = mutableListOf<Field>()
+        val names = mutableSetOf<String>()
+
+        var current: Class<*>? = clazz
+        while (current != null && current != Any::class.java) {
+            current.declaredFields
+                .filter { names.add(it.name) }
+                .forEach { fields.add(it) }
+
+            current = current.superclass
+        }
+
+        return fields
     }
 
     private fun <T : Any> generateBlueprint(clazz: Class<T>): Map<String, () -> Any?> {
         val generators = mutableMapOf<String, () -> Any?>()
 
-        clazz.declaredFields.forEach { field ->
+        getAllUniqueFields(clazz).forEach { field ->
             val name = field.name.lowercase()
 
             val generator: () -> Any? =
@@ -91,6 +107,14 @@ class DynamicAdapterService {
                         }
                     }
 
+                    Kontaktinformasjon::class.java -> {
+                        {
+                            Kontaktinformasjon().apply {
+                                epostadresse = faker.funnyName.name().trim() + "@hotmail.com"
+                            }
+                        }
+                    }
+
                     Personnavn::class.java -> {
                         {
                             Personnavn().apply {
@@ -99,6 +123,33 @@ class DynamicAdapterService {
                                 mellomnavn = faker.name.name()
                             }
                         }
+                    }
+
+                    Periode::class.java -> {
+                        {
+                            Periode().apply {
+                                beskrivelse = faker.starWars.quote()
+                                start =
+                                    Date(
+                                        System.currentTimeMillis() -
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                    )
+                            }
+                        }
+                    }
+
+                    Fravarsprosent::class.java -> {
+                        {
+                            Fravarsprosent().apply {
+                                fravarstimer = 3
+                                prosent = 10
+                                undervisningstimer = 3
+                            }
+                        }
+                    }
+
+                    Adresse::class.java -> {
+                        { createAddress() }
                     }
 
                     else -> {
@@ -121,12 +172,33 @@ class DynamicAdapterService {
     ): T {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
-        blueprint.forEach { (fieldName, generator) ->
-            val field = clazz.getDeclaredField(fieldName)
-            field.isAccessible = true
+        for ((fieldName, generator) in blueprint) {
+            if (fieldName == "writeable") continue
 
-            field.set(instance, generator())
+            // Try to find field in class hierarchy
+            val field =
+                generateSequence(clazz as Class<*>?) { it.superclass }
+                    .mapNotNull { c ->
+                        try {
+                            c.getDeclaredField(fieldName).apply { isAccessible = true }
+                        } catch (_: NoSuchFieldException) {
+                            null
+                        }
+                    }.firstOrNull()
+
+            if (field == null) {
+                println("⚠️ Field not found: $fieldName in ${clazz.simpleName}")
+                continue
+            }
+
+            val value = generator()
+            try {
+                field.set(instance, value)
+            } catch (e: Exception) {
+                println("⚠️ Could not set field '$fieldName' in ${clazz.simpleName}: ${e.message}")
+            }
         }
+
         return instance
     }
 }

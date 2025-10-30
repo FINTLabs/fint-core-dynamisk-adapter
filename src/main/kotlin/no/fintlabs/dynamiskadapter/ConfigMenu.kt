@@ -21,19 +21,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
 import no.fintlabs.dynamiskadapter.constructors.dynamic.ResourceEnum
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.elev.elevFactory
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.NoStudentsException
 import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.fravarsRegistreringFactory
-import no.fintlabs.dynamiskadapter.util.BoxType
-import no.fintlabs.dynamiskadapter.util.infoBox
-import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.kafka.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.util.uiRelated.BoxType
+import no.fintlabs.dynamiskadapter.util.uiRelated.infoBox
+import no.fintlabs.dynamiskadapter.util.uiRelated.safeSerialize
 
 @Composable
 fun configMenu(service: DynamicAdapterService) {
-    val gson = GsonBuilder().setPrettyPrinting().create()
     var orgId by remember { mutableStateOf<String>("fint-no") }
     var amountOfResources by remember { mutableStateOf<String>("2") }
     var domainContext by remember { mutableStateOf<String>("fint-core") }
@@ -42,10 +43,14 @@ fun configMenu(service: DynamicAdapterService) {
     var currentErrorMessage by remember { mutableStateOf(listOf<String>()) }
     var headsUpInformation by remember { mutableStateOf(listOf<String>()) }
     var newestDataset by remember { mutableStateOf<String>("") }
+    val gson: Gson =
+        GsonBuilder()
+            .setPrettyPrinting()
+            .create()
 
     fun runDynamicAdapterCreateFunction() {
         val data = service.create(ResourceEnum.UTDANNING_VURDERING_FRAVARSREGISTRERING, 1)
-        newestDataset = gson.toJson(data)
+        newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
     }
 
     val resourceOptionList =

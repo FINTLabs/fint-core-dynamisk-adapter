@@ -13,8 +13,8 @@ import java.awt.Dimension
 class Application
 
 fun main(args: Array<String>) {
-    val bootstrapServers = KafkaBootstrap.start()
-    KafkaSingleton.init(bootstrapServers)
+//    val bootstrapServers = KafkaBootstrap.start()
+//    KafkaSingleton.init(bootstrapServers)
 
     Thread {
         runApplication<Application>(*args)
@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     application {
         Window(
             onCloseRequest = {
-                KafkaBootstrap.stop()
+//                KafkaBootstrap.stop()
                 exitApplication()
             },
             title = "FINT Dynamisk Adapter",
