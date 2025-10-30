@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.util
+package no.fintlabs.dynamiskadapter.util.general
 
 fun createPersonNumber(): String =
     (1..11)

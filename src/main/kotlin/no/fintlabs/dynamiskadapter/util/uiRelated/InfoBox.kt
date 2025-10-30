@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.util
+package no.fintlabs.dynamiskadapter.util.uiRelated
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement

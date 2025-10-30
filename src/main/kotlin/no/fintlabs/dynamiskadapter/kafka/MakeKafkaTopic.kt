@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.util
+package no.fintlabs.dynamiskadapter.kafka
 
 fun makeKafkaTopic(
     org: String,
