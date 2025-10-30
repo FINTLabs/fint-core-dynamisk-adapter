@@ -8,8 +8,8 @@ import no.fint.model.resource.utdanning.elev.ElevResource
 import no.fint.model.resource.utdanning.elev.ElevforholdResource
 import no.fintlabs.dynamiskadapter.constructors.premade.felles.personFactory
 import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
-import no.fintlabs.dynamiskadapter.util.createPersonNumber
-import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.kafka.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
 
 fun elevFactory(
     count: Int,

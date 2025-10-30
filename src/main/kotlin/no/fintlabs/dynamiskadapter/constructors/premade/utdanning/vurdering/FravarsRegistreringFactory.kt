@@ -8,8 +8,8 @@ import no.fint.model.resource.utdanning.elev.ElevforholdResource
 import no.fint.model.resource.utdanning.vurdering.ElevfravarResource
 import no.fint.model.resource.utdanning.vurdering.FravarsregistreringResource
 import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
-import no.fintlabs.dynamiskadapter.util.createPersonNumber
-import no.fintlabs.dynamiskadapter.util.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.kafka.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
 
 class NoStudentsException(
     message: String,

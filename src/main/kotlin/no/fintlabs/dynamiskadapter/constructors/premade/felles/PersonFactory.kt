@@ -5,8 +5,8 @@ import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
 import no.fint.model.felles.kompleksedatatyper.Personnavn
 import no.fint.model.resource.felles.PersonResource
-import no.fintlabs.dynamiskadapter.util.createAddress
-import no.fintlabs.dynamiskadapter.util.createPersonNumber
+import no.fintlabs.dynamiskadapter.util.general.createAddress
+import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
 import java.util.Date
 
 fun personFactory(): PersonResource {
