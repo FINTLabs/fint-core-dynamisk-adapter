@@ -31,8 +31,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 
-    implementation("no.fint:fint-utdanning-model-java:$fintVersion")
+    implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
     implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-administrasjon-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-personvern-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
     implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
 
     implementation("io.github.serpro69:kotlin-faker:1.14.0") {

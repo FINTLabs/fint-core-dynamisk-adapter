@@ -1,10 +1,9 @@
-package no.fintlabs.dynamiskadapter
+package no.fintlabs
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import no.fintlabs.dynamiskadapter.configMenu
 import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
-import no.fintlabs.dynamiskadapter.kafka.KafkaBootstrap
-import no.fintlabs.dynamiskadapter.kafka.KafkaSingleton
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.awt.Dimension
