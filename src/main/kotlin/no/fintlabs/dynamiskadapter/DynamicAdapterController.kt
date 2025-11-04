@@ -1,6 +1,7 @@
 package no.fintlabs.dynamiskadapter
 
 import jakarta.annotation.PostConstruct
+import no.fint.model.resource.FintResource
 import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
 import no.fintlabs.metamodel.MetamodelService
 import org.springframework.stereotype.Controller
@@ -13,7 +14,6 @@ class DynamicAdapterController(
     private val model: MetamodelService,
 ) {
     // GETS RESOURCE MODEL CLASSES
-    @PostConstruct
     fun getComponents() =
         model.getComponents().forEach {
             println(it.name)
@@ -32,12 +32,8 @@ class DynamicAdapterController(
         @PathVariable component: String,
         @PathVariable resource: String,
     ) {
-        model.getResource(component, resource)?.let { resource ->
+        val resourceModelClass: Class<out FintResource>? = model.getResource(component, resource)?.resourceType
 
-            resource.resourceType
-
-            // Relations TBD
-            resource.relations
-        }
+        service.create(resourceModelClass!!, "$component/$resource", 2)
     }
 }

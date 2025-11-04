@@ -21,20 +21,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
-import no.fintlabs.dynamiskadapter.constructors.dynamic.ResourceEnum
-import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.elev.elevFactory
-import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.NoStudentsException
-import no.fintlabs.dynamiskadapter.constructors.premade.utdanning.vurdering.fravarsRegistreringFactory
-import no.fintlabs.dynamiskadapter.kafka.makeKafkaTopic
+import no.fintlabs.dynamiskadapter.kafka.KafkaBootstrap
 import no.fintlabs.dynamiskadapter.util.uiRelated.BoxType
 import no.fintlabs.dynamiskadapter.util.uiRelated.infoBox
 import no.fintlabs.dynamiskadapter.util.uiRelated.safeSerialize
+import java.awt.Dimension
+
+fun launchComposeApp(controller: DynamicAdapterController) {
+    application {
+        Window(
+            onCloseRequest = {
+                KafkaBootstrap.stop()
+                exitApplication()
+            },
+            title = "FINT Dynamisk Adapter",
+        ) {
+            window.minimumSize = Dimension(800, 800)
+            configMenu(controller)
+        }
+    }
+}
 
 @Composable
-fun configMenu(service: DynamicAdapterService) {
+fun configMenu(controller: DynamicAdapterController) {
     var orgId by remember { mutableStateOf<String>("fint-no") }
     var amountOfResources by remember { mutableStateOf<String>("2") }
     var domainContext by remember { mutableStateOf<String>("fint-core") }
@@ -48,67 +61,14 @@ fun configMenu(service: DynamicAdapterService) {
             .setPrettyPrinting()
             .create()
 
-    fun runDynamicAdapterCreateFunction() {
-        // TODO: OPPKLARING: Hente modell fra metamodel isteden for hardkodet Enum?
+//    fun runDynamicAdapterCreateFunction() {
 //        val component = metamodel.getComponent("utdanning-elev")
-
-        val data = service.create(ResourceEnum.UTDANNING_VURDERING_FRAVARSREGISTRERING, 20)
-        newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
-    }
-
-    val resourceOptionList =
-        listOf(
-            "utdanning-elev",
-            "utdanning-fravarsregistrering",
-        )
-
-    fun createData() {
-        currentErrorMessage = emptyList()
-        headsUpInformation = emptyList()
-        if (amountOfResources.toIntOrNull() != null) {
-            when (selectedResource) {
-                "utdanning-elev" -> {
-                    val data = elevFactory(amountOfResources.toInt(), orgId, domainContext)
-                    headsUpInformation =
-                        listOf(
-                            "Data also added to: ",
-                            makeKafkaTopic(orgId, domainContext, "utdanning-elev-person"),
-                            "and: ",
-                            makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold"),
-                        )
-                    newestDataset = gson.toJson(data)
-                }
-                "utdanning-fravarsregistrering" -> {
-                    try {
-                        val data = fravarsRegistreringFactory(amountOfResources.toInt(), orgId, domainContext)
-                        headsUpInformation =
-                            listOf(
-                                "Data also added to: ",
-                                makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevfravar"),
-                                "Data updated in: ",
-                                makeKafkaTopic(orgId, domainContext, "utdanning-vurdering-elevforhold"),
-                            )
-                        newestDataset = gson.toJson(data)
-                    } catch (ex: NoStudentsException) {
-                        currentErrorMessage = listOf(ex.message!!)
-                    }
-                }
-            }
-        } else {
-            currentErrorMessage = listOf("Antall ønskede Resurser må være ett tall")
-        }
-    }
+//
+//        val data = service.create()
+//        newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
+//    }
 
     var searchQuery by remember { mutableStateOf("") }
-
-    @Composable
-    fun ResourceSearch() {
-        val allResources = ResourceEnum.entries.toList()
-        val filteredResources =
-            allResources.filter {
-                it.name.contains(searchQuery, ignoreCase = true)
-            }
-    }
 
     Column(
         //
@@ -135,59 +95,6 @@ fun configMenu(service: DynamicAdapterService) {
                 modifier = Modifier.fillMaxWidth().weight(0.40f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = "Kafka configuration:",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.h5,
-                )
-                TextField(
-                    value = orgId,
-                    onValueChange = { orgId = it },
-                    label = { Text("orgId:") },
-                )
-                TextField(
-                    value = domainContext,
-                    onValueChange = { domainContext = it },
-                    label = { Text("domainContext:") },
-                )
-                TextField(
-                    value = amountOfResources,
-                    onValueChange = { amountOfResources = it },
-                    label = { Text("Antall ønskede Resurser") },
-                )
-                Text("Selected Resource: ")
-                Text(selectedResource, style = MaterialTheme.typography.h6)
-                Button(
-                    onClick = { resourceMenuOpen = !resourceMenuOpen },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth(),
-                ) {
-                    Text("select another resource")
-                }
-                DropdownMenu(
-                    expanded = resourceMenuOpen,
-                    onDismissRequest = { resourceMenuOpen = false },
-                ) {
-                    resourceOptionList.forEach { resourceOption ->
-                        DropdownMenuItem(onClick = {
-                            selectedResource = resourceOption
-                            resourceMenuOpen = false
-                        }) {
-                            Text(resourceOption)
-                        }
-                    }
-                }
-                Button(
-                    onClick = { createData() },
-                    modifier =
-                        Modifier
-                            .padding(top = 16.dp)
-                            .height(48.dp)
-                            .fillMaxWidth(),
-                ) {
-                    Text("Produser data til Kafka", fontWeight = FontWeight.Bold)
-                }
             }
             Column(
                 //
@@ -205,7 +112,7 @@ fun configMenu(service: DynamicAdapterService) {
             //
             {
                 Button(
-                    onClick = { runDynamicAdapterCreateFunction() },
+                    onClick = { },
                     modifier =
                         Modifier
                             .padding(top = 16.dp)

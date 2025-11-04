@@ -1,12 +1,12 @@
 package no.fintlabs
 
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
-import no.fintlabs.dynamiskadapter.configMenu
-import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
+import no.fintlabs.dynamiskadapter.DynamicAdapterController
+import no.fintlabs.dynamiskadapter.launchComposeApp
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import java.awt.Dimension
+import org.springframework.context.ConfigurableApplicationContext
+
+lateinit var context: ConfigurableApplicationContext
 
 @SpringBootApplication
 class Application
@@ -14,21 +14,9 @@ class Application
 fun main(args: Array<String>) {
 //    val bootstrapServers = KafkaBootstrap.start()
 //    KafkaSingleton.init(bootstrapServers)
+    context = runApplication<Application>(*args)
 
-    Thread {
-        runApplication<Application>(*args)
-    }.start()
-
-    application {
-        Window(
-            onCloseRequest = {
-//                KafkaBootstrap.stop()
-                exitApplication()
-            },
-            title = "FINT Dynamisk Adapter",
-        ) {
-            window.minimumSize = Dimension(800, 800)
-            configMenu(DynamicAdapterService())
-        }
-    }
+    //
+    val controller = context.getBean(DynamicAdapterController::class.java)
+    launchComposeApp(controller)
 }

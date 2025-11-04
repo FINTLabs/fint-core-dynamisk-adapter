@@ -1,12 +1,12 @@
 package no.fintlabs.dynamiskadapter.constructors.dynamic
 
 import io.github.serpro69.kfaker.Faker
-import no.fint.model.FintModelObject
 import no.fint.model.felles.kompleksedatatyper.Adresse
 import no.fint.model.felles.kompleksedatatyper.Identifikator
 import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
 import no.fint.model.felles.kompleksedatatyper.Periode
 import no.fint.model.felles.kompleksedatatyper.Personnavn
+import no.fint.model.resource.FintResource
 import no.fint.model.utdanning.vurdering.Fravarsprosent
 import no.fintlabs.dynamiskadapter.util.general.createAddress
 import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
@@ -18,27 +18,23 @@ import kotlin.random.Random
 @Service
 class DynamicAdapterService {
     private val faker = Faker()
-
-    private val blueprintCache = mutableMapOf<ResourceEnum, Map<String, () -> Any?>>()
+    private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
 
     fun create(
-        resource: ResourceEnum,
+        resource: Class<out FintResource>,
+        className: String,
         amount: Int,
-    ): List<FintModelObject> {
-        val resourceClass = resource.clazz
+    ): List<FintResource> {
         var blueprint: Map<String, () -> Any?>
 
-        @Suppress("UNCHECKED_CAST")
-        val concreteClass = resourceClass as Class<FintModelObject>
-
-        if (blueprintCache.containsKey(resource)) {
-            blueprint = blueprintCache[resource]!!
+        if (blueprintCache.containsKey(className)) {
+            blueprint = blueprintCache[className]!!
         } else {
-            blueprint = generateBlueprint(resourceClass)
-            blueprintCache[resource] = blueprint
+            blueprint = generateBlueprint(resource)
+            blueprintCache[className] = blueprint
         }
         println("CREATE::: Blueprint : $blueprint")
-        return List(amount) { createInstanceFromBlueprint(concreteClass, blueprint) }
+        return List(amount) { createInstanceFromBlueprint(resource, blueprint) }
     }
 
     private fun getAllUniqueFields(clazz: Class<*>): List<Field> {
@@ -164,7 +160,7 @@ class DynamicAdapterService {
         return generators
     }
 
-    private fun <T : FintModelObject> createInstanceFromBlueprint(
+    private fun <T : FintResource> createInstanceFromBlueprint(
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
     ): T {
