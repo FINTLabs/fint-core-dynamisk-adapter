@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.util.general
+package no.fintlabs.dynamiskadapter.util
 
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.resource.felles.kompleksedatatyper.AdresseResource
