@@ -2,7 +2,7 @@ package no.fintlabs.dynamiskadapter
 
 import jakarta.annotation.PostConstruct
 import no.fint.model.resource.FintResource
-import no.fintlabs.dynamiskadapter.constructors.dynamic.DynamicAdapterService
+import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.fintlabs.metamodel.MetamodelService
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.PathVariable

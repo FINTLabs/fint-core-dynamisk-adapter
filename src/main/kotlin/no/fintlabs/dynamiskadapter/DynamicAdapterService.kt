@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter.constructors.dynamic
+package no.fintlabs.dynamiskadapter
 
 import io.github.serpro69.kfaker.Faker
 import no.fint.model.felles.kompleksedatatyper.Adresse
@@ -13,6 +13,7 @@ import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
 import org.springframework.stereotype.Service
 import java.lang.reflect.Field
 import java.util.Date
+import kotlin.collections.iterator
 import kotlin.random.Random
 
 @Service
@@ -62,13 +63,13 @@ class DynamicAdapterService {
             val generator: () -> Any? =
                 when (field.type) {
                     Int::class.java, Integer::class.java -> {
-                        { Random.nextInt() }
+                        { Random.Default.nextInt() }
                     }
                     Long::class.java, java.lang.Long::class.java -> {
-                        { Random.nextLong() }
+                        { Random.Default.nextLong() }
                     }
                     Boolean::class.java, java.lang.Boolean::class.java -> {
-                        { Random.nextBoolean() }
+                        { Random.Default.nextBoolean() }
                     }
 
                     String::class.java ->
@@ -126,7 +127,7 @@ class DynamicAdapterService {
                                 start =
                                     Date(
                                         System.currentTimeMillis() -
-                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                            Random.Default.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }
