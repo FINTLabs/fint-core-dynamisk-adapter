@@ -21,8 +21,6 @@ class DynamicAdapterService {
 
     private val blueprintCache = mutableMapOf<ResourceEnum, Map<String, () -> Any?>>()
 
-    private fun getClass(enum: ResourceEnum): FintModelObject = enum.clazz.getDeclaredConstructor().newInstance()
-
     fun create(
         resource: ResourceEnum,
         amount: Int,

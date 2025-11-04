@@ -49,7 +49,10 @@ fun configMenu(service: DynamicAdapterService) {
             .create()
 
     fun runDynamicAdapterCreateFunction() {
-        val data = service.create(ResourceEnum.UTDANNING_VURDERING_FRAVARSREGISTRERING, 1)
+        // TODO: OPPKLARING: Hente modell fra metamodel isteden for hardkodet Enum?
+//        val component = metamodel.getComponent("utdanning-elev")
+
+        val data = service.create(ResourceEnum.UTDANNING_VURDERING_FRAVARSREGISTRERING, 20)
         newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
     }
 
@@ -94,6 +97,17 @@ fun configMenu(service: DynamicAdapterService) {
         } else {
             currentErrorMessage = listOf("Antall ønskede Resurser må være ett tall")
         }
+    }
+
+    var searchQuery by remember { mutableStateOf("") }
+
+    @Composable
+    fun ResourceSearch() {
+        val allResources = ResourceEnum.entries.toList()
+        val filteredResources =
+            allResources.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
     }
 
     Column(
