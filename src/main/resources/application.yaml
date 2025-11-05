@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: fint-core-dynamisk-adapter
+  kafka:
+    bootstrap-servers: localhost:9092
+fint:
+  kafka:
+    application-id: "fint-core-dynamisk-adapter"
+    topic-retention-hours: 168
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: "fint-core-dynamisk-adapter-group"
+    producer:
+      client-id: "fint-core-dynamisk-adapter-producer"
+

@@ -39,6 +39,7 @@ Støtte for forskjellige Informasjonsmodell versjoner kan komme senere. Enn så 
 
 - ha docker daemon kjørende på maskinen.
 - importer og bygg applikasjonen.
+- kjør kommando: docker-compose up -d
 - kjør Application.kt.
 
 ## Fremtidige planer: 

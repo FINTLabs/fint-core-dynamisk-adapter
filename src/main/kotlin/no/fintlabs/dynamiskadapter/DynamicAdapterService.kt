@@ -8,8 +8,8 @@ import no.fint.model.felles.kompleksedatatyper.Periode
 import no.fint.model.felles.kompleksedatatyper.Personnavn
 import no.fint.model.resource.FintResource
 import no.fint.model.utdanning.vurdering.Fravarsprosent
-import no.fintlabs.dynamiskadapter.util.general.createAddress
-import no.fintlabs.dynamiskadapter.util.general.createPersonNumber
+import no.fintlabs.dynamiskadapter.util.createAddress
+import no.fintlabs.dynamiskadapter.util.createPersonNumber
 import org.springframework.stereotype.Service
 import java.lang.reflect.Field
 import java.util.Date
@@ -63,13 +63,13 @@ class DynamicAdapterService {
             val generator: () -> Any? =
                 when (field.type) {
                     Int::class.java, Integer::class.java -> {
-                        { Random.Default.nextInt() }
+                        { Random.nextInt() }
                     }
                     Long::class.java, java.lang.Long::class.java -> {
-                        { Random.Default.nextLong() }
+                        { Random.nextLong() }
                     }
                     Boolean::class.java, java.lang.Boolean::class.java -> {
-                        { Random.Default.nextBoolean() }
+                        { Random.nextBoolean() }
                     }
 
                     String::class.java ->
@@ -127,7 +127,7 @@ class DynamicAdapterService {
                                 start =
                                     Date(
                                         System.currentTimeMillis() -
-                                            Random.Default.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }

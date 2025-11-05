@@ -56,6 +56,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("org.jetbrains.skiko:skiko-awt-runtime-macos-arm64:0.8.0")
+    implementation("androidx.compose.material3:material3:1.2.0")
     implementation("org.jetbrains.compose.ui:ui-desktop:1.6.11")
     implementation("org.jetbrains.compose.foundation:foundation-desktop:1.6.11")
     implementation("org.jetbrains.compose.material:material-desktop:1.6.11")
