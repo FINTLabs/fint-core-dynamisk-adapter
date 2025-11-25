@@ -23,7 +23,7 @@ repositories {
     google()
 }
 
-val fintVersion = "3.19.0"
+val fintVersion = "3.21.10"
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -38,7 +38,7 @@ dependencies {
     implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
     implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
     implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
-    implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
+//    implementation("no.fintlabs:fint-kafka:3.0.0-rc-1")
 
     implementation("io.github.serpro69:kotlin-faker:1.14.0") {
         exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
@@ -56,7 +56,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("org.jetbrains.skiko:skiko-awt-runtime-macos-arm64:0.8.0")
-    implementation("androidx.compose.material3:material3:1.2.0")
     implementation("org.jetbrains.compose.ui:ui-desktop:1.6.11")
     implementation("org.jetbrains.compose.foundation:foundation-desktop:1.6.11")
     implementation("org.jetbrains.compose.material:material-desktop:1.6.11")

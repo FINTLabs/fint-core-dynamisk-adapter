@@ -25,17 +25,17 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import no.fintlabs.dynamiskadapter.kafka.KafkaBootstrap
 import no.fintlabs.dynamiskadapter.util.uiRelated.BoxType
 import no.fintlabs.dynamiskadapter.util.uiRelated.infoBox
 import no.fintlabs.dynamiskadapter.util.uiRelated.safeSerialize
+import searchBar
 import java.awt.Dimension
 
 fun launchComposeApp(controller: DynamicAdapterController) {
     application {
         Window(
             onCloseRequest = {
-                KafkaBootstrap.stop()
+//                KafkaBootstrap.stop()
                 exitApplication()
             },
             title = "FINT Dynamisk Adapter",
@@ -51,9 +51,7 @@ fun configMenu(controller: DynamicAdapterController) {
     var orgId by remember { mutableStateOf<String>("fint-no") }
     var amountOfResources by remember { mutableStateOf<String>("2") }
     var domainContext by remember { mutableStateOf<String>("fint-core") }
-    var selectedResource by remember { mutableStateOf<String>("utdanning-elev") }
-    var resourceMenuOpen by remember { mutableStateOf<Boolean>(false) }
-    var currentErrorMessage by remember { mutableStateOf(listOf<String>()) }
+    val currentErrorMessage = remember { mutableStateOf(emptyList<String>()) }
     var headsUpInformation by remember { mutableStateOf(listOf<String>()) }
     var newestDataset by remember { mutableStateOf<String>("") }
     val gson: Gson =
@@ -61,14 +59,29 @@ fun configMenu(controller: DynamicAdapterController) {
             .setPrettyPrinting()
             .create()
 
-//    fun runDynamicAdapterCreateFunction() {
-//        val component = metamodel.getComponent("utdanning-elev")
-//
 //        val data = service.create()
 //        newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
 //    }
 
-    var searchQuery by remember { mutableStateOf("") }
+    val allComponents: List<String> = controller.getComponents()
+    val selectedComponent = remember { mutableStateOf("") }
+    val selectedResource = remember { mutableStateOf("") }
+    var allResources by remember { mutableStateOf(emptyList<String>()) }
+
+    fun selectComponent(component: String) {
+        selectedComponent.value = component
+        allResources = controller.getResources(component)
+        selectedResource.value = ""
+    }
+
+    fun runCreateFunction() {
+        if (selectedResource.value == "") {
+            currentErrorMessage.value = mutableListOf("Please select a resource")
+        } else {
+            val data = controller.generateResources(resource = selectedResource.value, component = selectedComponent.value)
+            newestDataset = data.joinToString(separator = ",\n") { safeSerialize(it, gson) }
+        }
+    }
 
     Column(
         //
@@ -95,6 +108,34 @@ fun configMenu(controller: DynamicAdapterController) {
                 modifier = Modifier.fillMaxWidth().weight(0.40f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                searchBar(
+                    label = "Component: ",
+                    allItems = allComponents,
+                    onSelectItem = { selectComponent(it) },
+                )
+
+                searchBar(
+                    label = "Resource: ",
+                    allItems = allResources,
+                    onSelectItem = { selectedResource.value = it },
+                )
+
+                TextField(
+                    value = amountOfResources,
+                    onValueChange = { amountOfResources = it },
+                    label = { Text("Amount: ") },
+                )
+
+                Button(
+                    onClick = { runCreateFunction() },
+                    modifier =
+                        Modifier
+                            .padding(top = 16.dp)
+                            .height(48.dp)
+                            .fillMaxWidth(),
+                ) {
+                    Text("Kjør funksjon", fontWeight = FontWeight.Bold)
+                }
             }
             Column(
                 //
@@ -111,19 +152,8 @@ fun configMenu(controller: DynamicAdapterController) {
             // Warnings
             //
             {
-                Button(
-                    onClick = { },
-                    modifier =
-                        Modifier
-                            .padding(top = 16.dp)
-                            .height(48.dp)
-                            .fillMaxWidth(),
-                ) {
-                    Text("Test DynamiskAdapterService til konsoll", fontWeight = FontWeight.Bold)
-                }
-
-                if (currentErrorMessage.isNotEmpty()) {
-                    infoBox(BoxType.ERROR, currentErrorMessage)
+                if (currentErrorMessage.value.isNotEmpty()) {
+                    infoBox(BoxType.ERROR, currentErrorMessage.value)
                 }
                 if (headsUpInformation.isNotEmpty()) {
                     infoBox(BoxType.INFO, headsUpInformation)
