@@ -18,13 +18,20 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+# IntelliJ caches
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
 
 ### Kotlin / JVM ###
 *.class
@@ -34,6 +41,12 @@ out/
 hs_err_pid*
 replay_pid*
 *.log
+
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
 
 ### NetBeans ###
 /nbproject/private/
