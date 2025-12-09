@@ -63,3 +63,12 @@ Thumbs.db
 
 ### Kotlin ###
 .kotlin
+
+### Maven local test output ###
+target/
+
+### Root-level build artifacts ###
+core-ui/build/
+core-api/build/
+core-lib/build/
+core-contract/build/
