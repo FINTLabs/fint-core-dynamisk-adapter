@@ -1,9 +1,19 @@
 plugins {
     kotlin("jvm") version "2.2.0"
+    `maven-publish`
+    `java-library`
 }
 
 kotlin {
     jvmToolchain(21)
+}
+
+group = "no.fintlabs"
+val version: String by project
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
@@ -11,7 +21,6 @@ repositories {
     maven("https://repo.fintlabs.no/releases")
 }
 
-val fintVersion = "3.21.10"
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -23,13 +32,15 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
 
     implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
-    implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-administrasjon-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-personvern-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-utdanning-resource-model-java:$version")
+    implementation("no.fint:fint-administrasjon-resource-model-java:$version")
+    implementation("no.fint:fint-personvern-resource-model-java:$version")
+    implementation("no.fint:fint-okonomi-resource-model-java:$version")
+    implementation("no.fint:fint-ressurs-resource-model-java:$version")
+    implementation("no.fint:fint-arkiv-resource-model-java:$version")
 }
+
+
 
 configurations.all {
     resolutionStrategy {
