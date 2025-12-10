@@ -1,0 +1,33 @@
+name: Publish core-lib to maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Version to publish: 3.21.10"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      REPOSILITE_USERNAME: ${{ secrets.REPOSILITE_USERNAME }}
+      REPOSILITE_PASSWORD: ${{ secrets.REPOSILITE_PASSWORD }}
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: publish core-lib
+        run: |
+          ./gradlew :core-lib:clean :core-lib:build \
+            :core-lib:publish \
+            -Pversion=${RELEASE_VERSION}
