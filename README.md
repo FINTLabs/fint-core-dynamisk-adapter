@@ -57,13 +57,16 @@ testImplementation("no.fintlabs:dynamisk-adapter-core-lib:1.0.1")
 
 ```
 
-I test miljø kan den for eksempel implimenteres slik:
+Test implimentasjon eksempel:
 
 ```
 val service = DynamicAdapterService()
 
 val tolvElever = service.create(ElevResource::class.java, 12)
 ```
+
+
+*dynamisk adapter trenger kotlin 2.2.0 eller nyere*
 
 # **core-api: REST Eksponering**
 
