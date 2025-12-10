@@ -5,7 +5,7 @@ informasjonsmodellen.
 
 ### Nåværende status:
 
-- Grunnfunksjonalitet fungerer veldig bra, og kan [implimenteres i tjenester og tester](#implimentasjon-i-tester).
+- Grunnfunksjonalitet fungerer veldig bra, og kan [implimenteres i tjenester og tester](#core-lib-data-generering).
 
 - Prosjektet kan kjøres lokalt, og med core-ui/uiMain.kt kan du få opp ett JAVA vindu hvor du kan
   etterspørre dataene du ønsker uten å trenge å skrive kode.
