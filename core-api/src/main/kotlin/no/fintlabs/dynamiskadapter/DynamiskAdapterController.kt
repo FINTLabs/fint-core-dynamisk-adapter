@@ -12,27 +12,30 @@ class DynamiskAdapterController(
     private val service: DynamicAdapterService,
     private val model: MetamodelService,
 ) {
-    @GetMapping("/api/getAllComponents")
+    @GetMapping("/getAllComponents")
     fun getAllComponents(): List<String> = model.getComponents().map { it.name }
 
-    @GetMapping("/api/getResources")
+    @GetMapping("/getResources")
     fun getResources(@RequestParam component: String): List<String> =
         model.getComponent(component)?.let { component ->
             component.resources.map { resource ->
-                resource.name
+                resource.name.lowercase()
             }
-        } ?: emptyList()
+        } ?: listOf(
+            "ERROR: Unrecognized Component.",
+            "Please double check your spelling.",
+            "Domain and component both need to be included, separated by comma."
+        )
 
-    @GetMapping("/api/ping")
+    @GetMapping("/ping")
     fun ping(): String = "ok"
 
-    @PostMapping("/api/create")
+    @PostMapping("/create")
     fun create(
         @RequestParam component: String,
         @RequestParam resource: String,
         @RequestParam count: Int
     ): List<FintResource> {
-        val classname = "$component/$resource"
         val resourceModelClass = model.getResource(component, resource)
 
         if (resourceModelClass == null) {
@@ -40,6 +43,6 @@ class DynamiskAdapterController(
             throw IllegalArgumentException("Unknown component/resource: $component/$resource")
         }
 
-        return service.create(resourceModelClass.resourceType, classname, count)
+        return service.create(resourceModelClass.resourceType, count)
     }
 }
