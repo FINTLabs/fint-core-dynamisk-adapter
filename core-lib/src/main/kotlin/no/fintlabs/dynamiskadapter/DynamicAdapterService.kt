@@ -1,6 +1,11 @@
 package no.fintlabs.dynamiskadapter
 
+import no.fint.model.administrasjon.kompleksedatatyper.Kontostreng
+import no.fint.model.arkiv.noark.*
 import no.fint.model.felles.kompleksedatatyper.*
+import no.fint.model.okonomi.faktura.Fakturalinje
+import no.fint.model.okonomi.faktura.Fakturamottaker
+import no.fint.model.okonomi.regnskap.Bilag
 import no.fint.model.resource.FintResource
 import no.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
@@ -13,18 +18,19 @@ class DynamicAdapterService {
 
     fun create(
         resource: Class<out FintResource>,
-        className: String,
         amount: Int,
     ): List<FintResource> {
+        val resourceName = resource.simpleName
         var blueprint: Map<String, () -> Any?>
 
-        if (blueprintCache.containsKey(className)) {
-            blueprint = blueprintCache[className]!!
+        if (blueprintCache.containsKey(resourceName)) {
+            blueprint = blueprintCache[resourceName]!!
         } else {
             blueprint = generateBlueprint(resource)
-            blueprintCache[className] = blueprint
-            println("📋 DynamicAdapterService.create generated blueprint: $className")
+            blueprintCache[resourceName] = blueprint
+            println("📋 DynamicAdapterService: generated blueprint: $resourceName")
         }
+        println("📋 DynamicAdapterService: creating ${amount}x $resourceName")
         return List(amount) { createInstanceFromBlueprint(resource, blueprint) }
     }
 
@@ -52,6 +58,9 @@ class DynamicAdapterService {
 
             val generator: () -> Any? =
                 when (field.type) {
+
+                    // Basic Java classes
+
                     Int::class.java, Integer::class.java -> {
                         { Random.nextInt() }
                     }
@@ -74,14 +83,15 @@ class DynamicAdapterService {
                                 { randomizer.personNumber() }
                             }
 
+                            "tittel" in name -> {
+                                { randomizer.funnyName() }
+                            }
+
                             else -> {
                                 { randomizer.fullName() }
                             }
                         }
 
-                    Date::class.java -> {
-                        { Date() }
-                    }
 
                     List::class.java -> {
                         { emptyList<String>() }
@@ -89,6 +99,76 @@ class DynamicAdapterService {
 
                     Map::class.java -> {
                         { emptyMap<Any?, Any?>() }
+                    }
+
+                    Date::class.java -> {
+                        { Date() }
+                    }
+
+                    // Complex Fint Datatypes
+
+                    Adresse::class.java -> {
+                        { randomizer.createAddress() }
+                    }
+
+                    Avskrivning::class.java -> {
+                        {
+                            Avskrivning().apply {
+                                avskrevetAv = randomizer.fullName()
+                                avskrivningsdato = Date()
+                                avskrivningsmate = randomizer.quote()
+                            }
+                        }
+                    }
+
+                    Bilag::class.java -> {
+                        {
+                            Bilag().apply {
+                                bilagsdato = Date(
+                                    System.currentTimeMillis() -
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
+                                )
+                            }
+                        }
+                    }
+
+                    Dokumentbeskrivelse::class.java -> {
+                        {
+                            Dokumentbeskrivelse().apply {
+                                tittel = randomizer.funnyName()
+                            }
+                        }
+                    }
+
+                    Dokumentobjekt::class.java -> {
+                        {
+                            Dokumentobjekt()
+                        }
+                    }
+
+                    Fakturalinje::class.java -> {
+                        {
+                            Fakturalinje().apply {
+                                antall = 3.14F
+                                pris = 100
+                            }
+                        }
+                    }
+
+                    Fakturamottaker::class.java -> {
+                        {
+                            Fakturamottaker()
+                        }
+                    }
+
+                    Fravarsprosent::class.java -> {
+                        {
+                            Fravarsprosent().apply {
+                                fravarstimer = 3
+                                prosent = 10
+                                undervisningstimer = 3
+                            }
+                        }
                     }
 
                     Identifikator::class.java -> {
@@ -104,10 +184,75 @@ class DynamicAdapterService {
                         }
                     }
 
+                    Journalpost::class.java -> {
+                        {
+                            Journalpost().apply {
+                                tittel = randomizer.funnyName()
+                            }
+                        }
+                    }
+
+                    Klasse::class.java -> {
+                        {
+                            Klasse().apply {
+                                klasseId = randomizer.personNumber()
+                                tittel = randomizer.funnyName()
+                            }
+                        }
+                    }
+
                     Kontaktinformasjon::class.java -> {
                         {
                             Kontaktinformasjon().apply {
                                 epostadresse = randomizer.funnyName() + "@hotmail.com"
+                            }
+                        }
+                    }
+
+                    Kontostreng::class.java -> {
+                        {
+                            Kontostreng()
+                        }
+                    }
+
+                    Korrespondansepart::class.java -> {
+                        {
+                            Korrespondansepart()
+                        }
+                    }
+
+                    Matrikkelnummer::class.java -> {
+                        {
+                            Matrikkelnummer()
+                        }
+                    }
+
+                    Merknad::class.java -> {
+                        {
+                            Merknad().apply {
+                                merknadsdato = Date()
+                                merknadstekst = randomizer.quote()
+                            }
+                        }
+                    }
+
+                    Part::class.java -> {
+                        {
+                            Part().apply {
+                                partNavn = randomizer.funnyName()
+                            }
+                        }
+                    }
+
+                    Periode::class.java -> {
+                        {
+                            Periode().apply {
+                                beskrivelse = randomizer.quote()
+                                start =
+                                    Date(
+                                        System.currentTimeMillis() -
+                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
+                                    )
                             }
                         }
                     }
@@ -122,31 +267,10 @@ class DynamicAdapterService {
                         }
                     }
 
-                    Periode::class.java -> {
+                    Skjerming::class.java -> {
                         {
-                            Periode().apply {
-                                beskrivelse = randomizer.quote()
-                                start =
-                                    Date(
-                                        System.currentTimeMillis() -
-                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
-                                    )
-                            }
+                            Skjerming()
                         }
-                    }
-
-                    Fravarsprosent::class.java -> {
-                        {
-                            Fravarsprosent().apply {
-                                fravarstimer = 3
-                                prosent = 10
-                                undervisningstimer = 3
-                            }
-                        }
-                    }
-
-                    Adresse::class.java -> {
-                        { randomizer.createAddress() }
                     }
 
                     else -> {
@@ -172,7 +296,6 @@ class DynamicAdapterService {
         for ((fieldName, generator) in blueprint) {
             if (fieldName == "writeable") continue
 
-            // Try to find field in class hierarchy
             val field =
                 generateSequence(clazz as Class<*>?) { it.superclass }
                     .mapNotNull { c ->
