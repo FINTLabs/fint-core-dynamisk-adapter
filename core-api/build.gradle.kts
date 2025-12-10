@@ -24,6 +24,7 @@ val fintVersion = "3.21.10"
 
 dependencies {
     implementation(project(":core-lib"))
+    testImplementation(project(":core-lib"))
     implementation(project(":core-contract"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")

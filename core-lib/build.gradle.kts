@@ -21,16 +21,14 @@ repositories {
     maven("https://repo.fintlabs.no/releases")
 }
 
-
 dependencies {
+    // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-
-    // FINT resource/model dependencies
-    implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
 
+    // FINT resource/model dependencies
     implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
     implementation("no.fint:fint-utdanning-resource-model-java:$version")
     implementation("no.fint:fint-administrasjon-resource-model-java:$version")
@@ -40,7 +38,25 @@ dependencies {
     implementation("no.fint:fint-arkiv-resource-model-java:$version")
 }
 
-
+publishing {
+    repositories {
+        maven {
+            url = uri("https://repo.fintlabs.no/releases")
+            credentials {
+                username = System.getenv("REPO_USERNAME")
+                password = System.getenv("REPO_PASSWORD")
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
 
 configurations.all {
     resolutionStrategy {
