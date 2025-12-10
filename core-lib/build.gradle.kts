@@ -43,8 +43,8 @@ publishing {
         maven {
             url = uri("https://repo.fintlabs.no/releases")
             credentials {
-                username = System.getenv("REPO_USERNAME")
-                password = System.getenv("REPO_PASSWORD")
+                username = System.getenv("REPOSILITE_USERNAME")
+                password = System.getenv("REPOSILITE_PASSWORD")
             }
             authentication {
                 create<BasicAuthentication>("basic")
