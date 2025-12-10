@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: "Version to publish: 3.21.10"
+        description: "Version to publish: e.g. 3.21.10"
         required: true
 
 jobs:
