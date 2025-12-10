@@ -39,6 +39,20 @@ dependencies {
 }
 
 publishing {
+    publications {
+        create<MavenPublication>("maven") {
+
+            groupId = "no.fintlabs"
+            artifactId = "dynamisk-adapter-core-lib"
+            version = project.property("version").toString()
+
+            from(components["kotlin"])
+            
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
+        }
+    }
+
     repositories {
         maven {
             url = uri("https://repo.fintlabs.no/releases")
@@ -49,18 +63,6 @@ publishing {
             authentication {
                 create<BasicAuthentication>("basic")
             }
-        }
-    }
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "no.fintlabs"
-            artifactId = "dynamisk-adapter-core-lib"
-            version = project.property("version").toString()
-
-            from(components["kotlin"])
-
-            artifact(tasks["kotlinSourcesJar"])
-            artifact(tasks["javadocJar"])
         }
     }
 }
