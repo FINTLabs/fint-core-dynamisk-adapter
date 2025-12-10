@@ -3,6 +3,13 @@
 En tjeneste til å dekke ønsket om relevant mock-data for oss utviklere som jobber med FINT
 informasjonsmodellen.
 
+### Nåværende status:
+
+- Grunnfunksjonalitet fungerer veldig bra, og kan [implimenteres i tjenester og tester](#implimentasjon-i-tester).
+
+- Prosjektet kan kjøres lokalt, og med core-ui/uiMain.kt kan du få opp ett JAVA vindu hvor du kan
+  etterspørre dataene du ønsker uten å trenge å skrive kode.
+
 ## **Tjenesten består enn så lenge av 3 hoved-moduler:**
 
 ### - [core-lib](#core-lib-data-generering)
@@ -31,7 +38,26 @@ Denne kan alene importeres inn i og brukes av hvilke som helst prosjekt.
 
 Funksjonen returnerer en liste med ønsket antall dynamisk genererte resurser. `List<FintResource>`
 
-I tester kan den for eksempel implimenteres slik:
+## Implimentasjon i tester
+
+build.gradle.kts:
+
+```
+repositories {
+    mavenCentral()
+    maven("https://repo.fintlabs.no/releases")
+}
+
+dependencies {
+// andre dependencies //
+
+testImplementation("no.fintlabs:dynamisk-adapter-core-lib:1.0.1")
+
+}
+
+```
+
+I test miljø kan den for eksempel implimenteres slik:
 
 ```
 val service = DynamicAdapterService()
