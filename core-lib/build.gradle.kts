@@ -53,6 +53,10 @@ publishing {
     }
     publications {
         create<MavenPublication>("maven") {
+            groupId = "no.fintlabs"
+            artifactId = "dynamisk-adapter-core-lib"
+            version = project.property("version").toString()
+
             from(components["java"])
         }
     }
