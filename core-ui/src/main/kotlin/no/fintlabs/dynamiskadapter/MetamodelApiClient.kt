@@ -7,18 +7,9 @@ import java.net.http.HttpResponse
 
 // For core-UI to communicate with core-API
 class MetamodelApiClient(
-    private val baseUrl: String = "http://localhost:8182/api",
+    private val baseUrl: String = "http://localhost:8182"
 ) : MetamodelApi {
     private val client = HttpClient.newHttpClient()
-
-    override suspend fun ping(): String {
-        val response = client.send(
-            HttpRequest.newBuilder(URI("$baseUrl/ping")).GET().build(),
-            HttpResponse.BodyHandlers.ofString()
-        )
-        return response.body()
-    }
-
 
     override suspend fun getAllComponents(): List<String> {
         val response = client.send(
@@ -37,6 +28,14 @@ class MetamodelApiClient(
         )
 
         return responseToStringList(response.body())
+    }
+
+    override suspend fun ping(): String {
+        val response = client.send(
+            HttpRequest.newBuilder(URI("$baseUrl/ping")).GET().build(),
+            HttpResponse.BodyHandlers.ofString()
+        )
+        return response.body()
     }
 
     override suspend fun createResources(
