@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: "Version to publish: e.g. 3.21.10"
+        description: "Version to publish: e.g. 1.0.1"
+        required: true
+      fint_version:
+        description: "Active FINT version in use: e.g. 3.21.10"
         required: true
 
 jobs:
@@ -30,4 +33,5 @@ jobs:
         run: |
           ./gradlew :core-lib:clean :core-lib:build \
             :core-lib:publish \
-            -Pversion=${RELEASE_VERSION}
+            -Pversion=${RELEASE_VERSION} \
+            -PfintVersion=${FINT_VERSION}
