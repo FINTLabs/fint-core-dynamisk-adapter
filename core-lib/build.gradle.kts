@@ -57,7 +57,10 @@ publishing {
             artifactId = "dynamisk-adapter-core-lib"
             version = project.property("version").toString()
 
-            from(components["java"])
+            from(components["kotlin"])
+
+            artifact(tasks["kotlinSourcesJar"])
+            artifact(tasks["javadocJar"])
         }
     }
 }
