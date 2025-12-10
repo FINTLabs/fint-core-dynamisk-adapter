@@ -23,7 +23,7 @@ hovedfunskjonalitet og metamodel- hjelpefunksjoner uten å trenge å skrive kode
 core-lib inneholder DynamiskAdapterService, som har **create()** funksjonen som gjør alt dette mulig.
 Denne kan alene importeres inn i og brukes av hvilke som helst prosjekt.
 
-`DynamiskAdapterService.create()` tar inn 2 inputs:
+`DynamicAdapterService.create()` tar inn 2 inputs:
 
 - `resource: Class<out FintResource>` = FintResource java klassen du ønsker å generere. f.eks
   `FravarsregistreringResource::class.java`.
