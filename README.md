@@ -13,7 +13,7 @@ Ren kotlin. Kun hovedfunksjonen uten hjelpefunksjoner.
 
 Spring Boot REST api som gir tilgang til datagenereringsfunksjonen og hjelpefunksjoner fra metamodellen.
 
-### - [core-ui](#)
+### - [core-ui](#core-ui-Kodeløs-data-produsering)
 
 AndroidX basert UI verktøy som åpner ett Java vindu på maskinen din, og gir deg tilgang til
 hovedfunskjonalitet og metamodel- hjelpefunksjoner uten å trenge å skrive kode.
@@ -78,3 +78,4 @@ Tar inn komponent og returnerer liste av ressursene som er tilgjengelig for denn
 
 Ingen parameter. Sjekker at backend er tilgjengelig. Returnerer `"ok"`
 
+# **core-ui: Kodeløs data produsering**
