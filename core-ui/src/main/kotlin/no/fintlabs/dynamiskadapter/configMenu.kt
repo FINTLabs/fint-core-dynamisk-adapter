@@ -199,7 +199,7 @@ fun configMenu(api: MetamodelApiClient) {
 
                         SelectionContainer {
                             Text(
-                                text = newestDataset,
+                                text = "[\n$newestDataset\n]",
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()

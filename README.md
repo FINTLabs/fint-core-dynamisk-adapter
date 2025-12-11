@@ -107,3 +107,33 @@ Tar inn komponent og returnerer liste av ressursene som er tilgjengelig for denn
 Ingen parameter. Sjekker at backend er tilgjengelig. Returnerer `"ok"`
 
 # **core-ui: Kodeløs data produsering**
+
+dynamisk-adapter-core-ui gjør det mulig å benytte seg av all grunnfunksjonalitet
+uten å skrive en eneste linje kode.
+
+![CORE UI IMAGE SHOULD§VE BEEN HERE](source/DYNA-UI.png)
+
+Når core-ui sin main funksjon kjøres åpner den ett JAVA vindu på maskinen din,
+og backend (core-api) som trengs for å bruke den.
+
+### Søk
+
+Vent ett sekund eller to til Backend Status = ✅ Deretter, når du trykker på "Component"
+feltet kommer det 3 forslag under. Du kan enten trykke på en av disse, eller søke etter
+den du vil ha. Formateringen må være riktig, så skriv komponenten på samme måte
+eksemplene er skrevet.
+
+Når en komponent er valgt og du trykker på "Resource" feltet kommer det anbefalinger
+samme som i komponent feltet, men her kommer det kun ressurser relevante til komponenten
+du har valgt. Skriv fulle navnet her, eller nok til at anbefalingen kommer opp og trykk på den.
+
+Under "Resource" har du antall ressurser. default er 2,
+men du kan velge så mange som du føler du trenger.
+
+Når "Component" og "Resource" er valgt kan du trykke på "Kjør funksjon", og feltet
+på høyre side vil fylles med det nyeste datasettet du har etterspurt. Det kan leses der,
+og kan også kopieres for å lime det inn ett annet sted.
+
+NB: Bruk kun små bokstaver. Vær bevist på at norske symboler ( Æ, Ø, Å ) blir byttet ut
+med lignende internasjonale symboler. 
+
