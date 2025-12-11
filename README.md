@@ -1,4 +1,4 @@
-# **FINT Core Dynamisk Adapter**
+# **DYNA: FINT Core Dynamisk Adapter**
 
 En tjeneste til å dekke ønsket om relevant mock-data for oss utviklere som jobber med FINT
 informasjonsmodellen.
