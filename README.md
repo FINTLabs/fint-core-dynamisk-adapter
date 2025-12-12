@@ -51,7 +51,7 @@ repositories {
 dependencies {
 // andre dependencies //
 
-testImplementation("no.fintlabs:dynamisk-adapter-core-lib:1.0.1")
+testImplementation("no.fintlabs:dynamisk-adapter-core-lib:latest.release")
 
 }
 
