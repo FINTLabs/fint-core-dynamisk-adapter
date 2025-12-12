@@ -164,9 +164,9 @@ class DynamicAdapterService {
                     Fravarsprosent::class.java -> {
                         {
                             Fravarsprosent().apply {
-                                fravarstimer = 3
-                                prosent = 10
-                                undervisningstimer = 3
+                                fravarstimer = randomizer.shortNumber()
+                                prosent = randomizer.shortNumber()
+                                undervisningstimer = randomizer.shortNumber()
                             }
                         }
                     }
