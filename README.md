@@ -1,4 +1,4 @@
-# **DYNA: FINT Core Dynamisk Adapter**
+# **DYNA: Dynamisk Adapter**
 
 En tjeneste til å dekke ønsket om relevant mock-data for oss utviklere som jobber med FINT
 informasjonsmodellen.
@@ -134,6 +134,6 @@ Når "Component" og "Resource" er valgt kan du trykke på "Kjør funksjon", og f
 på høyre side vil fylles med det nyeste datasettet du har etterspurt. Det kan leses der,
 og kan også kopieres for å lime det inn ett annet sted.
 
-NB: Bruk kun små bokstaver. Vær bevist på at norske symboler ( Æ, Ø, Å ) blir byttet ut
-med lignende internasjonale symboler. 
+*NB: Bruk kun små bokstaver. Vær bevist på at norske symboler ( Æ, Ø, Å ) blir byttet ut
+med lignende internasjonale symboler.* 
 
