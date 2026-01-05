@@ -72,3 +72,4 @@ core-ui/build/
 core-api/build/
 core-lib/build/
 core-contract/build/
+core-adapter/build/
