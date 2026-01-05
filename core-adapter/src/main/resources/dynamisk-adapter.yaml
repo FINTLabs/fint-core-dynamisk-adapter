@@ -1,0 +1,26 @@
+dynamisk-adapter:
+  links: true
+  recursive: false
+  enableDeltaSync: false
+  fullSyncIntervalInMinutes: 0
+  initialDataSets:
+    - name: "elevfravar"
+      component: "utdanning.vurdering"
+      resource: "elevfravar"
+      count: 5
+
+    - name: "fravarsregistrering"
+      component: "utdanning.vurdering"
+      resource: "fravarsregistrering"
+      count: 10
+
+  deltaSyncSetup:
+    deltaSyncIntervalParameters:
+      minMinutes: 10
+      maxMinutes: 30
+    dataSets:
+      - name: "fravarsregistrering"
+        component: "utdanning.vurdering"
+        resource: "fravarsregistrering"
+        minSize: 2
+        maxSize: 5
