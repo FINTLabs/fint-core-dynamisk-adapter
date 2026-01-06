@@ -1,5 +1,5 @@
 dynamisk-adapter:
-  links: true
+  link: true
   recursive: false
   enableDeltaSync: false
   fullSyncIntervalInMinutes: 0

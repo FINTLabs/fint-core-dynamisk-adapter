@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: DYNA-core-adapter
+  main:
+    web-application-type: none
+
+fint:
+  adapter:
+    id:
+    org-id: fintlabs-no
+    password:
+    username:
+    base-url: https://beta.felleskomponent.no
+
