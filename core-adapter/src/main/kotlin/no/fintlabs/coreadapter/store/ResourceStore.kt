@@ -13,6 +13,8 @@ class ResourceStore {
 
     private fun listFor(key: ResourceKey): MutableList<FintResource> = data.computeIfAbsent(key) { mutableListOf() }
 
+    fun lookFor(name: String): List<FintResource>? = data[name]
+
     fun addAll(
         key: ResourceKey,
         resources: List<FintResource>,
