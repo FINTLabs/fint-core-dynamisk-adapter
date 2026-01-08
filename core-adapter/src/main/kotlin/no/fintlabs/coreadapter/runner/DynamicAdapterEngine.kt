@@ -77,7 +77,8 @@ class DynamicAdapterEngine(
                         skipList + ("${resource.resource.name}/${relation.javaClass.name}")
                         val primary = storage.getAll(resource.key)
                         val secondary = storage.getAll(secondaryMetadata.key)
-                        // Links each to a separate one downward.
+                        // Links each to a separate following index, if second is longer than primary,
+                        // loops back to 0 and continues up again.
                         primary.forEachIndexed { index, item ->
                             val target = secondary[index % secondary.size]
                             item.links[relation.name] = listOf(Link.with(target.getFirstId()))
