@@ -51,33 +51,41 @@ class DynamicAdapterEngine(
         for (resource in resources) {
             val relations: List<FintRelation> = resource.resource.relations
             for (relation in relations) {
-                if (skipList.contains("${relation.name}/${resource.resource.name}")) {
+                if (skipList.contains("${relation.javaClass.name}/${resource.resource.name}")) {
                     continue
                 }
                 if (relation.multiplicity != FintMultiplicity.NONE_TO_ONE ||
                     relation.multiplicity != FintMultiplicity.NONE_TO_MANY
                 ) {
+                    // If multiplicity starts with none, skip.
                     val secondaryMetadata: ExpandedMetadata? =
-                        resources.firstOrNull { resource.resource.name == relation.name }
+                        resources.firstOrNull { resource.resource.name == relation.name.javaClass.name }
                     if (secondaryMetadata == null) {
                         if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
                             println("")
                             println("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
-                            println("Add ${relation.name} to initialDataSets.")
+                            println("Add ${relation.javaClass.name} to initialDataSets.")
                             println("")
                         } else {
+                            // One_To_Many and can't find relation, skip.
+                            // For now, we only care about linking one way and One_To_One
+                            // takes care of that in most currently relevant situations.
                             continue
                         }
                     } else {
-                        skipList + ("${resource.resource.name}/${relation.name}")
+                        // When both main and related are present:
+                        skipList + ("${resource.resource.name}/${relation.javaClass.name}")
                         val primary = storage.getAll(resource.key)
                         val secondary = storage.getAll(secondaryMetadata.key)
+                        // Links each to a separate one downward.
                         primary.forEachIndexed { index, item ->
-                            item.links[relation.name] =
-                                listOf(Link.with(secondary[index].getFirstId()))
+                            val target = secondary[index % secondary.size]
+                            item.links[relation.name] = listOf(Link.with(target.getFirstId()))
                         }
                         storage.updateAll(resource.key, primary)
                     }
+                } else {
+                    continue
                 }
             }
         }
