@@ -41,9 +41,8 @@ class DynamicAdapterEngine(
         if (props.link) {
             // Check Relations and Link accordingly
             relateInitialDataset(metadataList)
-            println("✅ Engine.ExecuteInitialDataset//relateInitialDataset finished relating required resources.")
         }
-        println("DynamicAdapterEngine.executeInitialDataset --- ${metadataList.size} resources created.")
+        println("✅ DynamicAdapterEngine --- ${metadataList.size} resources created.")
         for (metadata in metadataList) {
             val data = storage.getAll(metadata.key)
             for (i in data) {
@@ -101,16 +100,16 @@ class DynamicAdapterEngine(
                             val secondary = storage.getAll(secondaryMetadata.key)
                             // Links each to a separate following index, if second is longer than primary,
                             // loops back to 0 and continues up again.
+                            println("🤝 Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
                             primary.forEachIndexed { index, item ->
-                                println("⚙️ Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
                                 val target = secondary[index % secondary.size]
-                                val targetId: String = target.getFirstId() ?: "IdNotFound"
+                                val targetId: String = target.getFirstId() ?: "ID_NOT_FOUND"
                                 item.putLink(relation.name, targetId)
                             }
                             storage.updateAll(resource.key, primary)
                             skipList + ("${resource.key}-${relation.toResourceKey()}")
-                            println("Engine.relateInitialDataset --- skipList + ${resource.key}-${relation.toResourceKey()}")
-                            println("Engine.relateInitialDataset --- ${resource.resource.name} now has links to ${relation.name}")
+                            println("🤝 Engine.relateInitialDataset --- skipList + ${resource.key}-${relation.toResourceKey()}")
+                            println("🤝 Engine.relateInitialDataset --- ${resource.resource.name} now has links to ${relation.name}")
                         }
                     }
                 } else {

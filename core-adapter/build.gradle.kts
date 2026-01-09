@@ -23,9 +23,8 @@ repositories {
 dependencies {
     implementation(project(":core-lib"))
     implementation(project(":core-api"))
-    implementation(project(":core-contract"))
 
-    //SPRING
+    // SPRING
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -34,14 +33,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    //FINT
+    // FINT
     implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
     implementation("no.fintlabs:fint-core-infra-models:2.1.2")
     implementation("no.fintlabs:fint-core-adapter-common:0.1.6-rc-7")
     implementation("no.fint:fint-ressurs-resource-model-java:3.21.10")
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
 
-    //TEST
+    // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
