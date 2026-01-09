@@ -3,11 +3,11 @@ package no.fintlabs.coreadapter.runner
 import no.fint.model.FintMultiplicity
 import no.fint.model.FintRelation
 import no.fint.model.resource.FintResource
-import no.fint.model.resource.Link
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.InitialDataset
 import no.fintlabs.coreadapter.store.ResourceStore
+import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.fintlabs.metamodel.MetamodelService
 import no.fintlabs.metamodel.model.Resource
@@ -45,7 +45,10 @@ class DynamicAdapterEngine(
         }
         println("DynamicAdapterEngine.executeInitialDataset --- ${metadataList.size} resources created.")
         for (metadata in metadataList) {
-            println(storage.getAll(metadata.key))
+            val data = storage.getAll(metadata.key)
+            for (i in data) {
+                println(i)
+            }
         }
     }
 
@@ -102,9 +105,7 @@ class DynamicAdapterEngine(
                                 println("⚙️ Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
                                 val target = secondary[index % secondary.size]
                                 val targetId: String = target.getFirstId() ?: "IdNotFound"
-
-                                item.ensureMutableLinks()
-                                item.addLink(relation.name, Link.with(targetId))
+                                item.putLink(relation.name, targetId)
                             }
                             storage.updateAll(resource.key, primary)
                             skipList + ("${resource.key}-${relation.toResourceKey()}")
@@ -126,12 +127,4 @@ class DynamicAdapterEngine(
             .substringAfter("model.")
             .replace(".", "/")
             .lowercase()
-
-    private fun FintResource.ensureMutableLinks() {
-        val current = this.links
-        if (current.isEmpty() || current !is MutableMap<*, *>) {
-            @Suppress("UNCHECKED_CAST")
-            this.links = current.toMutableMap() as MutableMap<String, List<Link>>
-        }
-    }
 }
