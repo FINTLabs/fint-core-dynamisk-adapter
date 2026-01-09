@@ -14,6 +14,6 @@ class DynamicAdapterRunner(
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
         }
-        return
+        engine.executeInitialDataset()
     }
 }

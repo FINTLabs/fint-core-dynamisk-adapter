@@ -28,21 +28,25 @@ class DynamicAdapterEngine(
         capabilities.forEach {
             val resourceData: Resource? = model.getResource(it.component, it.resource)
             if (resourceData != null) {
-                val metadata = ExpandedMetadata(resourceData, "${it.component}/${it.component}")
+                val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
                 val data: List<FintResource> = generator.create(metadata.resource.resourceType, it.count)
                 storage.addAll(it.resourceKey, data)
+            } else {
+                println("")
+                println("⚠️ " + it.component + it.resource + " was not found in metamodel...")
+                println("")
             }
-            println("")
-            println("⚠️ " + it.component + it.resource + "was not found in metamodel...")
-            println("")
         }
         if (props.link) {
             // Check Relations and Link accordingly
             relateInitialDataset(metadataList)
+            println("✅ Engine.ExecuteInitialDataset//relateInitialDataset finished relating required resources.")
         }
-
-        // Publish all when linking is complete
+        println("DynamicAdapterEngine.executeInitialDataset --- ${metadataList.size} resources created.")
+        for (metadata in metadataList) {
+            println(storage.getAll(metadata.key))
+        }
     }
 
     private fun relateInitialDataset(resources: List<ExpandedMetadata>) {
@@ -51,7 +55,7 @@ class DynamicAdapterEngine(
         for (resource in resources) {
             val relations: List<FintRelation> = resource.resource.relations
             for (relation in relations) {
-                if (skipList.contains("${relation.javaClass.name}/${resource.resource.name}")) {
+                if (skipList.contains("${relation.toResourceKey()}-${resource.resource.name}")) {
                     continue
                 }
                 if (relation.multiplicity != FintMultiplicity.NONE_TO_ONE ||
@@ -59,12 +63,12 @@ class DynamicAdapterEngine(
                 ) {
                     // If multiplicity starts with none, skip.
                     val secondaryMetadata: ExpandedMetadata? =
-                        resources.firstOrNull { resource.resource.name == relation.name.javaClass.name }
+                        resources.firstOrNull { it.key == relation.toResourceKey() }
                     if (secondaryMetadata == null) {
                         if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
                             println("")
                             println("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
-                            println("Add ${relation.javaClass.name} to initialDataSets.")
+                            println("Add ${relation.packageName} to initialDataSets.")
                             println("")
                         } else {
                             // One_To_Many and can't find relation, skip.
@@ -72,18 +76,41 @@ class DynamicAdapterEngine(
                             // takes care of that in most currently relevant situations.
                             continue
                         }
-                    } else {
                         // When both main and related are present:
-                        skipList + ("${resource.resource.name}/${relation.javaClass.name}")
-                        val primary = storage.getAll(resource.key)
-                        val secondary = storage.getAll(secondaryMetadata.key)
-                        // Links each to a separate following index, if second is longer than primary,
-                        // loops back to 0 and continues up again.
-                        primary.forEachIndexed { index, item ->
-                            val target = secondary[index % secondary.size]
-                            item.links[relation.name] = listOf(Link.with(target.getFirstId()))
+                    } else {
+                        val secondaryMultiplicity =
+                            secondaryMetadata.resource.relations
+                                .firstOrNull {
+                                    it.name.equals(
+                                        resource.resource.name,
+                                        ignoreCase = true,
+                                    )
+                                }!!
+                                .multiplicity
+                        if (secondaryMultiplicity == FintMultiplicity.ONE_TO_ONE ||
+                            relation.multiplicity == FintMultiplicity.ONE_TO_MANY
+                        ) {
+                            // If secondaryMultiplicity is ONE_TO_ONE, and primaryMultiplicity is ONE_TO_MANY,
+                            // wait with linking until the linking one is the ONE_TO_ONE.
+                            continue
+                        } else {
+                            val primary = storage.getAll(resource.key)
+                            val secondary = storage.getAll(secondaryMetadata.key)
+                            // Links each to a separate following index, if second is longer than primary,
+                            // loops back to 0 and continues up again.
+                            primary.forEachIndexed { index, item ->
+                                println("⚙️ Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
+                                val target = secondary[index % secondary.size]
+                                val targetId: String = target.getFirstId() ?: "IdNotFound"
+
+                                item.ensureMutableLinks()
+                                item.addLink(relation.name, Link.with(targetId))
+                            }
+                            storage.updateAll(resource.key, primary)
+                            skipList + ("${resource.key}-${relation.toResourceKey()}")
+                            println("Engine.relateInitialDataset --- skipList + ${resource.key}-${relation.toResourceKey()}")
+                            println("Engine.relateInitialDataset --- ${resource.resource.name} now has links to ${relation.name}")
                         }
-                        storage.updateAll(resource.key, primary)
                     }
                 } else {
                     continue
@@ -93,4 +120,18 @@ class DynamicAdapterEngine(
     }
 
     private fun FintResource.getFirstId(): String? = identifikators.firstNotNullOf { it.value }.identifikatorverdi
+
+    private fun FintRelation.toResourceKey(): String =
+        packageName
+            .substringAfter("model.")
+            .replace(".", "/")
+            .lowercase()
+
+    private fun FintResource.ensureMutableLinks() {
+        val current = this.links
+        if (current.isEmpty() || current !is MutableMap<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            this.links = current.toMutableMap() as MutableMap<String, List<Link>>
+        }
+    }
 }
