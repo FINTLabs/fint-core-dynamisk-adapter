@@ -3,6 +3,8 @@ spring:
     name: DYNA-core-adapter
   main:
     web-application-type: none
+  config:
+    import: "classpath:dynamisk-adapter.yaml"
 
 fint:
   adapter:

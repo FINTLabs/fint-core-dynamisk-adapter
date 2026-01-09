@@ -8,7 +8,6 @@ dynamisk-adapter:
       component: "utdanning.vurdering"
       resource: "elevfravar"
       count: 5
-
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
