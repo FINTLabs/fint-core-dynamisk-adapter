@@ -12,6 +12,20 @@ dynamisk-adapter:
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
       count: 10
+    - name: "elevforhold"
+      component: "utdanning.elev"
+      resource: "elevforhold"
+      count: 5
+    - name: "fravarstype"
+      component: "utdanning.kodeverk"
+      resource: "fravarstype"
+      count: 5
+    - name: "undervisningsgruppe"
+      component: "utdanning.timeplan"
+      resource: "undervisningsgruppe"
+      count: 5
+
+
 
   deltaSyncSetup:
     deltaSyncIntervalParameters:

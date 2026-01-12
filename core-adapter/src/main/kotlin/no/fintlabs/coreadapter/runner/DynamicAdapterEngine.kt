@@ -21,10 +21,10 @@ class DynamicAdapterEngine(
     private val storage: ResourceStore,
 ) {
     private val capabilities: List<InitialDataset> = props.initialDataSets
+    val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
 
     fun executeInitialDataset() {
         // Generates and stores
-        val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
         capabilities.forEach {
             val resourceData: Resource? = model.getResource(it.component, it.resource)
             if (resourceData != null) {
@@ -34,27 +34,17 @@ class DynamicAdapterEngine(
                 storage.addAll(it.resourceKey, data)
             } else {
                 println("")
-                println("⚠️ " + it.component + it.resource + " was not found in metamodel...")
+                println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
                 println("")
             }
         }
-        if (props.link) {
-            // Check Relations and Link accordingly
-            relateInitialDataset(metadataList)
-        }
-        println("✅ DynamicAdapterEngine --- ${metadataList.size} resources created.")
-        for (metadata in metadataList) {
-            val data = storage.getAll(metadata.key)
-            for (i in data) {
-                println(i)
-            }
-        }
+        println("✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
     }
 
-    private fun relateInitialDataset(resources: List<ExpandedMetadata>) {
+    fun relateInitialDataset() {
         val skipList: List<String> = mutableListOf()
 
-        for (resource in resources) {
+        for (resource in metadataList) {
             val relations: List<FintRelation> = resource.resource.relations
             for (relation in relations) {
                 if (skipList.contains("${relation.toResourceKey()}-${resource.resource.name}")) {
@@ -65,7 +55,7 @@ class DynamicAdapterEngine(
                 ) {
                     // If multiplicity starts with none, skip.
                     val secondaryMetadata: ExpandedMetadata? =
-                        resources.firstOrNull { it.key == relation.toResourceKey() }
+                        metadataList.firstOrNull { it.key == relation.toResourceKey() }
                     if (secondaryMetadata == null) {
                         if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
                             println("")
@@ -80,16 +70,12 @@ class DynamicAdapterEngine(
                         }
                         // When both main and related are present:
                     } else {
-                        val secondaryMultiplicity =
-                            secondaryMetadata.resource.relations
-                                .firstOrNull {
-                                    it.name.equals(
-                                        resource.resource.name,
-                                        ignoreCase = true,
-                                    )
-                                }!!
-                                .multiplicity
-                        if (secondaryMultiplicity == FintMultiplicity.ONE_TO_ONE ||
+                        val reverseRelation =
+                            secondaryMetadata.resource.relations.firstOrNull {
+                                it.toResourceKey() == resource.key
+                            }
+                        val secondaryMultiplicity = reverseRelation?.multiplicity
+                        if (secondaryMultiplicity == FintMultiplicity.ONE_TO_ONE &&
                             relation.multiplicity == FintMultiplicity.ONE_TO_MANY
                         ) {
                             // If secondaryMultiplicity is ONE_TO_ONE, and primaryMultiplicity is ONE_TO_MANY,
