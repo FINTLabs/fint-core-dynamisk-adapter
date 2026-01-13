@@ -1,5 +1,6 @@
 package no.fintlabs.coreadapter.data
 
+import no.fintlabs.adapter.models.AdapterCapability
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "dynamisk-adapter")
@@ -19,6 +20,17 @@ data class InitialDataset(
     val count: Int,
 ) {
     val resourceKey: String = "${component.replace(".", "/")}/$resource"
+
+    fun toCapability(): AdapterCapability {
+        val domain: String = component.substringBefore(".")
+        return AdapterCapability(
+            domain,
+            component,
+            resource,
+            1,
+            AdapterCapability.DeltaSyncInterval.IMMEDIATE,
+        )
+    }
 }
 
 data class DeltaSyncSetup(
