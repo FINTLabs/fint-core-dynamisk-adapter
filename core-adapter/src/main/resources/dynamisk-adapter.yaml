@@ -25,12 +25,8 @@ dynamisk-adapter:
       resource: "undervisningsgruppe"
       count: 5
 
-
-
   deltaSyncSetup:
-    deltaSyncIntervalParameters:
-      minMinutes: 10
-      maxMinutes: 30
+    deltaSyncIntervalInMinutes: 2
     dataSets:
       - name: "fravarsregistrering"
         component: "utdanning.vurdering"

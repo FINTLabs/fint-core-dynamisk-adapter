@@ -22,11 +22,6 @@ data class InitialDataset(
 }
 
 data class DeltaSyncSetup(
-    val deltaSyncIntervalParameters: DeltaSyncIntervalParameters? = null,
+    val deltaSyncIntervalInMinutes: Int? = null,
     val dataSets: List<DeltaSyncDataset>,
-)
-
-data class DeltaSyncIntervalParameters(
-    val minMinutes: Int = 1,
-    val maxMinutes: Int = 5,
 )
