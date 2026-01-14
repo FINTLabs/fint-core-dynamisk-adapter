@@ -89,7 +89,10 @@ class DynamicAdapterEngine(
                             println("🤝 Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
                             primary.forEachIndexed { index, item ->
                                 val target = secondary[index % secondary.size]
-                                val targetId: String = target.getFirstId() ?: "ID_NOT_FOUND"
+                                val targetId: String =
+                                    (target.identifikators.firstNotNullOf { it.key }) + "/" +
+                                        (target.getFirstId() ?: "NO_IDENTIFIERS_FOUND")
+
                                 item.putLink(relation.name, targetId)
                             }
                             storage.updateAll(resource.key, primary)

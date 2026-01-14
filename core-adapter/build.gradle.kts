@@ -22,7 +22,6 @@ repositories {
 
 dependencies {
     implementation(project(":core-lib"))
-    implementation(project(":core-api"))
 
     // SPRING
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")

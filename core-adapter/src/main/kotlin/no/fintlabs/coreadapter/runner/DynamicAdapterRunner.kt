@@ -1,5 +1,7 @@
 package no.fintlabs.coreadapter.runner
 
+import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.store.ResourceStore
 import org.springframework.boot.ApplicationArguments
@@ -8,20 +10,36 @@ import org.springframework.stereotype.Component
 
 @Component
 class DynamicAdapterRunner(
-    private val props: DynamicAdapterProperties,
-    private val engine: DynamicAdapterEngine,
     private val storage: ResourceStore,
+    private val engine: DynamicAdapterEngine,
+    private val props: DynamicAdapterProperties,
+    private val publisher: DynamicAdapterPublisher,
+    private val adapterProps: AdapterProperties,
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
         }
+        val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
+        for (it in props.initialDataSets) {
+            capabilities.add(
+                AdapterCapability(
+                    it.component.substringBefore("."),
+                    it.component.substringAfter("."),
+                    it.resource,
+                    1,
+                    AdapterCapability.DeltaSyncInterval.IMMEDIATE,
+                ),
+            )
+        }
         engine.executeInitialDataset()
         engine.relateInitialDataset()
 
-        // Publisher.register
+        publisher.register(capabilities)
+
         // Publisher.publish
 
+        // Temporarily printing every resource
         for (metadata in engine.metadataList) {
             val data = storage.getAll(metadata.key)
             for (i in data) {
