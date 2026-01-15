@@ -15,7 +15,6 @@ data class AdapterProperties(
     val password: String,
     val baseUrl: String,
     val idpUri: String,
-    val registrationId: String,
     val heartbeatInterval: Int,
     val capabilities: List<Capability> = emptyList(),
 ) {
