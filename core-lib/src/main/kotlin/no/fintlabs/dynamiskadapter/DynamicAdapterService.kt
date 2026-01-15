@@ -28,7 +28,6 @@ class DynamicAdapterService {
         } else {
             blueprint = generateBlueprint(resource)
             blueprintCache[resourceName] = blueprint
-            println("📋 DynamicAdapterService: generated blueprint: $resourceName")
         }
         println("📋 DynamicAdapterService: creating ${amount}x $resourceName")
         return List(amount) { createInstanceFromBlueprint(resource, blueprint) }
@@ -58,7 +57,6 @@ class DynamicAdapterService {
 
             val generator: () -> Any? =
                 when (field.type) {
-
                     // Basic Java classes
 
                     Int::class.java, Integer::class.java -> {
@@ -73,7 +71,7 @@ class DynamicAdapterService {
                         { Random.nextBoolean() }
                     }
 
-                    String::class.java ->
+                    String::class.java -> {
                         when {
                             "beskrivelse" in name || "kommentar" in name -> {
                                 { randomizer.quote() }
@@ -91,7 +89,7 @@ class DynamicAdapterService {
                                 { randomizer.fullName() }
                             }
                         }
-
+                    }
 
                     List::class.java -> {
                         { emptyList<String>() }
@@ -124,10 +122,11 @@ class DynamicAdapterService {
                     Bilag::class.java -> {
                         {
                             Bilag().apply {
-                                bilagsdato = Date(
-                                    System.currentTimeMillis() -
-                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
-                                )
+                                bilagsdato =
+                                    Date(
+                                        System.currentTimeMillis() -
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                    )
                             }
                         }
                     }
@@ -251,7 +250,7 @@ class DynamicAdapterService {
                                 start =
                                     Date(
                                         System.currentTimeMillis() -
-                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
+                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }

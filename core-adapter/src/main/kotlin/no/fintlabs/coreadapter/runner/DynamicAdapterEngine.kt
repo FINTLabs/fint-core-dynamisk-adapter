@@ -38,7 +38,7 @@ class DynamicAdapterEngine(
                 println("")
             }
         }
-        println("✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
+        println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
     }
 
     fun relateInitialDataset() {
@@ -86,7 +86,6 @@ class DynamicAdapterEngine(
                             val secondary = storage.getAll(secondaryMetadata.key)
                             // Links each to a separate following index, if second is longer than primary,
                             // loops back to 0 and continues up again.
-                            println("🤝 Linking: ${resource.key} -WITH- ${secondaryMetadata.key}")
                             primary.forEachIndexed { index, item ->
                                 val target = secondary[index % secondary.size]
                                 val targetId: String =
@@ -97,8 +96,7 @@ class DynamicAdapterEngine(
                             }
                             storage.updateAll(resource.key, primary)
                             skipList + ("${resource.key}-${relation.toResourceKey()}")
-                            println("🤝 Engine.relateInitialDataset --- skipList + ${resource.key}-${relation.toResourceKey()}")
-                            println("🤝 Engine.relateInitialDataset --- ${resource.resource.name} now has links to ${relation.name}")
+                            println("⛓️ ${resource.resource.name} now has links to ${relation.name}")
                         }
                     }
                 } else {
