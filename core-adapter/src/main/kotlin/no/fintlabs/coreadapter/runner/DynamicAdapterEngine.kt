@@ -42,15 +42,15 @@ class DynamicAdapterEngine(
     }
 
     fun relateInitialDataset() {
-        val skipList: List<String> = mutableListOf()
+        val skipList: MutableList<String> = mutableListOf()
 
         for (resource in metadataList) {
             val relations: List<FintRelation> = resource.resource.relations
             for (relation in relations) {
-                if (skipList.contains("${relation.toResourceKey()}-${resource.resource.name}")) {
+                if (skipList.contains("${relation.toResourceKey()}-${resource.key}")) {
                     continue
                 }
-                if (relation.multiplicity != FintMultiplicity.NONE_TO_ONE ||
+                if (relation.multiplicity != FintMultiplicity.NONE_TO_ONE &&
                     relation.multiplicity != FintMultiplicity.NONE_TO_MANY
                 ) {
                     // If multiplicity starts with none, skip.
@@ -95,8 +95,10 @@ class DynamicAdapterEngine(
                                 item.putLink(relation.name, targetId)
                             }
                             storage.updateAll(resource.key, primary)
-                            skipList + ("${resource.key}-${relation.toResourceKey()}")
+                            skipList.add("${resource.key}-${relation.toResourceKey()}")
+
                             println("⛓️ ${resource.resource.name} now has links to ${relation.name}")
+                            println("")
                         }
                     }
                 } else {
@@ -104,6 +106,7 @@ class DynamicAdapterEngine(
                 }
             }
         }
+        println("⚙️✅ InitialDataset relating complete.")
     }
 
     private fun FintResource.getFirstId(): String? = identifikators.firstNotNullOf { it.value }.identifikatorverdi
