@@ -12,5 +12,5 @@ fint:
     orgId: fintlabs-no
     baseUrl: https://beta.felleskomponent.no
     idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
-    heartbeat-interval: 20
+    heartbeatIntervalInMinutes: 20
 

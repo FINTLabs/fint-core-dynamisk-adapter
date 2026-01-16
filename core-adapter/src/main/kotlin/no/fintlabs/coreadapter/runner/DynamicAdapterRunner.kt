@@ -20,17 +20,18 @@ class DynamicAdapterRunner(
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
         }
+        // Generate Capabilities for Adapter registration
         val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
         for (it in props.initialDataSets) {
-            capabilities.add(
+            val capability =
                 AdapterCapability(
                     it.component.substringBefore("."),
                     it.component.substringAfter("."),
                     it.resource,
                     1,
                     AdapterCapability.DeltaSyncInterval.IMMEDIATE,
-                ),
-            )
+                )
+            capabilities.add(capability)
         }
         engine.executeInitialDataset()
         engine.relateInitialDataset()
@@ -40,11 +41,11 @@ class DynamicAdapterRunner(
         // Publisher.publish
 
         // Temporarily printing every resource
-        for (metadata in engine.metadataList) {
-            val data = storage.getAll(metadata.key)
-            for (i in data) {
-                println(i)
-            }
-        }
+//        for (metadata in engine.metadataList) {
+//            val data = storage.getAll(metadata.key)
+//            for (i in data) {
+//                println(i)
+//            }
+//        }
     }
 }
