@@ -33,6 +33,7 @@ class DynamicAdapterRunner(
                 )
             capabilities.add(capability)
         }
+
         engine.executeInitialDataset()
         engine.relateInitialDataset()
 

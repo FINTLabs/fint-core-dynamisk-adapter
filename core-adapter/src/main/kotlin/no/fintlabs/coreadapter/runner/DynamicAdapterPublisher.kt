@@ -5,15 +5,12 @@ import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.coreadapter.config.AdapterProperties
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
 
 @Component
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
     private val props: AdapterProperties,
 ) {
-    val registered: Boolean = false
-
     fun register(capabilities: MutableSet<AdapterCapability>) {
         val contract =
             AdapterContract
@@ -23,19 +20,24 @@ class DynamicAdapterPublisher(
                 .username(props.username)
                 .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
                 .capabilities(capabilities)
+                .time(0L)
                 .build()
 
         val response =
             webClient
                 .post()
-                .uri("https://beta.felleskomponent.no/provider/register")
-                .body(Mono.just(contract), AdapterContract::class.java)
-                .retrieve()
-                .toBodilessEntity()
-                .subscribe()
-
-        println(response.toString())
+                .uri("${props.baseUrl}/provider/register")
+                .bodyValue(contract)
+                .exchangeToMono { response ->
+                    response
+                        .bodyToMono(String::class.java)
+                        .defaultIfEmpty("empty")
+                        .map { body ->
+                            response.statusCode().value() to body
+                        }
+                }.block()
         // Return 200 === Det funker // veldig bra
+        println(response)
     }
 
     // resourceList.name = utdanning/vurdering/elevfravar
