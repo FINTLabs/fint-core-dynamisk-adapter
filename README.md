@@ -15,7 +15,7 @@ informasjonsmodellen.
 ### - [core-lib](#core-lib-data-generering)
 
 Ren kotlin. Kun hovedfunksjonen uten hjelpefunksjoner.
-Nyeste versjon: 3.21.12
+### Nyeste versjon: 3.21.13
 
 ### - [core-api](#core-api-rest-eksponering)
 
