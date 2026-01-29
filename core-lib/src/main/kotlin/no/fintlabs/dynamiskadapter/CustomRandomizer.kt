@@ -38,7 +38,7 @@ class CustomRandomizer {
             }
 
             "tittel" in name || "brukernavn" in name || "feidenavn" in name -> {
-                funnyName()
+                funnyName() + personNumber()
             }
 
             "bilde" in name -> {
