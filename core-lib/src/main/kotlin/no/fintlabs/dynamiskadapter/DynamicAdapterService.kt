@@ -7,6 +7,11 @@ import no.fint.model.okonomi.faktura.Fakturalinje
 import no.fint.model.okonomi.faktura.Fakturamottaker
 import no.fint.model.okonomi.regnskap.Bilag
 import no.fint.model.resource.FintResource
+import no.fint.model.resource.arkiv.noark.DokumentbeskrivelseResource
+import no.fint.model.resource.arkiv.noark.DokumentobjektResource
+import no.fint.model.resource.felles.kompleksedatatyper.AdresseResource
+import no.fint.model.resource.okonomi.faktura.FakturalinjeResource
+import no.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
 import java.util.*
@@ -81,7 +86,7 @@ class DynamicAdapterService {
                                 { randomizer.personNumber() }
                             }
 
-                            "tittel" in name -> {
+                            "tittel" in name || "brukernavn" in name || "feidenavn" in name -> {
                                 { randomizer.funnyName() }
                             }
 
@@ -107,6 +112,10 @@ class DynamicAdapterService {
 
                     Adresse::class.java -> {
                         { randomizer.createAddress() }
+                    }
+
+                    AdresseResource::class.java -> {
+                        { AdresseResource() }
                     }
 
                     Avskrivning::class.java -> {
@@ -139,9 +148,23 @@ class DynamicAdapterService {
                         }
                     }
 
+                    DokumentbeskrivelseResource::class.java -> {
+                        {
+                            DokumentbeskrivelseResource().apply {
+                                tittel = randomizer.fullName()
+                            }
+                        }
+                    }
+
                     Dokumentobjekt::class.java -> {
                         {
                             Dokumentobjekt()
+                        }
+                    }
+
+                    DokumentobjektResource::class.java -> {
+                        {
+                            DokumentobjektResource()
                         }
                     }
 
@@ -154,9 +177,24 @@ class DynamicAdapterService {
                         }
                     }
 
+                    FakturalinjeResource::class.java -> {
+                        {
+                            FakturalinjeResource().apply {
+                                antall = 3.14F
+                                pris = 100
+                            }
+                        }
+                    }
+
                     Fakturamottaker::class.java -> {
                         {
                             Fakturamottaker()
+                        }
+                    }
+
+                    FakturamottakerResource::class.java -> {
+                        {
+                            FakturamottakerResource()
                         }
                     }
 

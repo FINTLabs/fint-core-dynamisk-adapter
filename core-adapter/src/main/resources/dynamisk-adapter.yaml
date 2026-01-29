@@ -4,6 +4,10 @@ dynamisk-adapter:
   enableDeltaSync: false
   fullSyncIntervalInMinutes: 0
   initialDataSets:
+    - name: "elev"
+      component: "utdanning.elev"
+      resource: "elev"
+      count: 5
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
