@@ -91,7 +91,9 @@ class DynamicAdapterEngine(
                                 val targetId: String =
                                     (target.identifikators.firstNotNullOf { it.key }) + "/" +
                                         (target.getFirstId() ?: "NO_IDENTIFIERS_FOUND")
-
+                                // TODO: Expand links to reflect real data.
+                                // Current links: links={elev=[brukernavn/HughJazz]}
+                                // production links:
                                 item.putLink(relation.name, targetId)
                             }
                             storage.updateAll(resource.key, primary)

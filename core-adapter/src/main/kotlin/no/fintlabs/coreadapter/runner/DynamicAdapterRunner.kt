@@ -41,12 +41,12 @@ class DynamicAdapterRunner(
 
         // Publisher.publish
 
-        // Temporarily printing every resource
-//        for (metadata in engine.metadataList) {
-//            val data = storage.getAll(metadata.key)
-//            for (i in data) {
-//                println(i)
-//            }
-//        }
+//         Temporarily printing every resource
+        for (metadata in engine.metadataList) {
+            val data = storage.getAll(metadata.key)
+            for (i in data) {
+                println(i)
+            }
+        }
     }
 }

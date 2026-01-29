@@ -77,22 +77,8 @@ class DynamicAdapterService {
                     }
 
                     String::class.java -> {
-                        when {
-                            "beskrivelse" in name || "kommentar" in name -> {
-                                { randomizer.quote() }
-                            }
-
-                            "nummer" in name || "kode" in name || "id" in name -> {
-                                { randomizer.personNumber() }
-                            }
-
-                            "tittel" in name || "brukernavn" in name || "feidenavn" in name -> {
-                                { randomizer.funnyName() }
-                            }
-
-                            else -> {
-                                { randomizer.fullName() }
-                            }
+                        {
+                            randomizer.advancedNameGenerator(name)
                         }
                     }
 
@@ -211,12 +197,7 @@ class DynamicAdapterService {
                     Identifikator::class.java -> {
                         {
                             Identifikator().apply {
-                                identifikatorverdi =
-                                    if ("navn" in name) {
-                                        randomizer.fullName()
-                                    } else {
-                                        randomizer.personNumber()
-                                    }
+                                identifikatorverdi = randomizer.advancedNameGenerator(name)
                             }
                         }
                     }
