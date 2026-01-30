@@ -27,18 +27,20 @@ class CustomRandomizer {
             poststed = cityNameList.random()
         }
 
+    fun uniqueFunnyName(): String = funnyNameList.random() + personNumber()
+
     fun advancedNameGenerator(name: String): String =
         when {
             "beskrivelse" in name || "kommentar" in name -> {
                 quote()
             }
 
-            "nummer" in name || "kode" in name || "id" in name -> {
-                personNumber()
+            "tittel" in name || "brukernavn" in name || "feidenavn" in name -> {
+                uniqueFunnyName()
             }
 
-            "tittel" in name || "brukernavn" in name || "feidenavn" in name -> {
-                funnyName() + personNumber()
+            "nummer" in name || "kode" in name || "id" in name -> {
+                personNumber()
             }
 
             "bilde" in name -> {
