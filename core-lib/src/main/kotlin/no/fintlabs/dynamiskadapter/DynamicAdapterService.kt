@@ -83,11 +83,11 @@ class DynamicAdapterService {
                     }
 
                     List::class.java -> {
-                        { emptyList<String>() }
+                        { mutableListOf<String>() }
                     }
 
                     Map::class.java -> {
-                        { emptyMap<Any?, Any?>() }
+                        { mutableMapOf<Any?, Any?>() }
                     }
 
                     Date::class.java -> {
