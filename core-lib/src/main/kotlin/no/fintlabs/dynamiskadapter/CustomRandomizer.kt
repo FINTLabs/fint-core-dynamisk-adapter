@@ -13,6 +13,8 @@ class CustomRandomizer {
 
     fun quote(): String = quoteList.random()
 
+    fun uniqueFunnyName(): String = funnyNameList.random() + personNumber()
+
     fun shortNumber(): Int = (1..42).random()
 
     fun personNumber(): String =
@@ -27,9 +29,7 @@ class CustomRandomizer {
             poststed = cityNameList.random()
         }
 
-    fun uniqueFunnyName(): String = funnyNameList.random() + personNumber()
-
-    fun advancedNameGenerator(name: String): String =
+    fun advancedString(name: String): String =
         when {
             "beskrivelse" in name || "kommentar" in name -> {
                 quote()
@@ -56,17 +56,21 @@ class CustomRandomizer {
         listOf(
             "Albert",
             "Anders",
+            "Appa",
             "Bernt",
             "Carl",
             "David",
+            "Daniel",
             "Egil",
             "Frank",
             "Gabriel",
             "Henrik",
             "Ingrid",
             "Jennifer",
+            "Joakim",
             "Kristine",
             "Linn",
+            "Lucifer",
             "Martin",
             "Morpheus",
             "Nora",
@@ -126,6 +130,7 @@ class CustomRandomizer {
             "HughJazz",
             "IsThisAValidName",
             "JackHoff",
+            "JaquesHass",
             "KingGizzardAndTheLizardWizardFan",
             "LordFarquaad",
             "MrRobot",

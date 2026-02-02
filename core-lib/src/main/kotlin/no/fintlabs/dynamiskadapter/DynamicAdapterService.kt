@@ -78,7 +78,7 @@ class DynamicAdapterService {
 
                     String::class.java -> {
                         {
-                            randomizer.advancedNameGenerator(name)
+                            randomizer.advancedString(name)
                         }
                     }
 
@@ -197,7 +197,7 @@ class DynamicAdapterService {
                     Identifikator::class.java -> {
                         {
                             Identifikator().apply {
-                                identifikatorverdi = randomizer.advancedNameGenerator(name)
+                                identifikatorverdi = randomizer.advancedString(name)
                             }
                         }
                     }
