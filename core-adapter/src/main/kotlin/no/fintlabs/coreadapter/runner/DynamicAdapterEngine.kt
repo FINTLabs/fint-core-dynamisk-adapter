@@ -33,9 +33,9 @@ class DynamicAdapterEngine(
                 val data: List<FintResource> = generator.create(metadata.resource.resourceType, it.count)
                 storage.addAll(it.resourceKey, data)
             } else {
-                println("")
-                println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
-                println("")
+                logIfEnabled("")
+                logIfEnabled("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
+                logIfEnabled("")
             }
         }
         println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
@@ -58,10 +58,10 @@ class DynamicAdapterEngine(
                         metadataList.firstOrNull { it.key == relation.toResourceKey() }
                     if (secondaryMetadata == null) {
                         if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
-                            println("")
-                            println("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
-                            println("Add ${relation.packageName} to initialDataSets.")
-                            println("")
+                            logIfEnabled("")
+                            logIfEnabled("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
+                            logIfEnabled("Add ${relation.packageName} to initialDataSets.")
+                            logIfEnabled("")
                         } else {
                             // One_To_Many and can't find relation, skip.
                             // For now, we only care about linking one way and One_To_One
@@ -99,8 +99,8 @@ class DynamicAdapterEngine(
                             storage.updateAll(resource.key, primary)
                             skipList.add("${resource.key}-${relation.toResourceKey()}")
 
-                            println("⛓️ ${resource.resource.name} now has links to ${relation.name}")
-                            println("")
+                            logIfEnabled("⛓️ ${resource.resource.name} now has links to ${relation.name}")
+                            logIfEnabled("")
                         }
                     }
                 } else {
@@ -118,4 +118,8 @@ class DynamicAdapterEngine(
             .substringAfter("model.")
             .replace(".", "/")
             .lowercase()
+
+    private fun logIfEnabled(log: String) {
+        if (props.consoleLogging) println(log)
+    }
 }

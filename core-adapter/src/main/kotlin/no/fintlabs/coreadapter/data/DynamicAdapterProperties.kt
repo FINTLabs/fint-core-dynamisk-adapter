@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class DynamicAdapterProperties(
     val recursive: Boolean = false,
     val link: Boolean = true,
+    val consoleLogging: Boolean = false,
+    val consoleLogDataset: Boolean = false,
     val enableDeltaSync: Boolean = false,
     val fullSyncIntervalInMinutes: Int? = 0,
     val initialDataSets: List<InitialDataset>,
@@ -24,4 +26,12 @@ data class InitialDataset(
 data class DeltaSyncSetup(
     val deltaSyncIntervalInMinutes: Int? = null,
     val dataSets: List<DeltaSyncDataset>,
+)
+
+data class DeltaSyncDataset(
+    val name: String,
+    val component: String,
+    val resource: String,
+    val minSize: Int,
+    val maxSize: Int,
 )
