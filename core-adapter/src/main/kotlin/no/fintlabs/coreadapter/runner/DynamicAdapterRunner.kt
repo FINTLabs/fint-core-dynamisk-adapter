@@ -39,9 +39,7 @@ class DynamicAdapterRunner(
 
         publisher.register(capabilities)
 
-        // Publisher.publish
-
-//         Temporarily printing every resource
+        // Temporarily printing every resource
         if (props.consoleLogDataset) {
             for (metadata in engine.metadataList) {
                 val data = storage.getAll(metadata.key)
@@ -49,6 +47,12 @@ class DynamicAdapterRunner(
                     println(i)
                 }
             }
+        }
+
+        // Publishing Initial Dataset
+        for (metadata in engine.metadataList) {
+            val data = storage.getAll(metadata.key)
+            publisher.fullSyncResource(metadata.key, data)
         }
     }
 }

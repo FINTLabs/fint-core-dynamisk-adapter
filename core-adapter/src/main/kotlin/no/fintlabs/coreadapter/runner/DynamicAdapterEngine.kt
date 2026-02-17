@@ -7,7 +7,9 @@ import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.InitialDataset
 import no.fintlabs.coreadapter.store.ResourceStore
+import no.fintlabs.coreadapter.util.getFirstId
 import no.fintlabs.coreadapter.util.putLink
+import no.fintlabs.coreadapter.util.toResourceKey
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.fintlabs.metamodel.MetamodelService
 import no.fintlabs.metamodel.model.Resource
@@ -110,14 +112,6 @@ class DynamicAdapterEngine(
         }
         println("⚙️✅ InitialDataset relating complete.")
     }
-
-    private fun FintResource.getFirstId(): String? = identifikators.firstNotNullOf { it.value }.identifikatorverdi
-
-    private fun FintRelation.toResourceKey(): String =
-        packageName
-            .substringAfter("model.")
-            .replace(".", "/")
-            .lowercase()
 
     private fun logIfEnabled(log: String) {
         if (props.consoleLogging) println(log)

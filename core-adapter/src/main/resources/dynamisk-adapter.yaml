@@ -2,7 +2,7 @@ dynamisk-adapter:
   link: true
   recursive: false
   consoleLogging: true
-  consoleLogDataset: true
+  consoleLogDataset: false
   enableDeltaSync: false
   fullSyncIntervalInMinutes: 0
   initialDataSets:

@@ -11,7 +11,7 @@ data class DynamicAdapterProperties(
     val enableDeltaSync: Boolean = false,
     val fullSyncIntervalInMinutes: Int? = 0,
     val initialDataSets: List<InitialDataset>,
-    val deltaSyncSetup: DeltaSyncSetup? = null,
+    val deltaSyncSetup: DeltaSyncSetup = DeltaSyncSetup(),
 )
 
 data class InitialDataset(
@@ -25,7 +25,7 @@ data class InitialDataset(
 
 data class DeltaSyncSetup(
     val deltaSyncIntervalInMinutes: Int? = null,
-    val dataSets: List<DeltaSyncDataset>,
+    val dataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 
 data class DeltaSyncDataset(

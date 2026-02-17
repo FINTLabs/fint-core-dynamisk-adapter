@@ -10,7 +10,7 @@ fint:
   adapter:
     id: fint-core-dyna
     orgId: fintlabs.no
-    baseUrl: https://alpha.felleskomponent.no
+    baseUrl: https://beta.felleskomponent.no
     idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeatIntervalInMinutes: 20
 
