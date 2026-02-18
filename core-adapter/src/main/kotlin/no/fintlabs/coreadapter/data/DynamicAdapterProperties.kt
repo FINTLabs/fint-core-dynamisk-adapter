@@ -11,7 +11,8 @@ data class DynamicAdapterProperties(
     val enableDeltaSync: Boolean = false,
     val fullSyncIntervalInMinutes: Int? = 0,
     val initialDataSets: List<InitialDataset>,
-    val deltaSyncSetup: DeltaSyncSetup = DeltaSyncSetup(),
+    val deltaSyncIntervalInMinutes: Int? = null,
+    val dataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 
 data class InitialDataset(
@@ -22,11 +23,6 @@ data class InitialDataset(
 ) {
     val resourceKey: String = "${component.replace(".", "/")}/$resource"
 }
-
-data class DeltaSyncSetup(
-    val deltaSyncIntervalInMinutes: Int? = null,
-    val dataSets: List<DeltaSyncDataset> = mutableListOf(),
-)
 
 data class DeltaSyncDataset(
     val name: String,

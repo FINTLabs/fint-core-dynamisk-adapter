@@ -31,11 +31,10 @@ dynamisk-adapter:
       resource: "undervisningsgruppe"
       count: 5
 
-  deltaSyncSetup:
-    deltaSyncIntervalInMinutes: 2
-    dataSets:
-      - name: "fravarsregistrering"
-        component: "utdanning.vurdering"
-        resource: "fravarsregistrering"
-        minSize: 2
-        maxSize: 5
+  deltaSyncIntervalInMinutes: 2
+  dataSets:
+    - name: "fravarsregistrering"
+      component: "utdanning.vurdering"
+      resource: "fravarsregistrering"
+      minSize: 2
+      maxSize: 5
