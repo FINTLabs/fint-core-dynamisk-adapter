@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class DynamicAdapterProperties(
     val recursive: Boolean = false,
     val link: Boolean = true,
+    val linkReverse: Boolean = false,
     val consoleLogging: Boolean = false,
     val consoleLogDataset: Boolean = false,
     val enableDeltaSync: Boolean = false,
