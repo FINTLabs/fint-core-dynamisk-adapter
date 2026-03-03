@@ -46,26 +46,23 @@ class DynamicAdapterPublisher(
         println("🔑 Adapter Registration :  $response")
     }
 
-    private fun postSyncPage(
-        resourceName: String,
-        page: SyncPage,
-    ) = webClient
-        .post()
-        .uri("${props.baseUrl}/provider/$resourceName")
-        .bodyValue(page)
-        .exchangeToMono { response ->
-            response
-                .bodyToMono(String::class.java)
-                .defaultIfEmpty("")
-                .map { body -> response.statusCode() to body }
-        }
-
     fun fullSyncResource(
         resourceName: String,
         data: List<FintResource>,
+    ) = publish(resourceName, SyncType.FULL, data)
+
+    fun deltaSyncResource(
+        resourceName: String,
+        data: List<FintResource>,
+    ) = publish(resourceName, SyncType.DELTA, data)
+
+    private fun publish(
+        resourceName: String,
+        syncType: SyncType,
+        data: List<FintResource>,
     ) {
         if (data.isEmpty()) {
-            println("📤 FullSyncResource :: No data for $resourceName")
+            println("📤 Publish ${syncType.name} :: No data for $resourceName")
         }
 
         val chunks: List<List<FintResource>> = data.chunked(dynaProps.maxPageSize)
@@ -84,16 +81,57 @@ class DynamicAdapterPublisher(
                     totalSize = totalSize,
                 )
 
-            val page = factory.buildPage(SyncType.FULL, meta, entries)
+            val page = factory.buildPage(syncType, meta, entries)
 
             val (status, body) =
-                postSyncPage(resourceName, page).block()
-                    ?: error("No response from provider")
+                when (syncType) {
+                    SyncType.FULL -> {
+                        sendFullSyncPage(resourceName, page).block()
+                            ?: error("No response from provider")
+                    }
+
+                    SyncType.DELTA -> {
+                        sendDeltaSyncPage(resourceName, page).block()
+                            ?: error("No response from provider")
+                    }
+
+                    SyncType.DELETE -> {
+                        error("SyncType.DELETE not implemented.")
+                    }
+                }
 
             println(
-                "📤 FULL $resourceName page ${i + 1}/$totalPages (${entries.size} entries) " +
+                "📤 ${syncType.name} $resourceName page ${i + 1}/$totalPages (${entries.size} entries) " +
                     "=> HTTP $status, body='${body.take(500)}'",
             )
         }
     }
+
+    private fun sendFullSyncPage(
+        resourceName: String,
+        page: SyncPage,
+    ) = webClient
+        .post()
+        .uri("${props.baseUrl}/provider/$resourceName")
+        .bodyValue(page)
+        .exchangeToMono { response ->
+            response
+                .bodyToMono(String::class.java)
+                .defaultIfEmpty("")
+                .map { body -> response.statusCode() to body }
+        }
+
+    private fun sendDeltaSyncPage(
+        resourceName: String,
+        page: SyncPage,
+    ) = webClient
+        .patch()
+        .uri("${props.baseUrl}/provider/$resourceName")
+        .bodyValue(page)
+        .exchangeToMono { response ->
+            response
+                .bodyToMono(String::class.java)
+                .defaultIfEmpty("")
+                .map { body -> response.statusCode() to body }
+        }
 }
