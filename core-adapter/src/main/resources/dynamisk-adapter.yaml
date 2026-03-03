@@ -19,7 +19,7 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 20
+      count: 3000
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"
