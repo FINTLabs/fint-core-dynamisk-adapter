@@ -42,7 +42,7 @@ class DynamicAdapterRunner(
             for (metadata in engine.metadataList) {
                 val data = storage.getAll(metadata.key)
                 for (i in data) {
-                    println(i)
+                    println(i.resource)
                 }
             }
         }

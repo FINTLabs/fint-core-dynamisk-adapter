@@ -5,7 +5,6 @@ import no.fint.model.FintRelation
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
-import no.fintlabs.coreadapter.util.getFirstId
 import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.coreadapter.util.toResourceKey
 import org.springframework.stereotype.Component
@@ -17,9 +16,10 @@ private data class Edge(
 
 @Component
 class RelationFactory(
-    private val storage: ResourceStore,
     private val props: DynamicAdapterProperties,
+    private val storage: ResourceStore,
 ) {
+    // TODO: REFACTOR AFTER STORE CHANGE
     fun relateInitialDataset(metadataList: MutableList<ExpandedMetadata>) {
         val skip = mutableSetOf<Edge>()
 
@@ -38,16 +38,7 @@ class RelationFactory(
                     } else {
                         val secondaryMetadata: ExpandedMetadata? =
                             metadataList.firstOrNull { it.key == relation.toResourceKey() }
-                        if (secondaryMetadata == null) {
-                            if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
-                                logIfEnabled("")
-                                logIfEnabled("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
-                                logIfEnabled("Add ${relation.packageName} to initialDataSets.")
-                                logIfEnabled("")
-                            } else {
-                                continue
-                            }
-                        } else {
+                        if (secondaryMetadata != null) {
                             val reverseRelation =
                                 secondaryMetadata.resource.relations.firstOrNull {
                                     it.toResourceKey() == resource.key
@@ -58,23 +49,34 @@ class RelationFactory(
                             ) {
                                 continue
                             } else {
-                                val primary = storage.getAll(resource.key)
-                                val secondary = storage.getAll(secondaryMetadata.key)
-                                // Links each to a separate following index, if second is longer than primary,
-                                // loops back to 0 and continues up again.
-                                primary.forEachIndexed { index, item ->
-                                    val target = secondary[index % secondary.size]
-                                    val targetId: String =
-                                        (target.identifikators.firstNotNullOf { it.key }) + "/" +
-                                            (target.getFirstId() ?: "NO_IDENTIFIERS_FOUND")
-                                    // TODO: Expand links to reflect real data.
-                                    item.putLink(relation.name, targetId)
+                                val primaryIds = storage.getAll(resource.key).map { it.id }
+                                val secondaryIds = storage.getAll(secondaryMetadata.key).map { it.id }
+
+                                primaryIds.forEachIndexed { i, primaryId ->
+                                    val target =
+                                        if (secondaryMultiplicity == FintMultiplicity.ONE_TO_ONE && i >= secondaryIds.size) {
+                                            "NOT_ENOUGH_${relation.name}"
+                                        } else {
+                                            secondaryIds[i % secondaryIds.size]
+                                        }
+
+                                    storage.updateResource(resource.key, primaryId) { r ->
+                                        r.putLink(relation.name, target)
+                                    }
                                 }
-                                storage.updateAll(resource.key, primary)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
 
                                 logIfEnabled("⛓️ ${resource.resource.name} now has links to ${relation.name}")
                                 logIfEnabled("")
+                            }
+                        } else {
+                            if (relation.multiplicity == FintMultiplicity.ONE_TO_ONE) {
+                                logIfEnabled("")
+                                logIfEnabled("⚠️ ${resource.resource.name}'s required relation ${relation.name} not found in localStorage.")
+                                logIfEnabled("Add ${relation.packageName} to initialDataSets.")
+                                logIfEnabled("")
+                            } else {
+                                continue
                             }
                         }
                     }

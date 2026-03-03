@@ -38,6 +38,8 @@ class ResourceStore {
         map[id] = stored
     }
 
+    fun getIdsFor(key: ResourceKey): Set<String> = mapFor(key).keys
+
     fun getResourceById(
         key: ResourceKey,
         id: String,
@@ -51,7 +53,7 @@ class ResourceStore {
 
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
-    fun getAllResources(key: ResourceKey): List<FintResource?> = data[key]?.values?.toFintResources() ?: emptyList()
+    fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
 
     fun List<FintResource>.toStoredResources(): List<StoredResource> {
         val toStore = mutableListOf<StoredResource>()
@@ -66,13 +68,8 @@ class ResourceStore {
         return toStore
     }
 
-    private fun MutableCollection<StoredResource>.toFintResources(): List<FintResource?> {
-        if (this.isEmpty()) return emptyList()
-
-        val result = mutableListOf<FintResource>()
-        for (resource in this) {
-            result.add(resource.resource)
-        }
-        return result
+    private fun Collection<StoredResource>.toFintResources(): List<FintResource> {
+        if (isEmpty()) return emptyList()
+        return map { it.resource }
     }
 }
