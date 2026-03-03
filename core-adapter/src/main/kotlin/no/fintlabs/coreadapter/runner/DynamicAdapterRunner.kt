@@ -37,7 +37,6 @@ class DynamicAdapterRunner(
         val metaDataList = engine.executeInitialDataset()
         relationFactory.relateInitialDataset(metaDataList)
 
-        // Temporarily printing every resource
         if (props.consoleLogDataset) {
             for (metadata in engine.metadataList) {
                 val data = storage.getAll(metadata.key)

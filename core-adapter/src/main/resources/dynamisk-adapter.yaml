@@ -5,6 +5,7 @@ dynamisk-adapter:
   consoleLogging: true
   consoleLogDataset: false
   enableDeltaSync: false
+  maxPageSize: 1000
   fullSyncIntervalInMinutes: 0
   initialDataSets:
     - name: "elev"

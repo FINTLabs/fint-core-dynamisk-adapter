@@ -6,6 +6,7 @@ import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
+import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.publish.SyncPageFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
     private val props: AdapterProperties,
+    private val dynaProps: DynamicAdapterProperties,
     private val factory: SyncPageFactory,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>) {
@@ -62,23 +64,36 @@ class DynamicAdapterPublisher(
         resourceName: String,
         data: List<FintResource>,
     ) {
-        val entries = factory.buildEntries(data)
+        if (data.isEmpty()) {
+            println("📤 FullSyncResource :: No data for $resourceName")
+        }
 
-        val meta =
-            factory.buildMetadata(
-                resourceName = resourceName,
-                page = 0,
-                pageSize = entries.size.toLong(),
-                totalPages = 1,
-                totalSize = entries.size.toLong(),
+        val chunks: List<List<FintResource>> = data.chunked(dynaProps.maxPageSize)
+        val totalPages = chunks.size + 1
+        val totalSize = data.size.toLong()
+
+        chunks.forEachIndexed { i, chunk ->
+            val entries = factory.buildEntries(chunk)
+
+            val meta =
+                factory.buildMetadata(
+                    resourceName = resourceName,
+                    page = i.toLong(),
+                    pageSize = entries.size.toLong(),
+                    totalPages = totalPages.toLong(),
+                    totalSize = totalSize,
+                )
+
+            val page = factory.buildPage(SyncType.FULL, meta, entries)
+
+            val (status, body) =
+                postSyncPage(resourceName, page).block()
+                    ?: error("No response from provider")
+
+            println(
+                "📤 FULL $resourceName page ${i + 1}/$totalPages (${entries.size} entries) " +
+                    "=> HTTP $status, body='${body.take(500)}'",
             )
-
-        val page = factory.buildPage(SyncType.FULL, meta, entries)
-
-        val (status, body) =
-            postSyncPage(resourceName, page).block()
-                ?: error("No response from provider")
-
-        println("📤 FULL $resourceName => HTTP $status, body='${body.take(500)}'")
+        }
     }
 }

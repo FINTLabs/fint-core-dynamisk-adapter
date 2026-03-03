@@ -14,7 +14,6 @@ import java.util.*
 class SyncPageFactory(
     private val props: AdapterProperties,
 ) {
-    // TODO: Move this to Engine, save List<SyncPageEntry> instead of List<FintResource>, if the resource can be changed.
     fun buildEntries(resources: List<FintResource>): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
