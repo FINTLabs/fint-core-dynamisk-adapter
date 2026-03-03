@@ -35,7 +35,6 @@ class RelationFactory(
             for (relation in relations) {
                 val edgeToSkip = Edge(relation.toResourceKey(), resource.key)
                 if (edgeToSkip in skip) {
-                    logIfEnabled("⛓️ ${resource.resource.name} Link skipped for ${relation.name}")
                     continue
                 } else {
                     when (relation.multiplicity) {
@@ -84,8 +83,14 @@ class RelationFactory(
         linkRule: LinkRule,
     ) {
         val secondaryKey = relation.toResourceKey()
-        val primaryIds = storage.getAll(primaryKey).map { it.id }
-        val secondaryIds = storage.getAll(secondaryKey).map { it.id }
+        val primaryIds = storage.getIdsFor(primaryKey)
+        val secondaryIds = storage.getIdsFor(secondaryKey)
+        val primName = primaryKey.substringAfterLast("/")
+        val secName = secondaryKey.substringAfterLast("/")
+        if (secondaryIds.isEmpty()) {
+            logIfEnabled("Zero $secName's found to link with $primName")
+            return
+        }
 
         primaryIds.forEachIndexed { i, primaryId ->
             val target =
@@ -99,7 +104,7 @@ class RelationFactory(
                 r.putLink(relation.name, target)
             }
         }
-        logIfEnabled("⛓️ $primaryKey now has links to $secondaryKey")
+        logIfEnabled("⛓️ $primName now has links to $secName")
     }
 
     private fun getSecondaryMetadata(relation: FintRelation): ExpandedMetadata? {
@@ -107,12 +112,7 @@ class RelationFactory(
         val component = key.substringBeforeLast("/").replace('/', '.')
         val resource = key.substringAfterLast("/")
         val resourceData = model.getResource(component, resource)
-        if (resourceData == null) {
-            println("getSecondaryMetadata $component/$resource not found")
-            return null
-        } else {
-            return ExpandedMetadata(resourceData, relation.toResourceKey())
-        }
+        return if (resourceData != null) ExpandedMetadata(resourceData, relation.toResourceKey()) else null
     }
 
     private fun getSecondaryMultiplicity(
