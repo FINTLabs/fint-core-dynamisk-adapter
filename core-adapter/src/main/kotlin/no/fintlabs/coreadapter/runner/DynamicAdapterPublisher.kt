@@ -66,7 +66,7 @@ class DynamicAdapterPublisher(
         }
 
         val chunks: List<List<FintResource>> = data.chunked(dynaProps.maxPageSize)
-        val totalPages = chunks.size + 1
+        val totalPages = chunks.size
         val totalSize = data.size.toLong()
 
         chunks.forEachIndexed { i, chunk ->
