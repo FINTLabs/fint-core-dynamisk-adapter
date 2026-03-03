@@ -1,41 +1,75 @@
 package no.fintlabs.coreadapter.store
 
 import no.fint.model.resource.FintResource
+import no.fintlabs.coreadapter.data.StoredResource
+import no.fintlabs.coreadapter.util.getFirstId
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
-typealias ResourceKey = String // Key should always be "component/resource"
+typealias ResourceKey = String
 
 @Component
 class ResourceStore {
-    private val data = ConcurrentHashMap<ResourceKey, MutableList<FintResource>>()
+    private val data = ConcurrentHashMap<ResourceKey, ConcurrentHashMap<String, StoredResource>>()
 
-    private fun listFor(key: ResourceKey): MutableList<FintResource> = data.computeIfAbsent(key) { mutableListOf() }
+    private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> = data.computeIfAbsent(key) { ConcurrentHashMap() }
 
-    fun lookFor(name: String): List<FintResource>? = data[name]
-
-    fun addAll(
-        key: ResourceKey,
-        resources: List<FintResource>,
-    ) = listFor(key).addAll(resources)
-
-    fun updateAll(
+    fun addAllResources(
         key: ResourceKey,
         resources: List<FintResource>,
     ) {
-        data[key] = resources.toMutableList()
+        val map = mapFor(key)
+        resources.forEach { resource ->
+            val id = resource.getFirstId()
+            map[id] = StoredResource(id, resource)
+        }
     }
 
-    fun addSingular(
+    fun updateResource(
         key: ResourceKey,
-        resource: FintResource,
-    ) = listFor(key).add(resource)
+        id: String,
+        updater: (FintResource) -> Unit,
+    ) {
+        val map = mapFor(key)
+        val stored = map[id] ?: return
 
-    fun getAll(key: ResourceKey): MutableList<FintResource> = data[key] ?: mutableListOf()
+        updater(stored.resource)
+        map[id] = stored
+    }
 
-    fun getRandom(key: ResourceKey): FintResource? {
-        val list = data[key] ?: return null
-        return list[Random.nextInt(list.size)]
+    fun getIdsFor(key: ResourceKey): Set<String> = mapFor(key).keys
+
+    fun getResourceById(
+        key: ResourceKey,
+        id: String,
+    ) = mapFor(key)[id]
+
+    fun getRandomId(key: ResourceKey): String? {
+        val ids = data[key]?.keys ?: return null
+        if (ids.isEmpty()) return null
+        return ids.elementAt(Random.nextInt(ids.size)) ?: return null
+    }
+
+    fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
+
+    fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
+
+    fun List<FintResource>.toStoredResources(): List<StoredResource> {
+        val toStore = mutableListOf<StoredResource>()
+        for (resource in this) {
+            toStore.add(
+                StoredResource(
+                    id = resource.getFirstId(),
+                    resource = resource,
+                ),
+            )
+        }
+        return toStore
+    }
+
+    private fun Collection<StoredResource>.toFintResources(): List<FintResource> {
+        if (isEmpty()) return emptyList()
+        return map { it.resource }
     }
 }

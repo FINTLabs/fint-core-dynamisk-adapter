@@ -32,6 +32,7 @@ dependencies {
     // FINT resource/model dependencies
     implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
     implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
+    implementation("no.fint:fint-felles-resource-model-java:$fintVersion")
     implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
     implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
     implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")

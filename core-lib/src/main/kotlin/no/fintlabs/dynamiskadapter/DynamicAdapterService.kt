@@ -311,18 +311,34 @@ class DynamicAdapterService {
     ): T {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
+        val superField =
+            try {
+                clazz.getDeclaredField("super").apply { isAccessible = true }
+            } catch (_: NoSuchFieldException) {
+                null
+            }
+
+        val targetRoot: Any =
+            if (superField != null) {
+                val current = superField.get(instance)
+                if (current != null) {
+                    current
+                } else {
+                    val superType = superField.type
+                    val created = superType.getDeclaredConstructor().newInstance()
+                    superField.set(instance, created)
+                    created
+                }
+            } else {
+                instance
+            }
+
         for ((fieldName, generator) in blueprint) {
             if (fieldName == "writeable") continue
 
             val field =
-                generateSequence(clazz as Class<*>?) { it.superclass }
-                    .mapNotNull { c ->
-                        try {
-                            c.getDeclaredField(fieldName).apply { isAccessible = true }
-                        } catch (_: NoSuchFieldException) {
-                            null
-                        }
-                    }.firstOrNull()
+                findDeclaredFieldRecursive(targetRoot.javaClass, fieldName)
+                    ?: findDeclaredFieldRecursive(clazz, fieldName)
 
             if (field == null) {
                 println("⚠️ Field not found: $fieldName in ${clazz.simpleName}")
@@ -331,7 +347,7 @@ class DynamicAdapterService {
 
             val value = generator()
             try {
-                field.set(instance, value)
+                field.set(if (field.declaringClass.isInstance(targetRoot)) targetRoot else instance, value)
             } catch (e: Exception) {
                 println("⚠️ Could not set field '$fieldName' in ${clazz.simpleName}: ${e.message}")
             }
@@ -339,4 +355,17 @@ class DynamicAdapterService {
 
         return instance
     }
+
+    private fun findDeclaredFieldRecursive(
+        clazz: Class<*>,
+        name: String,
+    ): Field? =
+        generateSequence(clazz as Class<*>?) { it.superclass }
+            .mapNotNull { c ->
+                try {
+                    c.getDeclaredField(name).apply { isAccessible = true }
+                } catch (_: NoSuchFieldException) {
+                    null
+                }
+            }.firstOrNull()
 }

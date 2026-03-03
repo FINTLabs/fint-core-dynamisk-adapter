@@ -1,8 +1,8 @@
 package no.fintlabs.coreadapter.runner
 
 import no.fintlabs.adapter.models.AdapterCapability
-import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
+import no.fintlabs.coreadapter.relations.RelationFactory
 import no.fintlabs.coreadapter.store.ResourceStore
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -14,7 +14,7 @@ class DynamicAdapterRunner(
     private val engine: DynamicAdapterEngine,
     private val props: DynamicAdapterProperties,
     private val publisher: DynamicAdapterPublisher,
-    private val adapterProps: AdapterProperties,
+    private val relationFactory: RelationFactory,
 ) : ApplicationRunner {
     override fun run(args: ApplicationArguments) {
         if (props.initialDataSets.isEmpty()) {
@@ -34,25 +34,28 @@ class DynamicAdapterRunner(
             capabilities.add(capability)
         }
 
-        engine.executeInitialDataset()
-        engine.relateInitialDataset()
+        val metaDataList = engine.executeInitialDataset()
+        relationFactory.relateInitialDataset(metaDataList)
 
-        publisher.register(capabilities)
-
-        // Temporarily printing every resource
         if (props.consoleLogDataset) {
             for (metadata in engine.metadataList) {
                 val data = storage.getAll(metadata.key)
                 for (i in data) {
-                    println(i)
+                    println(i.resource)
                 }
             }
         }
 
-        // Publishing Initial Dataset
+//         Publishing Initial Dataset
+
+        publisher.register(capabilities)
         for (metadata in engine.metadataList) {
-            val data = storage.getAll(metadata.key)
-            publisher.fullSyncResource(metadata.key, data)
+            val data = storage.getAllResources(metadata.key)
+            if (data.isNotEmpty()) {
+                publisher.fullSyncResource(metadata.key, data)
+            } else {
+                println("No data found for ${metadata.key}")
+            }
         }
     }
 }

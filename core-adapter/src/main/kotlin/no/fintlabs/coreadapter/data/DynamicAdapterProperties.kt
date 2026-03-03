@@ -6,12 +6,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class DynamicAdapterProperties(
     val recursive: Boolean = false,
     val link: Boolean = true,
+    val linkReverse: Boolean = false,
     val consoleLogging: Boolean = false,
     val consoleLogDataset: Boolean = false,
     val enableDeltaSync: Boolean = false,
+    val maxPageSize: Int = 1000,
     val fullSyncIntervalInMinutes: Int? = 0,
     val initialDataSets: List<InitialDataset>,
-    val deltaSyncSetup: DeltaSyncSetup = DeltaSyncSetup(),
+    val deltaSyncIntervalInMinutes: Int? = null,
+    val dataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 
 data class InitialDataset(
@@ -22,11 +25,6 @@ data class InitialDataset(
 ) {
     val resourceKey: String = "${component.replace(".", "/")}/$resource"
 }
-
-data class DeltaSyncSetup(
-    val deltaSyncIntervalInMinutes: Int? = null,
-    val dataSets: List<DeltaSyncDataset> = mutableListOf(),
-)
 
 data class DeltaSyncDataset(
     val name: String,
