@@ -27,7 +27,7 @@ class DynamicAdapterEngine(
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
                 val data: List<FintResource> = generator.create(metadata.resource.resourceType, it.count)
-                storage.addAll(it.resourceKey, data)
+                storage.addAllResources(it.resourceKey, data)
             } else {
                 logIfEnabled("")
                 logIfEnabled("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")

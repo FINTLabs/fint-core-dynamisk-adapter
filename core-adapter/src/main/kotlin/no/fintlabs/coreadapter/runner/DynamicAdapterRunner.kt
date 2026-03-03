@@ -49,10 +49,14 @@ class DynamicAdapterRunner(
 
 //         Publishing Initial Dataset
 
-//        publisher.register(capabilities)
-//        for (metadata in engine.metadataList) {
-//            val data = storage.getAll(metadata.key)
-//            publisher.fullSyncResource(metadata.key, data)
-//        }
+        publisher.register(capabilities)
+        for (metadata in engine.metadataList) {
+            val data = storage.getAllResources(metadata.key)
+            if (data.isNotEmpty()) {
+                publisher.fullSyncResource(metadata.key, data)
+            } else {
+                println("No data found for ${metadata.key}")
+            }
+        }
     }
 }
