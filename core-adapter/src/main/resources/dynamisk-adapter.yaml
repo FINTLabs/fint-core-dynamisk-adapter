@@ -1,10 +1,10 @@
 dynamisk-adapter:
   link: true
-  linkReverse: false
   recursive: false
   consoleLogging: true
-  consoleLogDataset: false
-  enableDeltaSync: false
+  consoleLogDataset: true
+  enableDeltaSync: true
+  localLogicTest: true
   maxPageSize: 1000
   fullSyncIntervalInDays: 1
   initialDataSets:
@@ -24,10 +24,14 @@ dynamisk-adapter:
       component: "utdanning.elev"
       resource: "elevforhold"
       count: 10
+    - name: "elevvurdering"
+      component: "utdanning.vurdering"
+      resource: "elevvurdering"
+      count: 10
     - name: "fravarstype"
       component: "utdanning.kodeverk"
       resource: "fravarstype"
-      count: 10
+      count: 4
     - name: "undervisningsgruppe"
       component: "utdanning.timeplan"
       resource: "undervisningsgruppe"
@@ -37,10 +41,15 @@ dynamisk-adapter:
       resource: "skole"
       count: 1
 
-  deltaSyncIntervalInMinutes: 2
-  dataSets:
+  deltaSyncIntervalInMinutes: 1
+  deltaSyncDataSets:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      minSize: 2
-      maxSize: 5
+      minSize: 3
+      maxSize: 8
+    - name: "elevvurdering"
+      component: "utdanning.vurdering"
+      resource: "elevvurdering"
+      minSize: 3
+      maxSize: 6

@@ -5,10 +5,12 @@ import no.fint.model.FintRelation
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
+import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.coreadapter.util.toResourceKey
 import no.fintlabs.metamodel.MetamodelService
 import org.springframework.stereotype.Component
+import kotlin.random.Random
 
 private data class Edge(
     val from: String,
@@ -20,14 +22,23 @@ private enum class LinkRule {
     UNIQUE_STRICT,
 }
 
+enum class SetType {
+    INITIAL,
+    DELTA,
+}
+
 @Component
 class RelationFactory(
     private val props: DynamicAdapterProperties,
     private val model: MetamodelService,
     private val storage: ResourceStore,
+    private val deltaStorage: TempDeltaSyncStore,
 ) {
     // TODO: REFACTOR AFTER STORE CHANGE
-    fun relateInitialDataset(metadataList: MutableList<ExpandedMetadata>) {
+    fun relateDataset(
+        metadataList: MutableList<ExpandedMetadata>,
+        setType: SetType,
+    ) {
         val skip = mutableSetOf<Edge>()
 
         for (resource in metadataList) {
@@ -49,7 +60,7 @@ class RelationFactory(
                             if (secondaryMetadata != null) {
                                 val secondaryMultiplicity = getSecondaryMultiplicity(resource.key, secondaryMetadata)
                                 if (secondaryMultiplicity == FintMultiplicity.ONE_TO_MANY) {
-                                    giveLink(resource.key, relation, LinkRule.ROUND_ROBIN)
+                                    giveLink(resource.key, relation, LinkRule.ROUND_ROBIN, setType)
                                     skip.add(Edge(resource.key, relation.toResourceKey()))
                                 }
                             }
@@ -65,7 +76,7 @@ class RelationFactory(
                                     } else {
                                         LinkRule.ROUND_ROBIN
                                     }
-                                giveLink(resource.key, relation, linkRule)
+                                giveLink(resource.key, relation, linkRule, setType)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
                             }
                         }
@@ -74,17 +85,23 @@ class RelationFactory(
             }
         }
         println("")
-        println("⚙️✅ InitialDataset relating complete.")
+        println("⚙️✅ $setType set relating complete.")
+        println("")
+        skip.clear()
     }
+
+    // TODO: SOMEWHERE HERE DeltaSets are not being linked for some reason.
 
     private fun giveLink(
         primaryKey: String,
         relation: FintRelation,
         linkRule: LinkRule,
+        setType: SetType,
     ) {
         val secondaryKey = relation.toResourceKey()
-        val primaryIds = storage.getIdsFor(primaryKey)
-        val secondaryIds = storage.getIdsFor(secondaryKey)
+        val primaryIds =
+            if (setType == SetType.INITIAL) storage.getIdsFor(primaryKey) else deltaStorage.getIdsFor(primaryKey)
+        val secondaryIds = deltaStorage.getIdsFor(secondaryKey) + storage.getIdsFor(secondaryKey)
         val primName = primaryKey.substringAfterLast("/")
         val secName = secondaryKey.substringAfterLast("/")
         if (secondaryIds.isEmpty()) {
@@ -97,14 +114,24 @@ class RelationFactory(
                 if (linkRule == LinkRule.UNIQUE_STRICT) {
                     "NOT_ENOUGH_$secondaryKey"
                 } else {
-                    secondaryIds[i % secondaryIds.size]
+                    if (setType == SetType.DELTA) {
+                        secondaryIds[Random.nextInt(1, secondaryIds.size)]
+                    } else {
+                        secondaryIds[i % secondaryIds.size]
+                    }
                 }
 
-            storage.updateResource(primaryKey, primaryId) { r ->
-                r.putLink(relation.name, target)
+            if (setType == SetType.DELTA) {
+                deltaStorage.updateResource(primaryKey, primaryId) { r ->
+                    r.putLink(relation.name, target)
+                }
+            } else {
+                storage.updateResource(primaryKey, primaryId) { r ->
+                    r.putLink(relation.name, target)
+                }
             }
         }
-        logIfEnabled("⛓️ $primName now has links to $secName")
+        logIfEnabled("⛓️ $setType : $primName now has links to $secName")
     }
 
     private fun getSecondaryMetadata(relation: FintRelation): ExpandedMetadata? {

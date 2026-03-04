@@ -11,10 +11,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
+import no.fintlabs.coreadapter.data.toExpandedMetadata
 import no.fintlabs.coreadapter.publish.DynamicAdapterPublisher
 import no.fintlabs.coreadapter.relations.RelationFactory
+import no.fintlabs.coreadapter.relations.SetType
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -62,10 +65,11 @@ class DynamicAdapterRunner(
 
     private fun performInitialDatasetRoutine() {
         engine.executeInitialDataset()
-        relationFactory.relateInitialDataset(engine.metadataList)
+        engine.generateDeltaSyncMetadata()
+        relationFactory.relateDataset(engine.metadataList, SetType.INITIAL)
         engine.printAllDataIfEnabled()
 
-        publisher.performFullSync(engine.metadataList)
+        publisher.performSync(engine.metadataList, SyncType.FULL)
     }
 
     private suspend fun heartBeatLoop() {
@@ -86,7 +90,7 @@ class DynamicAdapterRunner(
             delay(interval.toMillis())
             syncMutex.withLock {
                 try {
-                    publisher.performFullSync(engine.metadataList)
+                    publisher.performSync(engine.metadataList, SyncType.FULL)
                 } catch (e: Exception) {
                     println("⚠️ FULLSYNC Error: ${e.message}")
                 }
@@ -100,6 +104,11 @@ class DynamicAdapterRunner(
             delay(interval.toMillis())
             syncMutex.withLock {
                 try {
+                    engine.executeDeltaSyncDataset()
+                    val metadata = engine.deltaMetadataList.toExpandedMetadata()
+                    relationFactory.relateDataset(metadata, SetType.DELTA)
+                    engine.printAllDeltaDataIfEnabled()
+                    publisher.performSync(metadata, SyncType.DELTA)
                 } catch (e: Exception) {
                     println("⚠️ DELTASYNC Error: ${e.message}")
                 }

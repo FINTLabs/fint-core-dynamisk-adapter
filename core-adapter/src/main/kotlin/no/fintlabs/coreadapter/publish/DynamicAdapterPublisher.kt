@@ -10,6 +10,7 @@ import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.models.HeartBeatRequest
 import no.fintlabs.coreadapter.store.ResourceStore
+import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
@@ -19,73 +20,93 @@ import java.time.Instant
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
     private val storage: ResourceStore,
+    private val deltaStorage: TempDeltaSyncStore,
     private val factory: SyncPageFactory,
     private val props: AdapterProperties,
     private val dynaProps: DynamicAdapterProperties,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
-        val contract =
-            AdapterContract
-                .builder()
-                .adapterId(props.adapterId)
-                .orgId(props.orgId)
-                .username(props.username)
-                .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
-                .capabilities(capabilities)
-                .time(0L)
-                .build()
+        if (dynaProps.localLogicTest != true) {
+            val contract =
+                AdapterContract
+                    .builder()
+                    .adapterId(props.adapterId)
+                    .orgId(props.orgId)
+                    .username(props.username)
+                    .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
+                    .capabilities(capabilities)
+                    .time(0L)
+                    .build()
 
-        val response =
-            webClient
-                .post()
-                .uri("${props.baseUrl}/provider/register")
-                .bodyValue(contract)
-                .exchangeToMono { response ->
-                    response
-                        .bodyToMono(String::class.java)
-                        .defaultIfEmpty("empty")
-                        .map { body ->
-                            response.statusCode().value() to body
-                        }
-                }.block()
-        println("🔑 Adapter Registration :  $response")
-        return response!!.first == 200
+            val response =
+                webClient
+                    .post()
+                    .uri("${props.baseUrl}/provider/register")
+                    .bodyValue(contract)
+                    .exchangeToMono { response ->
+                        response
+                            .bodyToMono(String::class.java)
+                            .defaultIfEmpty("empty")
+                            .map { body ->
+                                response.statusCode().value() to body
+                            }
+                    }.block()
+            println("🔑 Adapter Registration :  $response")
+            return response!!.first == 200
+        }
+        return true
     }
 
     fun giveHeartBeat() {
-        val requestBody =
-            HeartBeatRequest(
-                props.adapterId,
-                props.username,
-                props.orgId,
-                time = Instant.now().epochSecond,
-            )
-        val response =
-            webClient
-                .post()
-                .uri("${props.baseUrl}/provider/heartbeat")
-                .bodyValue(requestBody)
-                .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
-                .block()
+        if (dynaProps.localLogicTest != true) {
+            val requestBody =
+                HeartBeatRequest(
+                    props.adapterId,
+                    props.username,
+                    props.orgId,
+                    time = Instant.now().epochSecond,
+                )
+            val response =
+                webClient
+                    .post()
+                    .uri("${props.baseUrl}/provider/heartbeat")
+                    .bodyValue(requestBody)
+                    .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
+                    .block()
 
-        println("🫀 HeartBeat => HTTP $response")
-    }
-
-    fun performFullSync(metadataList: MutableList<ExpandedMetadata>) {
-        for (metadata in metadataList) {
-            val data = storage.getAllResources(metadata.key)
-            if (data.isNotEmpty()) {
-                publish(metadata.key, SyncType.FULL, data)
-            } else {
-                println("No data found in LOCAL_STORAGE for ${metadata.key}")
-            }
+            println("🫀 HeartBeat => HTTP $response")
         }
     }
 
-    fun deltaSyncResource(
-        resourceName: String,
-        data: List<FintResource>,
-    ) = publish(resourceName, SyncType.DELTA, data)
+    fun performSync(
+        metadataList: MutableList<ExpandedMetadata>,
+        syncType: SyncType,
+    ) {
+        for (metadata in metadataList) {
+            val data =
+                if (syncType == SyncType.DELTA) {
+                    deltaStorage.getAllResources(metadata.key)
+                } else {
+                    storage.getAllResources(
+                        metadata.key,
+                    )
+                }
+            if (data.isNotEmpty()) {
+                if (dynaProps.localLogicTest != true) {
+                    publish(metadata.key, syncType, data)
+                }
+                if (syncType == SyncType.DELTA) {
+                    storage.addAllResources(metadata.key, data)
+                    logIfEnabled("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
+                }
+            } else {
+                println("No data found in $syncType STORAGE for ${metadata.key}")
+            }
+        }
+        if (syncType == SyncType.DELTA) {
+            deltaStorage.purge(dynaProps.consoleLogging)
+        }
+    }
 
     private fun publish(
         resourceName: String,
@@ -165,4 +186,8 @@ class DynamicAdapterPublisher(
                 .defaultIfEmpty("")
                 .map { body -> response.statusCode() to body }
         }
+
+    private fun logIfEnabled(log: String) {
+        if (dynaProps.consoleLogging) println(log)
+    }
 }
