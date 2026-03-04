@@ -6,7 +6,7 @@ dynamisk-adapter:
   consoleLogDataset: false
   enableDeltaSync: false
   maxPageSize: 1000
-  fullSyncIntervalInMinutes: 0
+  fullSyncIntervalInDays: 1
   initialDataSets:
     - name: "elev"
       component: "utdanning.elev"
@@ -19,7 +19,7 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 3000
+      count: 30
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"

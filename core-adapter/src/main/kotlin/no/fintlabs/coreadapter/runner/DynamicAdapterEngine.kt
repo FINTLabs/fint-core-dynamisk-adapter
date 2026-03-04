@@ -1,6 +1,7 @@
 package no.fintlabs.coreadapter.runner
 
 import no.fint.model.resource.FintResource
+import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.InitialDataset
@@ -17,11 +18,27 @@ class DynamicAdapterEngine(
     private val generator: DynamicAdapterService,
     private val storage: ResourceStore,
 ) {
-    private val capabilities: List<InitialDataset> = props.initialDataSets
+    private val initialDataSets: List<InitialDataset> = props.initialDataSets
     val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
 
-    fun executeInitialDataset(): MutableList<ExpandedMetadata> {
-        capabilities.forEach {
+    fun generateCapabilities(): MutableSet<AdapterCapability> {
+        val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
+        for (it in props.initialDataSets) {
+            val capability =
+                AdapterCapability(
+                    it.component.substringBefore("."),
+                    it.component.substringAfter("."),
+                    it.resource,
+                    1,
+                    AdapterCapability.DeltaSyncInterval.IMMEDIATE,
+                )
+            capabilities.add(capability)
+        }
+        return capabilities
+    }
+
+    fun executeInitialDataset() {
+        initialDataSets.forEach {
             val resourceData: Resource? = model.getResource(it.component, it.resource)
             if (resourceData != null) {
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
@@ -35,7 +52,17 @@ class DynamicAdapterEngine(
             }
         }
         println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
-        return metadataList
+    }
+
+    fun printAllDataIfEnabled() {
+        if (props.consoleLogDataset) {
+            for (metadata in metadataList) {
+                val data = storage.getAll(metadata.key)
+                for (i in data) {
+                    println(i.resource)
+                }
+            }
+        }
     }
 
     private fun logIfEnabled(log: String) {

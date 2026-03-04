@@ -11,9 +11,9 @@ data class DynamicAdapterProperties(
     val consoleLogDataset: Boolean = false,
     val enableDeltaSync: Boolean = false,
     val maxPageSize: Int = 1000,
-    val fullSyncIntervalInMinutes: Int? = 0,
     val initialDataSets: List<InitialDataset>,
     val deltaSyncIntervalInMinutes: Int? = null,
+    val fullSyncIntervalInDays: Int = 0,
     val dataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 

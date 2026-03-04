@@ -38,7 +38,7 @@ class ResourceStore {
         map[id] = stored
     }
 
-    fun getIdsFor(key: ResourceKey): Set<String> = mapFor(key).keys
+    fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
 
     fun getResourceById(
         key: ResourceKey,

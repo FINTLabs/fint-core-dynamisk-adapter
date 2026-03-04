@@ -15,7 +15,7 @@ data class AdapterProperties(
     val password: String,
     val baseUrl: String,
     val idpUri: String,
-    val heartbeatIntervalInMinutes: Int,
+    val heartbeatIntervalInMinutes: Int = 3,
     val capabilities: List<Capability> = emptyList(),
 ) {
     @OptIn(ExperimentalUuidApi::class)

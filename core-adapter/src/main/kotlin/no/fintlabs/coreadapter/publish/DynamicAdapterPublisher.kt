@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.runner
+package no.fintlabs.coreadapter.publish
 
 import no.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
@@ -7,18 +7,23 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
-import no.fintlabs.coreadapter.publish.SyncPageFactory
+import no.fintlabs.coreadapter.data.ExpandedMetadata
+import no.fintlabs.coreadapter.data.models.HeartBeatRequest
+import no.fintlabs.coreadapter.store.ResourceStore
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
+import java.time.Instant
 
 @Component
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
+    private val storage: ResourceStore,
+    private val factory: SyncPageFactory,
     private val props: AdapterProperties,
     private val dynaProps: DynamicAdapterProperties,
-    private val factory: SyncPageFactory,
 ) {
-    fun register(capabilities: MutableSet<AdapterCapability>) {
+    fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         val contract =
             AdapterContract
                 .builder()
@@ -44,12 +49,38 @@ class DynamicAdapterPublisher(
                         }
                 }.block()
         println("🔑 Adapter Registration :  $response")
+        return response!!.first == 200
     }
 
-    fun fullSyncResource(
-        resourceName: String,
-        data: List<FintResource>,
-    ) = publish(resourceName, SyncType.FULL, data)
+    fun giveHeartBeat() {
+        val requestBody =
+            HeartBeatRequest(
+                props.adapterId,
+                props.username,
+                props.orgId,
+                time = Instant.now().epochSecond,
+            )
+        val response =
+            webClient
+                .post()
+                .uri("${props.baseUrl}/provider/heartbeat")
+                .bodyValue(requestBody)
+                .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
+                .block()
+
+        println("🫀 HeartBeat => HTTP $response")
+    }
+
+    fun performFullSync(metadataList: MutableList<ExpandedMetadata>) {
+        for (metadata in metadataList) {
+            val data = storage.getAllResources(metadata.key)
+            if (data.isNotEmpty()) {
+                publish(metadata.key, SyncType.FULL, data)
+            } else {
+                println("No data found in LOCAL_STORAGE for ${metadata.key}")
+            }
+        }
+    }
 
     fun deltaSyncResource(
         resourceName: String,

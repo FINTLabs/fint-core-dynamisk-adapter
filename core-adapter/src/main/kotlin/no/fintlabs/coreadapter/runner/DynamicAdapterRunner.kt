@@ -1,60 +1,99 @@
 package no.fintlabs.coreadapter.runner
 
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
+import no.fintlabs.coreadapter.publish.DynamicAdapterPublisher
 import no.fintlabs.coreadapter.relations.RelationFactory
-import no.fintlabs.coreadapter.store.ResourceStore
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 class DynamicAdapterRunner(
-    private val storage: ResourceStore,
     private val engine: DynamicAdapterEngine,
     private val props: DynamicAdapterProperties,
     private val publisher: DynamicAdapterPublisher,
+    private val fintProps: AdapterProperties,
     private val relationFactory: RelationFactory,
 ) : ApplicationRunner {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val syncMutex = Mutex()
+
     override fun run(args: ApplicationArguments) {
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
         }
-        // Generate Capabilities for Adapter registration
-        val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
-        for (it in props.initialDataSets) {
-            val capability =
-                AdapterCapability(
-                    it.component.substringBefore("."),
-                    it.component.substringAfter("."),
-                    it.resource,
-                    1,
-                    AdapterCapability.DeltaSyncInterval.IMMEDIATE,
-                )
-            capabilities.add(capability)
+        val isRegistered = registerAndBootstrap()
+        if (!isRegistered) {
+            println("failed to register adapter. Shutting down...")
+        }
+        performInitialDatasetRoutine()
+
+        scope.launch { heartBeatLoop() }
+
+        if (props.fullSyncIntervalInDays > 0) {
+            scope.launch { fullSyncLoop(props.fullSyncIntervalInDays) }
         }
 
-        val metaDataList = engine.executeInitialDataset()
-        relationFactory.relateInitialDataset(metaDataList)
+        if (props.enableDeltaSync && props.deltaSyncIntervalInMinutes != null) {
+            scope.launch { deltaSyncLoop(props.deltaSyncIntervalInMinutes) }
+        }
+    }
 
-        if (props.consoleLogDataset) {
-            for (metadata in engine.metadataList) {
-                val data = storage.getAll(metadata.key)
-                for (i in data) {
-                    println(i.resource)
+    private fun registerAndBootstrap(): Boolean {
+        val capabilities: MutableSet<AdapterCapability> = engine.generateCapabilities()
+        val isRegistered: Boolean = publisher.register(capabilities)
+        return isRegistered
+    }
+
+    private fun performInitialDatasetRoutine() {
+        engine.executeInitialDataset()
+        relationFactory.relateInitialDataset(engine.metadataList)
+        engine.printAllDataIfEnabled()
+
+        publisher.performFullSync(engine.metadataList)
+    }
+
+    private suspend fun heartBeatLoop() {
+        val interval = Duration.ofMinutes(fintProps.heartbeatIntervalInMinutes.toLong())
+        while (scope.isActive) {
+            try {
+                publisher.giveHeartBeat()
+            } catch (e: Exception) {
+                println("💔 Heartbeat Error: ${e.message}")
+            }
+            delay(interval.toMillis())
+        }
+    }
+
+    private suspend fun fullSyncLoop(int: Int) {
+        val interval = Duration.ofDays(int.toLong())
+        while (scope.isActive) {
+            delay(interval.toMillis())
+            syncMutex.withLock {
+                try {
+                    publisher.performFullSync(engine.metadataList)
+                } catch (e: Exception) {
+                    println("⚠️ FULLSYNC Error: ${e.message}")
                 }
             }
         }
+    }
 
-//         Publishing Initial Dataset
-
-        publisher.register(capabilities)
-        for (metadata in engine.metadataList) {
-            val data = storage.getAllResources(metadata.key)
-            if (data.isNotEmpty()) {
-                publisher.fullSyncResource(metadata.key, data)
-            } else {
-                println("No data found for ${metadata.key}")
+    private suspend fun deltaSyncLoop(int: Int) {
+        val interval = Duration.ofMinutes(int.toLong())
+        while (scope.isActive) {
+            delay(interval.toMillis())
+            syncMutex.withLock {
+                try {
+                } catch (e: Exception) {
+                    println("⚠️ DELTASYNC Error: ${e.message}")
+                }
             }
         }
     }
