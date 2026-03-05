@@ -83,9 +83,7 @@ class RelationFactory(
                 }
             }
         }
-        println("")
-        println("⚙️✅ $setType set relating complete.")
-        println("")
+        println("⛓️✅ $setType set relating complete.")
         skip.clear()
     }
 

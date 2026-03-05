@@ -58,15 +58,13 @@ class DynamicAdapterEngine(
                 logIfEnabled("")
             }
         }
-        println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
+        logIfEnabled("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
     }
 
     fun executeDeltaSyncDataset() {
-        logIfEnabled("ProducingDeltaSyncData: ${deltaMetadataList.size} types of resources.")
         for (it in deltaMetadataList) {
             val count = Random.nextInt(it.minSize, it.maxSize)
             val data: List<FintResource> = generator.create(it.resource.resourceType, count)
-            logIfEnabled("Producing Delta Data, ${it.key}, x${data.size}")
             deltaStorage.addAllResources(it.key, data)
         }
     }
@@ -80,7 +78,7 @@ class DynamicAdapterEngine(
                     deltaMetadataList.add(metaData)
                 }
             }
-            println("⚙️✅ DynamicAdapterEngine: ${deltaMetadataList.size} types of resources created for deltaSync.")
+            logIfEnabled("⚙️✅ DynamicAdapterEngine: ${deltaMetadataList.size} types of resources created for deltaSync.")
         }
     }
 
@@ -109,6 +107,12 @@ class DynamicAdapterEngine(
                 }
             }
             println("")
+        }
+    }
+
+    fun deltaDoneLogAmountOfResources() {
+        for (it in deltaSyncDataSets) {
+            logIfEnabled("FullStorage now contains ${storage.countResources(it.resourceKey)} ${it.resourceKey}")
         }
     }
 

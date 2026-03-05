@@ -12,23 +12,23 @@ dynamisk-adapter:
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
-      count: 10
+      count: 500
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
-      count: 10
+      count: 500
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 100
+      count: 10
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"
-      count: 10
+      count: 100
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      count: 100
+      count: 10
     - name: "fravarstype"
       component: "utdanning.kodeverk"
       resource: "fravarstype"
@@ -36,7 +36,7 @@ dynamisk-adapter:
     - name: "undervisningsgruppe"
       component: "utdanning.timeplan"
       resource: "undervisningsgruppe"
-      count: 10
+      count: 30
     - name: "skole"
       component: "utdanning.utdanningsprogram"
       resource: "skole"
@@ -45,10 +45,10 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      minSize: 100
-      maxSize: 500
+      minSize: 500
+      maxSize: 1500
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      minSize: 100
-      maxSize: 200
+      minSize: 400
+      maxSize: 1400

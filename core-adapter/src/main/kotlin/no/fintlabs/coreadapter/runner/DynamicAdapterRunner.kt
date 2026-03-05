@@ -52,7 +52,6 @@ class DynamicAdapterRunner(
 
         if (props.enableDeltaSync && props.deltaSyncIntervalInMinutes != null) {
             scope.launch { deltaSyncLoop(props.deltaSyncIntervalInMinutes) }
-            logIfEnabled("Delta Sync Loop will start in ${props.deltaSyncIntervalInMinutes} minutes")
         }
 
         runBlocking { scope.coroutineContext[Job]!!.join() }
@@ -102,6 +101,8 @@ class DynamicAdapterRunner(
     private suspend fun deltaSyncLoop(int: Int) {
         val interval = Duration.ofMinutes(int.toLong())
         while (scope.isActive) {
+            logIfEnabled("DeltaSync will happen in ${props.deltaSyncIntervalInMinutes} minutes")
+            logIfEnabled("")
             delay(interval.toMillis())
             syncMutex.withLock {
                 try {
@@ -111,6 +112,8 @@ class DynamicAdapterRunner(
                     engine.printAllDeltaDataIfEnabled()
                     publisher.performSync(metadata, SyncType.DELTA)
                     engine.printAllDataIfEnabled()
+                    engine.deltaDoneLogAmountOfResources()
+                    logIfEnabled("DeltaSync completed. Next deltaSync in ${props.deltaSyncIntervalInMinutes} minutes")
                 } catch (e: Exception) {
                     println("⚠️ DELTASYNC Error: ${e.message}")
                 }

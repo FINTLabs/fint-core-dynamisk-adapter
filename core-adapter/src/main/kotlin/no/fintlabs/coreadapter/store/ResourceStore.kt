@@ -51,6 +51,8 @@ class ResourceStore {
         return ids.elementAt(Random.nextInt(ids.size)) ?: return null
     }
 
+    fun countResources(key: ResourceKey): Int = data[key]?.keys?.size ?: 0
+
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
     fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()

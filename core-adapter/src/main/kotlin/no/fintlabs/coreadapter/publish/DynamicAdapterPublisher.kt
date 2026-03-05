@@ -92,9 +92,10 @@ class DynamicAdapterPublisher(
             if (data.isNotEmpty()) {
                 if (dynaProps.localLogicTest != true) {
                     publish(metadata.key, syncType, data)
+                } else {
+                    logIfEnabled("performSync: $syncType, ${metadata.key}, ${data.size} entries")
                 }
                 if (syncType == SyncType.DELTA) {
-                    println("performSync: $syncType, ${metadata.key}, ${data.size} entries")
                     storage.addAllResources(metadata.key, data)
                     logIfEnabled("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
                 }
@@ -152,8 +153,7 @@ class DynamicAdapterPublisher(
                 }
 
             println(
-                "📤 ${syncType.name} $resourceName page ${i + 1}/$totalPages (${entries.size} entries) " +
-                    "=> HTTP $status, body='${body.take(500)}'",
+                "📤 ${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ",
             )
         }
     }
