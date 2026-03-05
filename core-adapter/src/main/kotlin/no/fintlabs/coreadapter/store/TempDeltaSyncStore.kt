@@ -4,6 +4,7 @@ import no.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
 import no.fintlabs.coreadapter.util.getFirstId
 import org.springframework.stereotype.Component
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.forEach
 import kotlin.random.Random
@@ -14,10 +15,10 @@ class TempDeltaSyncStore {
 
     private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> = data.computeIfAbsent(key) { ConcurrentHashMap() }
 
-    // TODO: After all is done and they have been safely moved to ResourceStore
     fun purge(log: Boolean?) {
         if (log == true) {
-            println("Latest DeltaSyncDataset has been PURGED")
+            println("Latest DeltaSyncDataset has been PURGED from temporary storage")
+            println(Instant.now())
         }
         data.clear()
     }

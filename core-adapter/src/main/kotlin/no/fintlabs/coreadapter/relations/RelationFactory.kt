@@ -34,7 +34,6 @@ class RelationFactory(
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
 ) {
-    // TODO: REFACTOR AFTER STORE CHANGE
     fun relateDataset(
         metadataList: MutableList<ExpandedMetadata>,
         setType: SetType,
@@ -89,8 +88,6 @@ class RelationFactory(
         println("")
         skip.clear()
     }
-
-    // TODO: SOMEWHERE HERE DeltaSets are not being linked for some reason.
 
     private fun giveLink(
         primaryKey: String,

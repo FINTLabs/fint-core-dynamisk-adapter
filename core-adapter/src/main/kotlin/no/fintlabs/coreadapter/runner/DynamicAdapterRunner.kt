@@ -52,6 +52,7 @@ class DynamicAdapterRunner(
 
         if (props.enableDeltaSync && props.deltaSyncIntervalInMinutes != null) {
             scope.launch { deltaSyncLoop(props.deltaSyncIntervalInMinutes) }
+            logIfEnabled("Delta Sync Loop will start in ${props.deltaSyncIntervalInMinutes} minutes")
         }
 
         runBlocking { scope.coroutineContext[Job]!!.join() }
@@ -109,10 +110,15 @@ class DynamicAdapterRunner(
                     relationFactory.relateDataset(metadata, SetType.DELTA)
                     engine.printAllDeltaDataIfEnabled()
                     publisher.performSync(metadata, SyncType.DELTA)
+                    engine.printAllDataIfEnabled()
                 } catch (e: Exception) {
                     println("⚠️ DELTASYNC Error: ${e.message}")
                 }
             }
         }
+    }
+
+    private fun logIfEnabled(log: String) {
+        if (props.consoleLogging) println(log)
     }
 }

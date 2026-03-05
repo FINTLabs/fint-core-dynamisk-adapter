@@ -87,15 +87,14 @@ class DynamicAdapterPublisher(
                 if (syncType == SyncType.DELTA) {
                     deltaStorage.getAllResources(metadata.key)
                 } else {
-                    storage.getAllResources(
-                        metadata.key,
-                    )
+                    storage.getAllResources(metadata.key)
                 }
             if (data.isNotEmpty()) {
                 if (dynaProps.localLogicTest != true) {
                     publish(metadata.key, syncType, data)
                 }
                 if (syncType == SyncType.DELTA) {
+                    println("performSync: $syncType, ${metadata.key}, ${data.size} entries")
                     storage.addAllResources(metadata.key, data)
                     logIfEnabled("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
                 }
