@@ -8,7 +8,6 @@ import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.coreadapter.util.getFirstId
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 class SyncPageFactory(
@@ -30,7 +29,7 @@ class SyncPageFactory(
         pageSize: Long,
         totalPages: Long,
         totalSize: Long,
-        corrId: String = newCorrId(),
+        corrId: String,
         time: Long = System.currentTimeMillis(),
     ): SyncPageMetadata =
         SyncPageMetadata
@@ -57,6 +56,4 @@ class SyncPageFactory(
             .metadata(metadata)
             .resources(entries)
             .build()
-
-    fun newCorrId(): String = UUID.randomUUID().toString().lowercase()
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import java.time.Instant
+import java.util.UUID
 
 @Component
 class DynamicAdapterPublisher(
@@ -120,6 +121,7 @@ class DynamicAdapterPublisher(
         val chunks: List<List<FintResource>> = data.chunked(dynaProps.maxPageSize)
         val totalPages = chunks.size
         val totalSize = data.size.toLong()
+        val corrId = UUID.randomUUID().toString()
 
         chunks.forEachIndexed { i, chunk ->
             val entries = factory.buildEntries(chunk)
@@ -131,11 +133,12 @@ class DynamicAdapterPublisher(
                     pageSize = entries.size.toLong(),
                     totalPages = totalPages.toLong(),
                     totalSize = totalSize,
+                    corrId = corrId,
                 )
 
             val page = factory.buildPage(syncType, meta, entries)
 
-            val (status, body) =
+            val (status) =
                 when (syncType) {
                     SyncType.FULL -> {
                         sendFullSyncPage(resourceName, page).block()

@@ -12,23 +12,23 @@ dynamisk-adapter:
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
-      count: 500
+      count: 5000
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
-      count: 500
+      count: 5000
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 10
+      count: 3000
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"
-      count: 100
+      count: 5000
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      count: 10
+      count: 3000
     - name: "fravarstype"
       component: "utdanning.kodeverk"
       resource: "fravarstype"
@@ -40,15 +40,15 @@ dynamisk-adapter:
     - name: "skole"
       component: "utdanning.utdanningsprogram"
       resource: "skole"
-      count: 1
+      count: 2
   deltaSyncDataSets:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      minSize: 500
-      maxSize: 1500
+      maxSize: 5
+      minSize: 3
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      minSize: 400
-      maxSize: 1400
+      maxSize: 5
+      minSize: 3
