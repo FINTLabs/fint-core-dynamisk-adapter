@@ -1,10 +1,10 @@
 dynamisk-adapter:
   link: true
-  recursive: false
-  consoleLogging: true
-  consoleLogDataset: false
+  recursive: false # NOT IMPLEMENTED... might be impossible
+  consoleLogging: true # Logging status
+  consoleLogDataset: false # Logs every resource individually
   enableDeltaSync: false
-  localLogicTest: true
+  localLogicTest: true # Offline mode
   maxPageSize: 1000
   fullSyncIntervalInDays: 0
   deltaSyncIntervalInMinutes: 1
