@@ -44,7 +44,14 @@ class DynamicAdapterRunner(
         }
         performInitialDatasetRoutine()
 
-        scope.launch { heartBeatLoop() }
+        if (props.localLogicTest && !props.enableDeltaSync) {
+            println("All jobs are completed. Shutting down...")
+            return
+        }
+
+        if (!props.localLogicTest) {
+            scope.launch { heartBeatLoop() }
+        }
 
         if (props.fullSyncIntervalInDays > 0) {
             scope.launch { fullSyncLoop(props.fullSyncIntervalInDays) }

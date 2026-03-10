@@ -9,7 +9,7 @@ data class DynamicAdapterProperties(
     val consoleLogging: Boolean = false,
     val consoleLogDataset: Boolean = false,
     val enableDeltaSync: Boolean = false,
-    val localLogicTest: Boolean? = false,
+    val localLogicTest: Boolean = false,
     val maxPageSize: Int = 1000,
     val initialDataSets: List<InitialDataset>,
     val deltaSyncIntervalInMinutes: Int? = null,

@@ -77,6 +77,11 @@ class RelationFactory(
                                     }
                                 giveLink(resource.key, relation, linkRule, setType)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
+                            } else {
+                                logIfEnabled("")
+                                logIfEnabled("⛓️⚠️ ${resource.key}'s required relation $relation not found.")
+                                logIfEnabled("⛓️⚠️ Adding ${relation.packageName} is recommended.")
+                                logIfEnabled("")
                             }
                         }
                     }

@@ -3,44 +3,54 @@ dynamisk-adapter:
   recursive: false
   consoleLogging: true
   consoleLogDataset: false
-  enableDeltaSync: true
-  localLogicTest: false
+  enableDeltaSync: false
+  localLogicTest: true
   maxPageSize: 1000
-  fullSyncIntervalInDays: 1
+  fullSyncIntervalInDays: 0
   deltaSyncIntervalInMinutes: 1
   initialDataSets:
+    ## FELLES
+    ## Faste REQUIRED ressurser
+    - name: "person"
+      component: "utdanning.elev"
+      resource: "person"
+      count: 100
+      ## UTDANNING
+      ## Faste REQUIRED ressurser
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
-      count: 5000
+      count: 100
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
-      count: 5000
-    - name: "fravarsregistrering"
-      component: "utdanning.vurdering"
-      resource: "fravarsregistrering"
-      count: 3000
+      count: 100
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"
-      count: 5000
-    - name: "elevvurdering"
-      component: "utdanning.vurdering"
-      resource: "elevvurdering"
-      count: 3000
-    - name: "fravarstype"
-      component: "utdanning.kodeverk"
-      resource: "fravarstype"
-      count: 4
-    - name: "undervisningsgruppe"
-      component: "utdanning.timeplan"
-      resource: "undervisningsgruppe"
-      count: 30
+      count: 100
     - name: "skole"
       component: "utdanning.utdanningsprogram"
       resource: "skole"
       count: 2
+    - name: "undervisningsgruppe"
+      component: "utdanning.timeplan"
+      resource: "undervisningsgruppe"
+      count: 30
+    - name: "fravarstype"
+      component: "utdanning.kodeverk"
+      resource: "fravarstype"
+      count: 4
+      ##-TO-MANY ressurser
+    - name: "fravarsregistrering"
+      component: "utdanning.vurdering"
+      resource: "fravarsregistrering"
+      count: 100
+    - name: "elevvurdering"
+      component: "utdanning.vurdering"
+      resource: "elevvurdering"
+      count: 100
+
   deltaSyncDataSets:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
