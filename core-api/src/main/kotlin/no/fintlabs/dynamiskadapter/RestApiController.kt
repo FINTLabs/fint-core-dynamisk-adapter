@@ -29,6 +29,12 @@ class RestApiController(
             "Domain and component both need to be included, separated by comma.",
         )
 
+    @GetMapping("/getResource")
+    fun getResource(
+        @RequestParam component: String,
+        @RequestParam resource: String,
+    ) = model.getResource(component, resource)
+
     @GetMapping("/ping")
     fun ping(): String = "ok"
 
