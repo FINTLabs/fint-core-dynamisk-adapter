@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class DynamiskAdapterController(
+class RestApiController(
     private val service: DynamicAdapterService,
     private val model: MetamodelService,
 ) {
@@ -16,7 +16,9 @@ class DynamiskAdapterController(
     fun getAllComponents(): List<String> = model.getComponents().map { it.name }
 
     @GetMapping("/getResources")
-    fun getResources(@RequestParam component: String): List<String> =
+    fun getResources(
+        @RequestParam component: String,
+    ): List<String> =
         model.getComponent(component)?.let { component ->
             component.resources.map { resource ->
                 resource.name.lowercase()
@@ -24,7 +26,7 @@ class DynamiskAdapterController(
         } ?: listOf(
             "ERROR: Unrecognized Component.",
             "Please double check your spelling.",
-            "Domain and component both need to be included, separated by comma."
+            "Domain and component both need to be included, separated by comma.",
         )
 
     @GetMapping("/ping")
@@ -34,7 +36,7 @@ class DynamiskAdapterController(
     fun create(
         @RequestParam component: String,
         @RequestParam resource: String,
-        @RequestParam count: Int
+        @RequestParam count: Int,
     ): List<FintResource> {
         val resourceModelClass = model.getResource(component, resource)
 

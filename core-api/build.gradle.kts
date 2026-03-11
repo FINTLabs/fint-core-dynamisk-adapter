@@ -38,6 +38,7 @@ dependencies {
     implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
     implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
     implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
