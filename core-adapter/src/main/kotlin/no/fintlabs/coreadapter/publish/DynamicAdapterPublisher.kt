@@ -91,7 +91,7 @@ class DynamicAdapterPublisher(
                     storage.getAllResources(metadata.key)
                 }
             if (data.isNotEmpty()) {
-                if (dynaProps.localLogicTest != true) {
+                if (!dynaProps.localLogicTest) {
                     publish(metadata.key, syncType, data)
                 } else {
                     logIfEnabled("performSync: $syncType, ${metadata.key}, ${data.size} entries")

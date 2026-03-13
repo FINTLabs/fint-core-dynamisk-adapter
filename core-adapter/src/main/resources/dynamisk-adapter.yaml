@@ -3,24 +3,24 @@ dynamisk-adapter:
   recursive: false # NOT IMPLEMENTED... might be impossible
   consoleLogging: true # Logs more status and warnings
   consoleLogDataset: false # Logs every resource individually
-  enableDeltaSync: false
-  localLogicTest: true # Offline mode
+  localLogicTest: false # Offline mode
   maxPageSize: 1000
   fullSyncIntervalInDays: 0
   deltaSyncIntervalInMinutes: 1
+  enableDeltaSync: true
   initialDataSets:
     ## FELLES
     ## Faste REQUIRED ressurser
-    - name: "person"
-      component: "utdanning.elev"
-      resource: "person"
-      count: 100
-      ## UTDANNING
-      ## Faste REQUIRED ressurser
+    #    - name: "person"
+    #      component: "utdanning.elev"
+    #      resource: "person"
+    #      count: 2000
+    ## UTDANNING
+    ## Faste REQUIRED ressurser
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
-      count: 100
+      count: 2000
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
@@ -55,10 +55,10 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      maxSize: 5
-      minSize: 3
+      maxSize: 50000
+      minSize: 40000
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      maxSize: 5
-      minSize: 3
+      maxSize: 50000
+      minSize: 40000
