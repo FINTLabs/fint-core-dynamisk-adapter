@@ -59,7 +59,7 @@ class DynamicAdapterPublisher(
     }
 
     fun giveHeartBeat() {
-        if (dynaProps.localLogicTest != true) {
+        if (!dynaProps.localLogicTest) {
             val requestBody =
                 HeartBeatRequest(
                     props.adapterId,
