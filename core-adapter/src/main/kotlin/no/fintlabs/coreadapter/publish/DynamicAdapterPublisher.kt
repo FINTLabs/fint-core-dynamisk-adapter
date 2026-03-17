@@ -27,7 +27,7 @@ class DynamicAdapterPublisher(
     private val dynaProps: DynamicAdapterProperties,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
-        if (dynaProps.localLogicTest != true) {
+        if (!dynaProps.localLogicTest) {
             val contract =
                 AdapterContract
                     .builder()
