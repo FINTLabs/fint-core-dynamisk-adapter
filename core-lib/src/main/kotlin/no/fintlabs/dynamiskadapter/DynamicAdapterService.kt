@@ -37,6 +37,7 @@ class DynamicAdapterService {
     fun create(
         resource: Class<out FintResource>,
         amount: Int,
+        logging: Boolean = false,
     ): List<FintResource> {
         val resourceName = resource.simpleName
         var blueprint: Map<String, () -> Any?>
@@ -44,11 +45,11 @@ class DynamicAdapterService {
         if (blueprintCache.containsKey(resourceName)) {
             blueprint = blueprintCache[resourceName]!!
         } else {
-            blueprint = generateBlueprint(resource)
+            blueprint = generateBlueprint(logging, resource)
             blueprintCache[resourceName] = blueprint
         }
-        println("📋 DynamicAdapterService: creating ${amount}x $resourceName")
-        return List(amount) { createInstanceFromBlueprint(resource, blueprint) }
+        logIfEnabled(logging, "📋${amount}x $resource")
+        return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint) }
     }
 
     private fun getAllUniqueFields(clazz: Class<*>): List<Field> {
@@ -67,7 +68,10 @@ class DynamicAdapterService {
         return fields
     }
 
-    private fun <T : Any> generateBlueprint(clazz: Class<T>): Map<String, () -> Any?> {
+    private fun <T : Any> generateBlueprint(
+        logging: Boolean,
+        clazz: Class<T>,
+    ): Map<String, () -> Any?> {
         val generators = mutableMapOf<String, () -> Any?>()
 
         getAllUniqueFields(clazz).forEach { field ->
@@ -306,7 +310,7 @@ class DynamicAdapterService {
 
                     else -> {
                         {
-                            println("⚠️ Type not specified: ${field.type}")
+                            logIfEnabled(logging, "⚠️ Type not specified: ${field.type}")
                             null
                         }
                     }
@@ -319,6 +323,7 @@ class DynamicAdapterService {
     }
 
     private fun <T : FintResource> createInstanceFromBlueprint(
+        logging: Boolean,
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
     ): T {
@@ -354,7 +359,7 @@ class DynamicAdapterService {
                     ?: findDeclaredFieldRecursive(clazz, fieldName)
 
             if (field == null) {
-                println("⚠️ Field not found: $fieldName in ${clazz.simpleName}")
+                logIfEnabled(logging, "⚠️ Field not found: $fieldName in ${clazz.simpleName}")
                 continue
             }
 
@@ -362,11 +367,18 @@ class DynamicAdapterService {
             try {
                 field.set(if (field.declaringClass.isInstance(targetRoot)) targetRoot else instance, value)
             } catch (e: Exception) {
-                println("⚠️ Could not set field '$fieldName' in ${clazz.simpleName}: ${e.message}")
+                logIfEnabled(logging, "⚠️ Could not set field '$fieldName' in ${clazz.simpleName}: ${e.message}")
             }
         }
 
         return instance
+    }
+
+    private fun logIfEnabled(
+        bool: Boolean,
+        input: String,
+    ) {
+        if (bool) println(input)
     }
 
     private fun findDeclaredFieldRecursive(
