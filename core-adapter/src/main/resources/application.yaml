@@ -9,7 +9,6 @@ spring:
 fint:
   adapter:
     id: fint-core-dyna
-    orgId: fintlabs.no
     baseUrl: https://beta.felleskomponent.no
     idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
-    heartbeatIntervalInMinutes: 20
+    heartbeatIntervalInMinutes: 3
