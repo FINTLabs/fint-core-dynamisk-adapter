@@ -50,15 +50,16 @@ class DynamicAdapterEngine(
             if (resourceData != null) {
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
-                val data: List<FintResource> = generator.create(metadata.resource.resourceType, it.count)
+                val data: List<FintResource> =
+                    generator.create(metadata.resource.resourceType, it.count, props.consoleLogging)
                 storage.addAllResources(it.resourceKey, data)
             } else {
-                logIfEnabled("")
-                logIfEnabled("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
-                logIfEnabled("")
+                println("")
+                println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
+                println("")
             }
         }
-        logIfEnabled("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
+        println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
     }
 
     fun executeDeltaSyncDataset() {

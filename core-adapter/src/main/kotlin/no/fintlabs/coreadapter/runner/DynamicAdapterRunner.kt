@@ -113,11 +113,10 @@ class DynamicAdapterRunner(
 
     private suspend fun deltaSyncLoop(int: Int) {
         val interval = Duration.ofMinutes(int.toLong())
-
         var count = 0
+        println("DeltaSync will happen in ${props.deltaSyncIntervalInMinutes} minutes")
+        println("")
         while (scope.isActive) {
-            logIfEnabled("DeltaSync will happen in ${props.deltaSyncIntervalInMinutes} minutes")
-            logIfEnabled("")
             delay(interval.toMillis())
             syncMutex.withLock {
                 try {
@@ -129,7 +128,7 @@ class DynamicAdapterRunner(
                     engine.printAllDataIfEnabled()
                     engine.deltaDoneLogAmountOfResources()
                     count++
-                    logIfEnabled("DeltaSync #$count completed. Next deltaSync in ${props.deltaSyncIntervalInMinutes} minutes")
+                    println("DeltaSync #$count completed. Next deltaSync in ${props.deltaSyncIntervalInMinutes} minutes")
                 } catch (e: Exception) {
                     println("⚠️ DELTASYNC Error: ${e.message}")
                 }
