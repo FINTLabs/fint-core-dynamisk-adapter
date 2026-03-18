@@ -49,6 +49,12 @@ class DynamicAdapterRunner(
             return
         }
 
+        if (fintProps.baseUrl.startsWith("https://api")) {
+            println(" : : MOCK DATA HAS NOTHING TO DO IN PROD! : :")
+            println("change baseUrl to beta and try again.")
+            return
+        }
+
         if (!props.localLogicTest) {
             scope.launch { heartBeatLoop() }
         }
