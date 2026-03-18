@@ -1,6 +1,7 @@
 package no.fintlabs.dynamiskadapter
 
 import no.fint.model.resource.felles.kompleksedatatyper.AdresseResource
+import java.util.UUID
 
 class CustomRandomizer {
     fun firstname(): String = firstnameList.random()
@@ -16,6 +17,8 @@ class CustomRandomizer {
     fun uniqueFunnyName(): String = funnyNameList.random() + personNumber()
 
     fun shortNumber(): Int = (1..42).random()
+
+    fun uniqueId(): String = UUID.randomUUID().toString()
 
     fun personNumber(): String =
         (1..11)
@@ -39,12 +42,16 @@ class CustomRandomizer {
                 uniqueFunnyName()
             }
 
-            "nummer" in name || "kode" in name || "id" in name -> {
+            "nummer" in name -> {
                 personNumber()
             }
 
+            "kode" in name || "id" in name -> {
+                uniqueId()
+            }
+
             "bilde" in name -> {
-                "https://bildeURL/${personNumber()}"
+                "https://bildeURL/${uniqueId()}"
             }
 
             else -> {
