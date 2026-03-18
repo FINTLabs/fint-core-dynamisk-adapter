@@ -1,8 +1,21 @@
 package no.fintlabs.dynamiskadapter
 
 import no.fint.model.administrasjon.kompleksedatatyper.Kontostreng
-import no.fint.model.arkiv.noark.*
-import no.fint.model.felles.kompleksedatatyper.*
+import no.fint.model.arkiv.noark.Avskrivning
+import no.fint.model.arkiv.noark.Dokumentbeskrivelse
+import no.fint.model.arkiv.noark.Dokumentobjekt
+import no.fint.model.arkiv.noark.Journalpost
+import no.fint.model.arkiv.noark.Klasse
+import no.fint.model.arkiv.noark.Korrespondansepart
+import no.fint.model.arkiv.noark.Merknad
+import no.fint.model.arkiv.noark.Part
+import no.fint.model.arkiv.noark.Skjerming
+import no.fint.model.felles.kompleksedatatyper.Adresse
+import no.fint.model.felles.kompleksedatatyper.Identifikator
+import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
+import no.fint.model.felles.kompleksedatatyper.Matrikkelnummer
+import no.fint.model.felles.kompleksedatatyper.Periode
+import no.fint.model.felles.kompleksedatatyper.Personnavn
 import no.fint.model.okonomi.faktura.Fakturalinje
 import no.fint.model.okonomi.faktura.Fakturamottaker
 import no.fint.model.okonomi.regnskap.Bilag
@@ -14,7 +27,7 @@ import no.fint.model.resource.okonomi.faktura.FakturalinjeResource
 import no.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
-import java.util.*
+import java.util.Date
 import kotlin.random.Random
 
 class DynamicAdapterService {
