@@ -27,6 +27,7 @@ class DynamicAdapterPublisher(
     private val dynaProps: DynamicAdapterProperties,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
+        println("Registering to provider...")
         if (!dynaProps.localLogicTest) {
             val contract =
                 AdapterContract

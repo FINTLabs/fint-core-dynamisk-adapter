@@ -40,7 +40,8 @@ class DynamicAdapterRunner(
         }
         val isRegistered = registerAndBootstrap()
         if (!isRegistered) {
-            println("failed to register adapter. Shutting down...")
+            println("Failed to register adapter. Shutting down...")
+            return
         }
         performInitialDatasetRoutine()
 
@@ -134,9 +135,5 @@ class DynamicAdapterRunner(
                 }
             }
         }
-    }
-
-    private fun logIfEnabled(log: String) {
-        if (props.consoleLogging) println(log)
     }
 }
