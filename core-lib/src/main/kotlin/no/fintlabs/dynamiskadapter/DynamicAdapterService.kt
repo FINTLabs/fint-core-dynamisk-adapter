@@ -1,31 +1,31 @@
 package no.fintlabs.dynamiskadapter
 
-import no.fint.model.administrasjon.kompleksedatatyper.Kontostreng
-import no.fint.model.arkiv.noark.Avskrivning
-import no.fint.model.arkiv.noark.Dokumentbeskrivelse
-import no.fint.model.arkiv.noark.Dokumentobjekt
-import no.fint.model.arkiv.noark.Journalpost
-import no.fint.model.arkiv.noark.Klasse
-import no.fint.model.arkiv.noark.Korrespondansepart
-import no.fint.model.arkiv.noark.Merknad
-import no.fint.model.arkiv.noark.Part
-import no.fint.model.arkiv.noark.Skjerming
-import no.fint.model.felles.kompleksedatatyper.Adresse
-import no.fint.model.felles.kompleksedatatyper.Identifikator
-import no.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
-import no.fint.model.felles.kompleksedatatyper.Matrikkelnummer
-import no.fint.model.felles.kompleksedatatyper.Periode
-import no.fint.model.felles.kompleksedatatyper.Personnavn
-import no.fint.model.okonomi.faktura.Fakturalinje
-import no.fint.model.okonomi.faktura.Fakturamottaker
-import no.fint.model.okonomi.regnskap.Bilag
-import no.fint.model.resource.FintResource
-import no.fint.model.resource.arkiv.noark.DokumentbeskrivelseResource
-import no.fint.model.resource.arkiv.noark.DokumentobjektResource
-import no.fint.model.resource.felles.kompleksedatatyper.AdresseResource
-import no.fint.model.resource.okonomi.faktura.FakturalinjeResource
-import no.fint.model.resource.okonomi.faktura.FakturamottakerResource
-import no.fint.model.utdanning.vurdering.Fravarsprosent
+import no.novari.fint.model.administrasjon.kompleksedatatyper.Kontostreng
+import no.novari.fint.model.arkiv.noark.Avskrivning
+import no.novari.fint.model.arkiv.noark.Dokumentbeskrivelse
+import no.novari.fint.model.arkiv.noark.Dokumentobjekt
+import no.novari.fint.model.arkiv.noark.Journalpost
+import no.novari.fint.model.arkiv.noark.Korrespondansepart
+import no.novari.fint.model.arkiv.noark.Merknad
+import no.novari.fint.model.arkiv.noark.Part
+import no.novari.fint.model.arkiv.noark.Skjerming
+import no.novari.fint.model.felles.kompleksedatatyper.Adresse
+import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
+import no.novari.fint.model.felles.kompleksedatatyper.Kontaktinformasjon
+import no.novari.fint.model.felles.kompleksedatatyper.Matrikkelnummer
+import no.novari.fint.model.felles.kompleksedatatyper.Periode
+import no.novari.fint.model.felles.kompleksedatatyper.Personnavn
+import no.novari.fint.model.okonomi.faktura.Fakturalinje
+import no.novari.fint.model.okonomi.faktura.Fakturamottaker
+import no.novari.fint.model.okonomi.regnskap.Bilag
+import no.novari.fint.model.resource.FintResource
+import no.novari.fint.model.resource.arkiv.noark.DokumentbeskrivelseResource
+import no.novari.fint.model.resource.arkiv.noark.DokumentobjektResource
+import no.novari.fint.model.resource.felles.kompleksedatatyper.AdresseResource
+import no.novari.fint.model.resource.okonomi.faktura.FakturalinjeResource
+import no.novari.fint.model.resource.okonomi.faktura.FakturamottakerResource
+import no.novari.fint.model.utdanning.elev.Klasse
+import no.novari.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
 import java.util.Date
 import kotlin.random.Random
@@ -68,7 +68,7 @@ class DynamicAdapterService {
         return fields
     }
 
-    private fun <T : Any> generateBlueprint(
+    private fun <T : FintResource> generateBlueprint(
         logging: Boolean,
         clazz: Class<T>,
     ): Map<String, () -> Any?> {
@@ -137,7 +137,7 @@ class DynamicAdapterService {
                                 bilagsdato =
                                     Date(
                                         System.currentTimeMillis() -
-                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }
@@ -230,8 +230,11 @@ class DynamicAdapterService {
                     Klasse::class.java -> {
                         {
                             Klasse().apply {
-                                klasseId = randomizer.personNumber()
-                                tittel = randomizer.funnyName()
+                                beskrivelse = randomizer.quote()
+                                navn = randomizer.funnyName()
+                                systemId = Identifikator().apply {
+                                    identifikatorverdi = randomizer.advancedString(name)
+                                }
                             }
                         }
                     }
@@ -286,7 +289,7 @@ class DynamicAdapterService {
                                 start =
                                     Date(
                                         System.currentTimeMillis() -
-                                            Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }
@@ -326,7 +329,7 @@ class DynamicAdapterService {
         logging: Boolean,
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
-    ): T {
+    ): FintResource {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
         val superField =
@@ -371,7 +374,7 @@ class DynamicAdapterService {
             }
         }
 
-        return instance
+        return instance as FintResource
     }
 
     private fun logIfEnabled(

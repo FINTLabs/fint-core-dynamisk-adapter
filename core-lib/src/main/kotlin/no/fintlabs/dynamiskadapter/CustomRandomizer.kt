@@ -1,6 +1,6 @@
 package no.fintlabs.dynamiskadapter
 
-import no.fint.model.resource.felles.kompleksedatatyper.AdresseResource
+import no.novari.fint.model.resource.felles.kompleksedatatyper.AdresseResource
 import java.util.UUID
 
 class CustomRandomizer {
@@ -34,6 +34,10 @@ class CustomRandomizer {
 
     fun advancedString(name: String): String =
         when {
+            "ansattnummer" in name -> {
+                "100006"
+            }
+
             "beskrivelse" in name || "kommentar" in name -> {
                 quote()
             }
