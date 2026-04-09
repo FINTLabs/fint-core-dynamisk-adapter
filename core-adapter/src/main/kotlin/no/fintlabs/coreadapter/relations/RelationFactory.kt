@@ -95,6 +95,7 @@ class RelationFactory(
             }
         }
         println("⛓️✅ $setType set relating complete.")
+        println("")
         skip.clear()
     }
 
@@ -147,8 +148,6 @@ class RelationFactory(
         val key = if (parts.size == 3) {
             rawKey
         } else {
-            println("linking to $rawKey is not yet supported.")
-
             val relationName = rawKey.substringAfterLast("/")
             val primaryParts = primaryKey.split("/")
             require(primaryParts.size >= 2) { "Invalid primaryKey format: $primaryKey" }
