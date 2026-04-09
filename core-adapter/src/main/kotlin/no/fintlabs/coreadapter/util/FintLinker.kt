@@ -1,7 +1,7 @@
 package no.fintlabs.coreadapter.util
 
-import no.fint.model.resource.FintResource
-import no.fint.model.resource.Link
+import no.novari.fint.model.resource.FintResource
+import no.novari.fint.model.resource.Link
 
 // TODO: Refactor AFTER Store refactor
 fun FintResource.putLink(

@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.publish
 
-import no.fint.model.resource.FintResource
+import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
@@ -56,6 +56,7 @@ class DynamicAdapterPublisher(
             println("🔑 Adapter Registration :  $response")
             return response!!.first == 200
         }
+        println("Booting Adapter in OFFLINE MODE")
         return true
     }
 

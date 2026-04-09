@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.publish
 
-import no.fint.model.resource.FintResource
+import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata

@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.data
 
-import no.fintlabs.metamodel.model.Resource
+import no.novari.metamodel.model.Resource
 
 data class ExpandedMetadata(
     val resource: Resource,

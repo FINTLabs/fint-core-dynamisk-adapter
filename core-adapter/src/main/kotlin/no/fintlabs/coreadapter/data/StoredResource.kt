@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.data
 
-import no.fint.model.resource.FintResource
+import no.novari.fint.model.resource.FintResource
 
 data class StoredResource(
     val id: String,

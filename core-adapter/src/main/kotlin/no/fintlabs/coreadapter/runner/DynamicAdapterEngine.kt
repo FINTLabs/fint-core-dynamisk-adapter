@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.runner
 
-import no.fint.model.resource.FintResource
+import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.coreadapter.data.DeltaSyncDataset
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
@@ -10,8 +10,8 @@ import no.fintlabs.coreadapter.data.InitialDataset
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
-import no.fintlabs.metamodel.MetamodelService
-import no.fintlabs.metamodel.model.Resource
+import no.novari.metamodel.MetamodelService
+import no.novari.metamodel.model.Resource
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
@@ -46,13 +46,15 @@ class DynamicAdapterEngine(
 
     fun executeInitialDataset() {
         initialDataSets.forEach {
-            val resourceData: Resource? = model.getResource(it.component, it.resource)
+            val resourceData: Resource? =
+                model.getResource(it.component.substringBefore("."), it.component.substringAfter("."), it.resource)
             if (resourceData != null) {
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
                 val data: List<FintResource> =
-                    generator.create(metadata.resource.resourceType, it.count, props.consoleLogging)
+                    generator.create(metadata.resource.resourceClass, it.count, props.consoleLogging)
                 storage.addAllResources(it.resourceKey, data)
+                logIfEnabled("${it.resourceKey} added to ResourceStore")
             } else {
                 println("")
                 println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
@@ -65,7 +67,7 @@ class DynamicAdapterEngine(
     fun executeDeltaSyncDataset() {
         for (it in deltaMetadataList) {
             val count = Random.nextInt(it.minSize, it.maxSize)
-            val data: List<FintResource> = generator.create(it.resource.resourceType, count)
+            val data: List<FintResource> = generator.create(it.resource.resourceClass, count)
             deltaStorage.addAllResources(it.key, data)
         }
     }
@@ -73,7 +75,9 @@ class DynamicAdapterEngine(
     fun generateDeltaSyncMetadata() {
         if (props.enableDeltaSync && deltaSyncDataSets.isNotEmpty()) {
             deltaSyncDataSets.forEach {
-                val resourceData: Resource? = model.getResource(it.component, it.resource)
+                val resourceData: Resource? = model.getResource(
+                    it.component, it.component, it.resource,
+                )
                 if (resourceData != null) {
                     val metaData = ExpandedDeltaMetadata(resourceData, it.resourceKey, it.minSize, it.maxSize)
                     deltaMetadataList.add(metaData)

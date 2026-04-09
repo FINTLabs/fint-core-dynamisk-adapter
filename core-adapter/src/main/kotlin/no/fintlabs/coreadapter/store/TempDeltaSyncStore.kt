@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.store
 
-import no.fint.model.resource.FintResource
+import no.novari.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
 import no.fintlabs.coreadapter.util.getFirstId
 import org.springframework.stereotype.Component
@@ -13,7 +13,8 @@ import kotlin.random.Random
 class TempDeltaSyncStore {
     private val data = ConcurrentHashMap<ResourceKey, ConcurrentHashMap<String, StoredResource>>()
 
-    private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> = data.computeIfAbsent(key) { ConcurrentHashMap() }
+    private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> =
+        data.computeIfAbsent(key) { ConcurrentHashMap() }
 
     fun purge(log: Boolean?) {
         if (log == true) {

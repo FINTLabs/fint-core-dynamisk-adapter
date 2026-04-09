@@ -37,13 +37,21 @@ class DynamicAdapterRunner(
     override fun run(args: ApplicationArguments) {
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
+            
         }
         val isRegistered = registerAndBootstrap()
         if (!isRegistered) {
             println("Failed to register adapter. Shutting down...")
             return
         }
-        performInitialDatasetRoutine()
+
+        performInitialRoutine()
+
+        if (!props.enableDeltaSync) {
+            println("All data published.")
+            println("My work here is done. Shutting down...")
+            return
+        }
 
         if (props.localLogicTest && !props.enableDeltaSync) {
             println("All jobs are completed. Shutting down...")
@@ -77,7 +85,7 @@ class DynamicAdapterRunner(
         return isRegistered
     }
 
-    private fun performInitialDatasetRoutine() {
+    private fun performInitialRoutine() {
         engine.executeInitialDataset()
         engine.generateDeltaSyncMetadata()
         relationFactory.relateDataset(engine.metadataList, SetType.INITIAL)

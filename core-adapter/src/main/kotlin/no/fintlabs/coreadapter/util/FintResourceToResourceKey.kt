@@ -1,6 +1,6 @@
 package no.fintlabs.coreadapter.util
 
-import no.fint.model.FintRelation
+import no.novari.fint.model.FintRelation
 
 fun FintRelation.toResourceKey(): String =
     packageName
