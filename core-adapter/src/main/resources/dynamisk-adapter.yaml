@@ -9,14 +9,12 @@ dynamisk-adapter:
   deltaSyncIntervalInMinutes: 1
   enableDeltaSync: false
   initialDataSets:
-    ## FELLES
+    ## UTDANNING
     ## Faste REQUIRED ressurser
     - name: "person"
       component: "utdanning.elev"
       resource: "person"
       count: 5
-    ## UTDANNING
-    ## Faste REQUIRED ressurser
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
@@ -41,6 +39,14 @@ dynamisk-adapter:
       component: "utdanning.kodeverk"
       resource: "fravarstype"
       count: 4
+    - name: "klasse"
+      component: "utdanning.elev"
+      resource: "klasse"
+      count: 2
+    - name: "arstrinn"
+      component: "utdanning.utdanningsprogram"
+      resource: "arstrinn"
+      count: 1
       ##-TO-MANY ressurser
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
@@ -50,14 +56,6 @@ dynamisk-adapter:
       component: "utdanning.vurdering"
       resource: "elevvurdering"
       count: 10
-    - name: "klasse"
-      component: "utdanning.elev"
-      resource: "klasse"
-      count: 2
-    - name: "arstrinn"
-      component: "utdanning.utdanningsprogram"
-      resource: "arstrinn"
-      count: 1
 
 
 

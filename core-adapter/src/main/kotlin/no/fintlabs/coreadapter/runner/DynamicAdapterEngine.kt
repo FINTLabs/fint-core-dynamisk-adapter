@@ -54,7 +54,6 @@ class DynamicAdapterEngine(
                 val data: List<FintResource> =
                     generator.create(metadata.resource.resourceClass, it.count, props.consoleLogging)
                 storage.addAllResources(it.resourceKey, data)
-                logIfEnabled("${it.resourceKey} added to ResourceStore")
             } else {
                 println("")
                 println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")

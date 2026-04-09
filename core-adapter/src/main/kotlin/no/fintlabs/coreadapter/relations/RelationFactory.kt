@@ -155,7 +155,6 @@ class RelationFactory(
 
             "${primaryParts[0]}/${primaryParts[1]}/$relationName"
         }
-        println(key)
         val keyParts = key.split("/")
         require(keyParts.size == 3) { "Invalid resolved key format: $key" }
 
