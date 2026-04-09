@@ -1,14 +1,14 @@
 package no.fintlabs.coreadapter.relations
 
-import no.fint.model.FintMultiplicity
-import no.fint.model.FintRelation
+import no.novari.fint.model.FintMultiplicity
+import no.novari.fint.model.FintRelation
 import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.coreadapter.util.toResourceKey
-import no.fintlabs.metamodel.MetamodelService
+import no.novari.metamodel.MetamodelService
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
@@ -50,23 +50,29 @@ class RelationFactory(
                     when (relation.multiplicity) {
                         FintMultiplicity.NONE_TO_MANY,
                         FintMultiplicity.NONE_TO_ONE,
-                        -> {
+                            -> {
                             continue
                         }
 
                         FintMultiplicity.ONE_TO_MANY -> {
-                            val secondaryMetadata = getSecondaryMetadata(relation)
+                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key)
                             if (secondaryMetadata != null) {
                                 val secondaryMultiplicity = getSecondaryMultiplicity(resource.key, secondaryMetadata)
                                 if (secondaryMultiplicity == FintMultiplicity.ONE_TO_MANY) {
-                                    giveLink(resource.key, relation, LinkRule.ROUND_ROBIN, setType)
+                                    giveLink(
+                                        resource.key,
+                                        secondaryMetadata.key,
+                                        relation,
+                                        LinkRule.ROUND_ROBIN,
+                                        setType
+                                    )
                                     skip.add(Edge(resource.key, relation.toResourceKey()))
                                 }
                             }
                         }
 
                         FintMultiplicity.ONE_TO_ONE -> {
-                            val secondaryMetadata = getSecondaryMetadata(relation)
+                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key)
                             if (secondaryMetadata != null) {
                                 val secondaryMultiplicity = getSecondaryMultiplicity(resource.key, secondaryMetadata)
                                 val linkRule =
@@ -75,7 +81,7 @@ class RelationFactory(
                                     } else {
                                         LinkRule.ROUND_ROBIN
                                     }
-                                giveLink(resource.key, relation, linkRule, setType)
+                                giveLink(resource.key, secondaryMetadata.key, relation, linkRule, setType)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
                             } else {
                                 logIfEnabled("")
@@ -94,11 +100,11 @@ class RelationFactory(
 
     private fun giveLink(
         primaryKey: String,
+        secondaryKey: String,
         relation: FintRelation,
         linkRule: LinkRule,
         setType: SetType,
     ) {
-        val secondaryKey = relation.toResourceKey()
         val primaryIds =
             if (setType == SetType.INITIAL) storage.getIdsFor(primaryKey) else deltaStorage.getIdsFor(primaryKey)
         val secondaryIds = deltaStorage.getIdsFor(secondaryKey) + storage.getIdsFor(secondaryKey)
@@ -134,12 +140,30 @@ class RelationFactory(
         logIfEnabled("⛓️ $setType : $primName now has links to $secName")
     }
 
-    private fun getSecondaryMetadata(relation: FintRelation): ExpandedMetadata? {
-        val key = relation.toResourceKey()
-        val component = key.substringBeforeLast("/").replace('/', '.')
-        val resource = key.substringAfterLast("/")
-        val resourceData = model.getResource(component, resource)
-        return if (resourceData != null) ExpandedMetadata(resourceData, relation.toResourceKey()) else null
+    private fun getSecondaryMetadata(relation: FintRelation, primaryKey: String): ExpandedMetadata? {
+        val rawKey = relation.toResourceKey()
+        val parts = rawKey.split("/")
+
+        val key = if (parts.size == 3) {
+            rawKey
+        } else {
+            println("linking to $rawKey is not yet supported.")
+
+            val relationName = rawKey.substringAfterLast("/")
+            val primaryParts = primaryKey.split("/")
+            require(primaryParts.size >= 2) { "Invalid primaryKey format: $primaryKey" }
+
+            "${primaryParts[0]}/${primaryParts[1]}/$relationName"
+        }
+        println(key)
+        val keyParts = key.split("/")
+        require(keyParts.size == 3) { "Invalid resolved key format: $key" }
+
+        val (domain, packageName, resource) = keyParts
+
+        val resourceData = model.getResource(domain, packageName, resource)
+
+        return if (resourceData != null) ExpandedMetadata(resourceData, key) else null
     }
 
     private fun getSecondaryMultiplicity(
