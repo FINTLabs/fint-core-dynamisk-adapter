@@ -1,8 +1,6 @@
 package no.fintlabs.coreadapter.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @ConfigurationProperties(prefix = "fint.adapter")
 data class AdapterProperties(
@@ -17,10 +15,7 @@ data class AdapterProperties(
     val heartbeatIntervalInMinutes: Int = 3,
     val capabilities: List<Capability> = emptyList(),
     val baseUrl: String = "https://beta.felleskomponent.no",
-) {
-    @OptIn(ExperimentalUuidApi::class)
-    val adapterId: String = "$id/$${Uuid.random()}"
-}
+)
 
 data class Capability(
     val domainName: String,

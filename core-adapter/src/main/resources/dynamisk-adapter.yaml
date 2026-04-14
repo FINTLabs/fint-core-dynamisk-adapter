@@ -3,7 +3,7 @@ dynamisk-adapter:
   recursive: false # NOT IMPLEMENTED... might be impossible
   consoleLogging: true # Logs more status and warnings
   consoleLogDataset: false # Logs every resource individually
-  localLogicTest: true # Offline mode
+  localLogicTest: false # Offline mode
   maxPageSize: 1000
   fullSyncIntervalInDays: 1
   deltaSyncIntervalInMinutes: 1
@@ -47,6 +47,7 @@ dynamisk-adapter:
       component: "utdanning.utdanningsprogram"
       resource: "arstrinn"
       count: 1
+
       ##-TO-MANY ressurser
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
@@ -57,7 +58,11 @@ dynamisk-adapter:
       resource: "elevvurdering"
       count: 10
 
-
+      ## OKONOMI
+    - name: "faktura"
+      component: "okonomi.faktura"
+      resource: "faktura"
+      count: 1
 
 
   deltaSyncDataSets:

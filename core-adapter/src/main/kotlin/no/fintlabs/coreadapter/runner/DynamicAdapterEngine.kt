@@ -47,7 +47,9 @@ class DynamicAdapterEngine(
     fun executeInitialDataset() {
         initialDataSets.forEach {
             val resourceData: Resource? =
-                model.getResource(it.component.substringBefore("."), it.component.substringAfter("."), it.resource)
+                model.getResource(
+                    it.component.substringBefore("."), it.component.substringAfter("."), it.resource
+                )
             if (resourceData != null) {
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
