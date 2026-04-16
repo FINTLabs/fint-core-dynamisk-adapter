@@ -156,9 +156,7 @@ class RelationFactory(
         }
         val keyParts = key.split("/")
         require(keyParts.size == 3) { "Invalid resolved key format: $key" }
-
         val (domain, packageName, resource) = keyParts
-
         val resourceData = model.getResource(domain, packageName, resource)
 
         return if (resourceData != null) ExpandedMetadata(resourceData, key) else null
