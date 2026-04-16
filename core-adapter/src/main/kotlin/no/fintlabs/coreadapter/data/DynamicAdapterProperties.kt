@@ -12,8 +12,9 @@ data class DynamicAdapterProperties(
     val localLogicTest: Boolean = false,
     val maxPageSize: Int = 1000,
     val initialDataSets: List<InitialDataset>,
-    val deltaSyncIntervalInMinutes: Int? = null,
     val fullSyncIntervalInDays: Int = 0,
+    val deltaSyncIntervalInMinutes: Int? = null,
+    val errorPercentage: Int = 0,
     val deltaSyncDataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 

@@ -22,6 +22,12 @@ private enum class LinkRule {
     UNIQUE_STRICT,
 }
 
+private enum class RelationFault {
+    NONE,
+    MISSING,
+    WRONG,
+}
+
 enum class SetType {
     INITIAL,
     DELTA,
@@ -117,25 +123,44 @@ class RelationFactory(
         }
 
         primaryIds.forEachIndexed { i, primaryId ->
-            val target =
+            val correctTarget =
                 if (linkRule == LinkRule.UNIQUE_STRICT) {
-                    "NOT_ENOUGH_$secondaryKey"
+                    secondaryIds.getOrNull(i) ?: "NOT_ENOUGH_$secondaryKey"
                 } else {
                     if (setType == SetType.DELTA) {
-                        secondaryIds[Random.nextInt(1, secondaryIds.size)]
+                        secondaryIds[Random.nextInt(secondaryIds.size)]
                     } else {
                         secondaryIds[i % secondaryIds.size]
                     }
                 }
 
+            val fault = rollRelationFault()
+
+            val targetToApply =
+                when (fault) {
+                    RelationFault.NONE -> correctTarget
+                    RelationFault.MISSING -> null
+                    RelationFault.WRONG -> buildWrongTarget(secondaryKey, secondaryIds, correctTarget)
+                }
+
             if (setType == SetType.DELTA) {
                 deltaStorage.updateResource(primaryKey, primaryId) { r ->
-                    r.putLink(relation.name, target)
+                    if (targetToApply != null) {
+                        r.putLink(relation.name, targetToApply)
+                    }
                 }
             } else {
                 storage.updateResource(primaryKey, primaryId) { r ->
-                    r.putLink(relation.name, target)
+                    if (targetToApply != null) {
+                        r.putLink(relation.name, targetToApply)
+
+                    }
                 }
+            }
+            if (fault != RelationFault.NONE) {
+                logIfEnabled(
+                    "⚠️ Fault=$fault | $primaryKey[$primaryId] -> $secondaryKey | intended=$correctTarget | applied=${targetToApply ?: "NONE"}"
+                )
             }
         }
         logIfEnabled("⛓️ $setType : $primName now has links to $secName")
@@ -170,6 +195,32 @@ class RelationFactory(
             .firstOrNull {
                 it.toResourceKey() == primaryKey
             }?.multiplicity
+
+    private fun rollRelationFault(): RelationFault {
+        if (props.errorPercentage <= 0) return RelationFault.NONE
+
+        val roll = Random.nextInt(100)
+        if (roll >= props.errorPercentage) return RelationFault.NONE
+
+        return if (Random.nextBoolean()) {
+            RelationFault.MISSING
+        } else {
+            RelationFault.WRONG
+        }
+    }
+
+    private fun buildWrongTarget(
+        secondaryKey: String,
+        secondaryIds: List<String>,
+        correctTarget: String,
+    ): String {
+        val wrongId = secondaryIds
+            .map { "systemId/$it" }
+            .firstOrNull { it != correctTarget }
+
+
+        return wrongId ?: "systemId/INVALID_${Random.nextInt(100000, 999999)}"
+    }
 
     private fun logIfEnabled(log: String) {
         if (props.consoleLogging) println(log)
