@@ -140,7 +140,7 @@ class RelationFactory(
                 when (fault) {
                     RelationFault.NONE -> correctTarget
                     RelationFault.MISSING -> null
-                    RelationFault.WRONG -> buildWrongTarget(secondaryKey, secondaryIds, correctTarget)
+                    RelationFault.WRONG -> buildWrongTarget(secondaryIds, correctTarget)
                 }
 
             if (setType == SetType.DELTA) {
@@ -210,7 +210,7 @@ class RelationFactory(
     }
 
     private fun buildWrongTarget(
-        secondaryKey: String,
+
         secondaryIds: List<String>,
         correctTarget: String,
     ): String {
