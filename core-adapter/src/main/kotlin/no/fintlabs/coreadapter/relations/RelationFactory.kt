@@ -218,7 +218,6 @@ class RelationFactory(
             .map { "systemId/$it" }
             .firstOrNull { it != correctTarget }
 
-
         return wrongId ?: "systemId/INVALID_${Random.nextInt(100000, 999999)}"
     }
 
