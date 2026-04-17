@@ -15,6 +15,7 @@ data class DynamicAdapterProperties(
     val fullSyncIntervalInDays: Int = 0,
     val deltaSyncIntervalInMinutes: Int? = null,
     val errorPercentage: Int = 0,
+    val logErrorBreakdown: Boolean = false,
     val deltaSyncDataSets: List<DeltaSyncDataset> = mutableListOf(),
 )
 

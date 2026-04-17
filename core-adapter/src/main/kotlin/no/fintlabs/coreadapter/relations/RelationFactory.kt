@@ -157,8 +157,8 @@ class RelationFactory(
                     }
                 }
             }
-            if (fault != RelationFault.NONE) {
-                logIfEnabled(
+            if (fault != RelationFault.NONE && props.logErrorBreakdown) {
+                println(
                     "⚠️ Fault=$fault | $primaryKey[$primaryId] -> $secondaryKey | intended=$correctTarget | applied=${targetToApply ?: "NONE"}"
                 )
             }

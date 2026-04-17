@@ -8,6 +8,7 @@ dynamisk-adapter:
   fullSyncIntervalInDays: 1
   deltaSyncIntervalInMinutes: 1
   errorPercentage: 50
+  logErrorBreakdown: true
   enableDeltaSync: false
   initialDataSets:
     ## UTDANNING
