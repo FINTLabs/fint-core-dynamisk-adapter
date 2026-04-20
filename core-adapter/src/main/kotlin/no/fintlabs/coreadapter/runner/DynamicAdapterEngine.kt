@@ -54,7 +54,12 @@ class DynamicAdapterEngine(
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey)
                 metadataList.add(metadata)
                 val data: List<FintResource> =
-                    generator.create(metadata.resource.resourceClass, it.count, props.consoleLogging)
+                    generator.create(
+                        metadata.resource.resourceClass,
+                        it.count,
+                        props.consoleLogging,
+                        props.errorPercentage
+                    )
                 storage.addAllResources(it.resourceKey, data)
             } else {
                 println("")

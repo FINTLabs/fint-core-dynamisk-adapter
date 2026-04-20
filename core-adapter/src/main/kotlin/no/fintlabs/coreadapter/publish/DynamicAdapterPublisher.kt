@@ -96,7 +96,7 @@ class DynamicAdapterPublisher(
                 if (!dynaProps.localLogicTest) {
                     publish(metadata.key, syncType, data)
                 } else {
-                    logIfEnabled("performSync: $syncType, ${metadata.key}, ${data.size} entries")
+                    logIfEnabled("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
                 }
                 if (syncType == SyncType.DELTA) {
                     storage.addAllResources(metadata.key, data)
