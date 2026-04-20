@@ -30,6 +30,12 @@ import java.lang.reflect.Field
 import java.util.Date
 import kotlin.random.Random
 
+private enum class FaultType {
+    NONE,
+    MISSING,
+    WRONG,
+}
+
 class DynamicAdapterService {
     private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
     private val randomizer: CustomRandomizer = CustomRandomizer()
@@ -38,6 +44,7 @@ class DynamicAdapterService {
         resource: Class<out FintResource>,
         amount: Int,
         logging: Boolean = false,
+        errorPercentage: Int = 0
     ): List<FintResource> {
         val resourceName = resource.simpleName
         var blueprint: Map<String, () -> Any?>
@@ -49,7 +56,7 @@ class DynamicAdapterService {
             blueprintCache[resourceName] = blueprint
         }
         logIfEnabled(logging, "📋${amount}x $resource")
-        return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint) }
+        return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint, errorPercentage) }
     }
 
     private fun getAllUniqueFields(clazz: Class<*>): List<Field> {
@@ -325,10 +332,13 @@ class DynamicAdapterService {
         return generators
     }
 
+    private object SKIP_FIELD
+
     private fun <T : FintResource> createInstanceFromBlueprint(
         logging: Boolean,
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
+        errorPercentage: Int
     ): FintResource {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
@@ -366,9 +376,20 @@ class DynamicAdapterService {
                 continue
             }
 
-            val value = generator()
+            val fault =
+                if (errorPercentage > 0 && !isCriticalField(field)) rollFault(errorPercentage) else FaultType.NONE
+            val value = applyFault(field, generator, fault, logging)
+            logIfEnabled(logging, "core-lib : : ${clazz.simpleName} $fieldName, $fault")
+            if (value === SKIP_FIELD) {
+                logIfEnabled(logging, "⚠️ Skipped field '$fieldName' in ${clazz.simpleName} due to MISSING fault")
+                continue
+            }
+
             try {
-                field.set(if (field.declaringClass.isInstance(targetRoot)) targetRoot else instance, value)
+                field.set(
+                    if (field.declaringClass.isInstance(targetRoot)) targetRoot else instance,
+                    value
+                )
             } catch (e: Exception) {
                 logIfEnabled(logging, "⚠️ Could not set field '$fieldName' in ${clazz.simpleName}: ${e.message}")
             }
@@ -377,12 +398,6 @@ class DynamicAdapterService {
         return instance as FintResource
     }
 
-    private fun logIfEnabled(
-        bool: Boolean,
-        input: String,
-    ) {
-        if (bool) println(input)
-    }
 
     private fun findDeclaredFieldRecursive(
         clazz: Class<*>,
@@ -396,4 +411,82 @@ class DynamicAdapterService {
                     null
                 }
             }.firstOrNull()
+
+    private fun isCriticalField(field: Field): Boolean =
+        field.type == Identifikator::class.java ||
+                field.name.equals("systemId", ignoreCase = true)
+
+    private fun applyFault(
+        field: Field,
+        generator: () -> Any?,
+        fault: FaultType,
+        logging: Boolean,
+    ): Any? {
+        return when (fault) {
+            FaultType.NONE -> generator()
+
+            FaultType.MISSING -> {
+                // Best default behavior: leave field unset if it's primitive or awkward.
+                // Return a marker so caller can skip setting entirely.
+                SKIP_FIELD
+            }
+
+            FaultType.WRONG -> {
+                generateWrongValue(field.type, generator(), logging)
+            }
+        }
+    }
+
+    private fun rollFault(errorPercentage: Int): FaultType {
+        if (errorPercentage <= 0) return FaultType.NONE
+
+        val roll = Random.nextInt(100)
+        if (roll >= errorPercentage) return FaultType.NONE
+
+        return if (Random.nextBoolean()) FaultType.MISSING else FaultType.WRONG
+    }
+
+    private fun generateWrongValue(
+        type: Class<*>,
+        normalValue: Any?,
+        logging: Boolean,
+    ): Any? {
+        return when (type) {
+            Int::class.java, Integer::class.java -> -1
+            Long::class.java, java.lang.Long::class.java -> -1L
+            Boolean::class.java, java.lang.Boolean::class.java -> !(normalValue as? Boolean ?: false)
+            String::class.java -> "INVALID_${Random.nextInt(1000, 9999)}"
+            Date::class.java -> Date(0) // epoch, often "wrong enough"
+
+            List::class.java -> emptyList<Any>()
+            Map::class.java -> emptyMap<Any, Any>()
+
+            Kontaktinformasjon::class.java -> {
+                Kontaktinformasjon().apply {
+                    epostadresse = "not-an-email"
+                }
+            }
+
+            Periode::class.java -> {
+                Periode().apply {
+                    beskrivelse = "INVALID_PERIOD"
+                    start = Date(0)
+                    slutt = Date(0)
+                }
+            }
+
+            else -> {
+                logIfEnabled(logging, "⚠️ No wrong-value strategy for type $type, falling back to normal value")
+                normalValue
+            }
+        }
+    }
+
+
+    private fun logIfEnabled(
+        bool: Boolean,
+        input: String,
+    ) {
+        if (bool) println(input)
+    }
 }
