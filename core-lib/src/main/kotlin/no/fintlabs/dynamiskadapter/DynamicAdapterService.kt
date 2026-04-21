@@ -381,7 +381,6 @@ class DynamicAdapterService {
             val value = applyFault(field, generator, fault, logging)
             logIfEnabled(logging, "core-lib : : ${clazz.simpleName} $fieldName, $fault")
             if (value === SKIP_FIELD) {
-                logIfEnabled(logging, "⚠️ Skipped field '$fieldName' in ${clazz.simpleName} due to MISSING fault")
                 continue
             }
 
