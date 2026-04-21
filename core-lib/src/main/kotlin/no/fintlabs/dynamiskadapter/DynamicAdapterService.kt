@@ -379,7 +379,6 @@ class DynamicAdapterService {
             val fault =
                 if (errorPercentage > 0 && !isCriticalField(field)) rollFault(errorPercentage) else FaultType.NONE
             val value = applyFault(field, generator, fault, logging)
-            logIfEnabled(logging, "core-lib : : ${clazz.simpleName} $fieldName, $fault")
             if (value === SKIP_FIELD) {
                 continue
             }
