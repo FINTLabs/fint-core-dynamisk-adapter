@@ -2,10 +2,10 @@ package no.fintlabs.coreadapter.store
 
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
-import no.fintlabs.coreadapter.util.getFirstId
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
+import no.fintlabs.coreadapter.util.getId
 
 typealias ResourceKey = String
 // ResourceKey = domain/component/resource
@@ -23,7 +23,7 @@ class ResourceStore {
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id = resource.getFirstId()
+            val id: String = resource.getId()
             map[id] = StoredResource(id, resource)
         }
     }
@@ -64,7 +64,7 @@ class ResourceStore {
         for (resource in this) {
             toStore.add(
                 StoredResource(
-                    id = resource.getFirstId(),
+                    id = resource.getId(),
                     resource = resource,
                 ),
             )

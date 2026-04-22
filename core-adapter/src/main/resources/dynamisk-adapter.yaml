@@ -16,19 +16,23 @@ dynamisk-adapter:
     - name: "person"
       component: "utdanning.elev"
       resource: "person"
-      count: 5
+      count: 10
     - name: "elev"
       component: "utdanning.elev"
       resource: "elev"
-      count: 5
+      count: 10
     - name: "elevfravar"
       component: "utdanning.vurdering"
       resource: "elevfravar"
-      count: 5
+      count: 10
     - name: "elevforhold"
       component: "utdanning.elev"
       resource: "elevforhold"
-      count: 5
+      count: 10
+    - name: "klassemedlemskap"
+      component: "utdanning.elev"
+      resource: "klassemedlemskap"
+      count: 10
     - name: "skole"
       component: "utdanning.utdanningsprogram"
       resource: "skole"
@@ -36,7 +40,7 @@ dynamisk-adapter:
     - name: "undervisningsgruppe"
       component: "utdanning.timeplan"
       resource: "undervisningsgruppe"
-      count: 3
+      count: 2
     - name: "fravarstype"
       component: "utdanning.kodeverk"
       resource: "fravarstype"
@@ -54,17 +58,17 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 10
+      count: 50
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      count: 10
+      count: 50
 
       ## OKONOMI
-    - name: "faktura"
-      component: "okonomi.faktura"
-      resource: "faktura"
-      count: 1
+  #    - name: "faktura"
+  #      component: "okonomi.faktura"
+  #      resource: "faktura"
+  #      count: 1
 
 
   deltaSyncDataSets:

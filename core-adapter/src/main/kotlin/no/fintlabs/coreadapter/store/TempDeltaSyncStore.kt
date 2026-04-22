@@ -2,7 +2,7 @@ package no.fintlabs.coreadapter.store
 
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
-import no.fintlabs.coreadapter.util.getFirstId
+import no.fintlabs.coreadapter.util.getId
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -30,7 +30,7 @@ class TempDeltaSyncStore {
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id = resource.getFirstId()
+            val id = resource.getId()
             map[id] = StoredResource(id, resource)
         }
     }
@@ -69,7 +69,7 @@ class TempDeltaSyncStore {
         for (resource in this) {
             toStore.add(
                 StoredResource(
-                    id = resource.getFirstId(),
+                    id = resource.getId(),
                     resource = resource,
                 ),
             )

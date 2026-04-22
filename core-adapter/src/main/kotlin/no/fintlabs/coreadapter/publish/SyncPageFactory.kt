@@ -6,7 +6,7 @@ import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
-import no.fintlabs.coreadapter.util.getFirstId
+import no.fintlabs.coreadapter.util.getId
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,7 +17,7 @@ class SyncPageFactory(
         resources
             .map { resource ->
                 val id =
-                    requireNotNull(resource.getFirstId()) {
+                    requireNotNull(resource.getId()) {
                         "Missing identifier for ${resource.javaClass.simpleName}"
                     }
                 SyncPageEntry.of(id, resource)

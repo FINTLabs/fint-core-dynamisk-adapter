@@ -9,6 +9,7 @@ import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.InitialDataset
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
+import no.fintlabs.coreadapter.util.getIdPrefix
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
@@ -48,10 +49,13 @@ class DynamicAdapterEngine(
         initialDataSets.forEach {
             val resourceData: Resource? =
                 model.getResource(
-                    it.component.substringBefore("."), it.component.substringAfter("."), it.resource
+                    it.component.substringBefore("."),
+                    it.component.substringAfter("."),
+                    it.resource
                 )
             if (resourceData != null) {
-                val metadata = ExpandedMetadata(resourceData, it.resourceKey)
+                val idPrefix: String = resourceData.getIdPrefix()
+                val metadata = ExpandedMetadata(resourceData, idPrefix, it.resourceKey)
                 metadataList.add(metadata)
                 val data: List<FintResource> =
                     generator.create(
@@ -86,7 +90,8 @@ class DynamicAdapterEngine(
                     it.component, it.component, it.resource,
                 )
                 if (resourceData != null) {
-                    val metaData = ExpandedDeltaMetadata(resourceData, it.resourceKey, it.minSize, it.maxSize)
+                    val idPrefix: String = resourceData.getIdPrefix()
+                    val metaData = ExpandedDeltaMetadata(resourceData, idPrefix, it.resourceKey, it.minSize, it.maxSize)
                     deltaMetadataList.add(metaData)
                 }
             }

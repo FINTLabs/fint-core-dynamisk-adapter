@@ -13,6 +13,7 @@ import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.UUID
@@ -28,6 +29,17 @@ class DynamicAdapterPublisher(
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         println("Registering to provider...")
+
+        val missingCapabilities = false
+
+        val adapterCapabilities: MutableSet<AdapterCapability> =
+            if (missingCapabilities) {
+                val list = capabilities.toMutableList()
+                list.removeAt(3)
+                list.removeAt(2)
+                list.toMutableSet()
+            } else capabilities
+
         if (!dynaProps.localLogicTest) {
             val contract =
                 AdapterContract
@@ -36,7 +48,7 @@ class DynamicAdapterPublisher(
                     .orgId(props.orgId)
                     .username(props.username)
                     .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
-                    .capabilities(capabilities)
+                    .capabilities(adapterCapabilities)
                     .time(0L)
                     .build()
 
@@ -47,7 +59,7 @@ class DynamicAdapterPublisher(
                     .bodyValue(contract)
                     .exchangeToMono { response ->
                         response
-                            .bodyToMono(String::class.java)
+                            .bodyToMono<String>()
                             .defaultIfEmpty("empty")
                             .map { body ->
                                 response.statusCode().value() to body
@@ -172,7 +184,7 @@ class DynamicAdapterPublisher(
         .bodyValue(page)
         .exchangeToMono { response ->
             response
-                .bodyToMono(String::class.java)
+                .bodyToMono<String>()
                 .defaultIfEmpty("")
                 .map { body -> response.statusCode() to body }
         }
@@ -186,7 +198,7 @@ class DynamicAdapterPublisher(
         .bodyValue(page)
         .exchangeToMono { response ->
             response
-                .bodyToMono(String::class.java)
+                .bodyToMono<String>()
                 .defaultIfEmpty("")
                 .map { body -> response.statusCode() to body }
         }

@@ -6,6 +6,7 @@ import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
+import no.fintlabs.coreadapter.util.getIdPrefix
 import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.coreadapter.util.toResourceKey
 import no.novari.metamodel.MetamodelService
@@ -67,7 +68,7 @@ class RelationFactory(
                                 if (secondaryMultiplicity == FintMultiplicity.ONE_TO_MANY) {
                                     giveLink(
                                         resource.key,
-                                        secondaryMetadata.key,
+                                        secondaryMetadata,
                                         relation,
                                         LinkRule.ROUND_ROBIN,
                                         setType
@@ -87,7 +88,7 @@ class RelationFactory(
                                     } else {
                                         LinkRule.ROUND_ROBIN
                                     }
-                                giveLink(resource.key, secondaryMetadata.key, relation, linkRule, setType)
+                                giveLink(resource.key, secondaryMetadata, relation, linkRule, setType)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
                             } else {
                                 logIfEnabled("")
@@ -107,11 +108,12 @@ class RelationFactory(
 
     private fun giveLink(
         primaryKey: String,
-        secondaryKey: String,
+        secondaryMetadata: ExpandedMetadata,
         relation: FintRelation,
         linkRule: LinkRule,
         setType: SetType,
     ) {
+        val secondaryKey = secondaryMetadata.key
         val primaryIds =
             if (setType == SetType.INITIAL) storage.getIdsFor(primaryKey) else deltaStorage.getIdsFor(primaryKey)
         val secondaryIds = deltaStorage.getIdsFor(secondaryKey) + storage.getIdsFor(secondaryKey)
@@ -122,17 +124,19 @@ class RelationFactory(
             return
         }
 
+        val idPrefix: String = secondaryMetadata.idPrefix
+
         primaryIds.forEachIndexed { i, primaryId ->
-            val correctTarget =
-                if (linkRule == LinkRule.UNIQUE_STRICT) {
-                    secondaryIds.getOrNull(i) ?: "NOT_ENOUGH_$secondaryKey"
-                } else {
-                    if (setType == SetType.DELTA) {
-                        secondaryIds[Random.nextInt(secondaryIds.size)]
+            val correctTarget = "$idPrefix/" +
+                    if (linkRule == LinkRule.UNIQUE_STRICT) {
+                        secondaryIds.getOrNull(i) ?: "NOT_ENOUGH_$secondaryKey"
                     } else {
-                        secondaryIds[i % secondaryIds.size]
+                        if (setType == SetType.DELTA) {
+                            secondaryIds[Random.nextInt(secondaryIds.size)]
+                        } else {
+                            secondaryIds[i % secondaryIds.size]
+                        }
                     }
-                }
 
             val fault = rollRelationFault()
 
@@ -183,8 +187,8 @@ class RelationFactory(
         require(keyParts.size == 3) { "Invalid resolved key format: $key" }
         val (domain, packageName, resource) = keyParts
         val resourceData = model.getResource(domain, packageName, resource)
-
-        return if (resourceData != null) ExpandedMetadata(resourceData, key) else null
+        val idPrefix: String? = resourceData?.getIdPrefix()
+        return if (resourceData != null) ExpandedMetadata(resourceData, idPrefix!!, key) else null
     }
 
     private fun getSecondaryMultiplicity(
