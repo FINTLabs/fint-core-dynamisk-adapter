@@ -187,8 +187,8 @@ class RelationFactory(
         require(keyParts.size == 3) { "Invalid resolved key format: $key" }
         val (domain, packageName, resource) = keyParts
         val resourceData = model.getResource(domain, packageName, resource)
-        val idPrefix: String? = resourceData?.generateIdPrefix()
-        return if (resourceData != null) ExpandedMetadata(resourceData, idPrefix!!, key) else null
+        val meta = resourceData?.generateIdPrefix()
+        return if (resourceData != null) ExpandedMetadata(resourceData, key, meta!!.prefix, meta.type) else null
     }
 
     private fun getSecondaryMultiplicity(

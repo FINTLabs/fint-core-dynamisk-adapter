@@ -1,10 +1,10 @@
 package no.fintlabs.coreadapter.store
 
+import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.random.Random
 import no.fintlabs.coreadapter.util.getId
 
 typealias ResourceKey = String
@@ -20,12 +20,12 @@ class ResourceStore {
     //TODO: Store Resources with idPrefix, use idPrefix to set id
     fun addAllResources(
         key: ResourceKey,
-        prefix: String,
+        meta: ExpandedMetadata,
         resources: List<FintResource>,
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id: String = resource.getId(prefix)
+            val id: String = resource.getId(meta.idPrefix, meta.idFieldType)
             map[id] = StoredResource(id, resource)
         }
     }
@@ -44,23 +44,12 @@ class ResourceStore {
 
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
 
-    fun getResourceById(
-        key: ResourceKey,
-        id: String,
-    ) = mapFor(key)[id]
-
-    fun getRandomId(key: ResourceKey): String? {
-        val ids = data[key]?.keys ?: return null
-        if (ids.isEmpty()) return null
-        return ids.elementAt(Random.nextInt(ids.size)) ?: return null
-    }
-
     fun countResources(key: ResourceKey): Int = data[key]?.keys?.size ?: 0
 
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
     fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
-    
+
 
     private fun Collection<StoredResource>.toFintResources(): List<FintResource> {
         if (isEmpty()) return emptyList()

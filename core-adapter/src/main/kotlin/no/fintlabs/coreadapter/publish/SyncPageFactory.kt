@@ -6,6 +6,7 @@ import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
+import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.util.getId
 import org.springframework.stereotype.Component
 
@@ -13,11 +14,11 @@ import org.springframework.stereotype.Component
 class SyncPageFactory(
     private val props: AdapterProperties,
 ) {
-    fun buildEntries(resources: List<FintResource>, prefix: String): MutableList<SyncPageEntry> =
+    fun buildEntries(resources: List<FintResource>, meta: ExpandedMetadata): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
                 val id =
-                    requireNotNull(resource.getId(prefix)) {
+                    requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
                         "Missing identifier for ${resource.javaClass.simpleName}"
                     }
                 SyncPageEntry.of(id, resource)

@@ -1,5 +1,6 @@
 package no.fintlabs.coreadapter.store
 
+import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.coreadapter.data.StoredResource
 import no.fintlabs.coreadapter.util.getId
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.forEach
-import kotlin.random.Random
 
 @Component
 class TempDeltaSyncStore {
@@ -26,12 +26,12 @@ class TempDeltaSyncStore {
 
     fun addAllResources(
         key: ResourceKey,
-        prefix: String,
+        meta: ExpandedMetadata,
         resources: List<FintResource>,
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id = resource.getId(prefix)
+            val id = resource.getId(meta.idPrefix, meta.idFieldType)
             map[id] = StoredResource(id, resource)
         }
     }
@@ -49,17 +49,6 @@ class TempDeltaSyncStore {
     }
 
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
-
-    fun getResourceById(
-        key: ResourceKey,
-        id: String,
-    ) = mapFor(key)[id]
-
-    fun getRandomId(key: ResourceKey): String? {
-        val ids = data[key]?.keys ?: return null
-        if (ids.isEmpty()) return null
-        return ids.elementAt(Random.nextInt(ids.size)) ?: return null
-    }
 
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 

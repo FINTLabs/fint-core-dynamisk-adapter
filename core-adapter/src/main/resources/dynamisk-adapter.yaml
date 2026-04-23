@@ -2,8 +2,8 @@ dynamisk-adapter:
   link: true
   recursive: false # NOT IMPLEMENTED... might be impossible
   consoleLogging: true # Logs more status and warnings
-  consoleLogDataset: false # Logs every resource individually
-  localLogicTest: false # Offline mode
+  consoleLogDataset: true # Logs every resource individually
+  localLogicTest: true # Offline mode
   maxPageSize: 1000
   fullSyncIntervalInDays: 1
   deltaSyncIntervalInMinutes: 1
