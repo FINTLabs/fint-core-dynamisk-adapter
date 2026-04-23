@@ -17,6 +17,7 @@ class ResourceStore {
     private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> =
         data.computeIfAbsent(key) { ConcurrentHashMap() }
 
+    //TODO: Store Resources with idPrefix, use idPrefix to set id
     fun addAllResources(
         key: ResourceKey,
         resources: List<FintResource>,

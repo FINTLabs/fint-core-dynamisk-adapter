@@ -16,6 +16,8 @@ class SyncPageFactory(
     fun buildEntries(resources: List<FintResource>): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
+                //TODO: This uses Id, which may require advanced stuff to set in the future.
+                // There is little access to
                 val id =
                     requireNotNull(resource.getId()) {
                         "Missing identifier for ${resource.javaClass.simpleName}"

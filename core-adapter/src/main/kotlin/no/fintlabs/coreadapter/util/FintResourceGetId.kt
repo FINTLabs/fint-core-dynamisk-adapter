@@ -3,6 +3,8 @@ package no.fintlabs.coreadapter.util
 import no.novari.fint.model.resource.FintResource
 import no.novari.metamodel.model.Resource
 
+// TODO: Double check the name AND multiplicity of the field
+
 fun FintResource.getId(): String =
     listOf("systemId", "fodselsnummer", "feidenavn")
         .firstNotNullOfOrNull { key ->
