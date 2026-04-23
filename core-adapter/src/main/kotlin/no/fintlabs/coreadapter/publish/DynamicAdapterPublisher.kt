@@ -106,12 +106,12 @@ class DynamicAdapterPublisher(
                 }
             if (data.isNotEmpty()) {
                 if (!dynaProps.localLogicTest) {
-                    publish(metadata.key, syncType, data)
+                    publish(metadata.key, metadata, syncType, data)
                 } else {
                     logIfEnabled("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
                 }
                 if (syncType == SyncType.DELTA) {
-                    storage.addAllResources(metadata.key, data)
+                    storage.addAllResources(metadata.key, metadata, data)
                     logIfEnabled("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
                 }
             } else {
@@ -125,6 +125,7 @@ class DynamicAdapterPublisher(
 
     private fun publish(
         resourceName: String,
+        metadata: ExpandedMetadata,
         syncType: SyncType,
         data: List<FintResource>,
     ) {
@@ -138,7 +139,7 @@ class DynamicAdapterPublisher(
         val corrId = UUID.randomUUID().toString()
 
         chunks.forEachIndexed { i, chunk ->
-            val entries = factory.buildEntries(chunk)
+            val entries = factory.buildEntries(chunk, metadata)
 
             val meta =
                 factory.buildMetadata(

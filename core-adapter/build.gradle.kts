@@ -30,6 +30,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("javax.validation:validation-api:2.0.1.Final")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // FINT

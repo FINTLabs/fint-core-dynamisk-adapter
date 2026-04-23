@@ -7,9 +7,10 @@ import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedDeltaMetadata
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.data.InitialDataset
+import no.fintlabs.coreadapter.data.toExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
-import no.fintlabs.coreadapter.util.getIdPrefix
+import no.fintlabs.coreadapter.util.generateIdPrefix
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
@@ -54,8 +55,8 @@ class DynamicAdapterEngine(
                     it.resource
                 )
             if (resourceData != null) {
-                val idPrefix: String = resourceData.getIdPrefix()
-                val metadata = ExpandedMetadata(resourceData, idPrefix, it.resourceKey)
+                val idMeta = resourceData.generateIdPrefix()
+                val metadata = ExpandedMetadata(resourceData, it.resourceKey, idMeta.prefix, idMeta.type)
                 metadataList.add(metadata)
                 val data: List<FintResource> =
                     generator.create(
@@ -64,7 +65,7 @@ class DynamicAdapterEngine(
                         props.consoleLogging,
                         props.errorPercentage
                     )
-                storage.addAllResources(it.resourceKey, data)
+                storage.addAllResources(it.resourceKey, metadata, data)
             } else {
                 println("")
                 println("⚠️ " + it.component + "/" + it.resource + " was not found in metamodel...")
@@ -79,7 +80,7 @@ class DynamicAdapterEngine(
         for (it in deltaMetadataList) {
             val count = Random.nextInt(it.minSize, it.maxSize)
             val data: List<FintResource> = generator.create(it.resource.resourceClass, count)
-            deltaStorage.addAllResources(it.key, data)
+            deltaStorage.addAllResources(it.key, it.toExpandedMetadata(), data)
         }
     }
 
@@ -90,8 +91,15 @@ class DynamicAdapterEngine(
                     it.component, it.component, it.resource,
                 )
                 if (resourceData != null) {
-                    val idPrefix: String = resourceData.getIdPrefix()
-                    val metaData = ExpandedDeltaMetadata(resourceData, idPrefix, it.resourceKey, it.minSize, it.maxSize)
+                    val idMeta = resourceData.generateIdPrefix()
+                    val metaData = ExpandedDeltaMetadata(
+                        resourceData,
+                        it.resourceKey,
+                        idMeta.prefix,
+                        idMeta.type,
+                        it.minSize,
+                        it.maxSize
+                    )
                     deltaMetadataList.add(metaData)
                 }
             }
