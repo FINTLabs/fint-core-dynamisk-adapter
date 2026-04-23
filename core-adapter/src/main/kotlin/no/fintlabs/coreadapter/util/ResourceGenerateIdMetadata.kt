@@ -10,7 +10,7 @@ data class IdMetadata(
     val type: IdFieldType,
 )
 
-fun Resource.generateIdPrefix(): IdMetadata {
+fun Resource.generateIdMetadata(): IdMetadata {
     val clazz = this.resourceClass
     val fields = getAllFields(clazz)
 
@@ -18,14 +18,17 @@ fun Resource.generateIdPrefix(): IdMetadata {
     val requiredIdentifiers = identifiers.filter { it.isRequired() }
     val allRequiredFields = fields.filter { it.isRequired() }
 
-    val priorityList = listOf("systemId", "fodselsnummer", "feidenavn", "kode", "nummer", "navn")
+    val priorityList = listOf("fodselsnummer", "feidenavn", "brukernavn", "systemId", "kode", "nummer", "navn")
 
     val chosenField =
         priorityList.firstNotNullOfOrNull { preferred ->
             requiredIdentifiers.firstOrNull { it.name.equals(preferred, true) }
         }
             ?: priorityList.firstNotNullOfOrNull { preferred ->
-                allRequiredFields.firstOrNull { it.name.equals(preferred, true) }
+                allRequiredFields.firstOrNull { it.name.contains(preferred, true) }
+            }
+            ?: priorityList.firstNotNullOfOrNull { preferred ->
+                fields.firstOrNull { it.name.equals(preferred, true) }
             }
             ?: (requiredIdentifiers + allRequiredFields)
                 .distinctBy { it.name }

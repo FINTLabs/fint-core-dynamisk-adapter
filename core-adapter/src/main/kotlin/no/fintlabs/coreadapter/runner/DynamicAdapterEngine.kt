@@ -10,7 +10,7 @@ import no.fintlabs.coreadapter.data.InitialDataset
 import no.fintlabs.coreadapter.data.toExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
-import no.fintlabs.coreadapter.util.generateIdPrefix
+import no.fintlabs.coreadapter.util.generateIdMetadata
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
@@ -55,7 +55,7 @@ class DynamicAdapterEngine(
                     it.resource
                 )
             if (resourceData != null) {
-                val idMeta = resourceData.generateIdPrefix()
+                val idMeta = resourceData.generateIdMetadata()
                 val metadata = ExpandedMetadata(resourceData, it.resourceKey, idMeta.prefix, idMeta.type)
                 metadataList.add(metadata)
                 val data: List<FintResource> =
@@ -91,7 +91,7 @@ class DynamicAdapterEngine(
                     it.component, it.component, it.resource,
                 )
                 if (resourceData != null) {
-                    val idMeta = resourceData.generateIdPrefix()
+                    val idMeta = resourceData.generateIdMetadata()
                     val metaData = ExpandedDeltaMetadata(
                         resourceData,
                         it.resourceKey,

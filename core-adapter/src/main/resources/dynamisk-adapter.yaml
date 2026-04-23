@@ -2,7 +2,7 @@ dynamisk-adapter:
   link: true
   recursive: false # NOT IMPLEMENTED... might be impossible
   consoleLogging: true # Logs more status and warnings
-  consoleLogDataset: true # Logs every resource individually
+  consoleLogDataset: false # Logs every resource individually
   localLogicTest: true # Offline mode
   maxPageSize: 1000
   fullSyncIntervalInDays: 1
@@ -58,11 +58,11 @@ dynamisk-adapter:
     - name: "fravarsregistrering"
       component: "utdanning.vurdering"
       resource: "fravarsregistrering"
-      count: 50
+      count: 5
     - name: "elevvurdering"
       component: "utdanning.vurdering"
       resource: "elevvurdering"
-      count: 50
+      count: 5
 
       ## OKONOMI
   #    - name: "faktura"

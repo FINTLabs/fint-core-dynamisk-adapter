@@ -1,7 +1,7 @@
 package no.fintlabs.coreadapter
 
 import no.fintlabs.coreadapter.config.beans.MetamodelConfig
-import no.fintlabs.coreadapter.util.generateIdPrefix
+import no.fintlabs.coreadapter.util.generateIdMetadata
 import no.novari.metamodel.MetamodelService
 import org.junit.jupiter.api.Test
 
@@ -14,7 +14,7 @@ class MetamodelFunctionalityTests {
         model.getResources()
             .sortedBy { it.resourceClass.simpleName }
             .forEach { resource ->
-                println("${resource.generateIdPrefix()} -> ${resource.resourceClass.simpleName}")
+                println("${resource.generateIdMetadata()} -> ${resource.resourceClass.simpleName}")
             }
     }
 }

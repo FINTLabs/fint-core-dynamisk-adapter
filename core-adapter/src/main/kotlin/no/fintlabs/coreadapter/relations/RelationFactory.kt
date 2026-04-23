@@ -6,7 +6,7 @@ import no.fintlabs.coreadapter.data.DynamicAdapterProperties
 import no.fintlabs.coreadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
-import no.fintlabs.coreadapter.util.generateIdPrefix
+import no.fintlabs.coreadapter.util.generateIdMetadata
 import no.fintlabs.coreadapter.util.putLink
 import no.fintlabs.coreadapter.util.toResourceKey
 import no.novari.metamodel.MetamodelService
@@ -187,7 +187,7 @@ class RelationFactory(
         require(keyParts.size == 3) { "Invalid resolved key format: $key" }
         val (domain, packageName, resource) = keyParts
         val resourceData = model.getResource(domain, packageName, resource)
-        val meta = resourceData?.generateIdPrefix()
+        val meta = resourceData?.generateIdMetadata()
         return if (resourceData != null) ExpandedMetadata(resourceData, key, meta!!.prefix, meta.type) else null
     }
 
