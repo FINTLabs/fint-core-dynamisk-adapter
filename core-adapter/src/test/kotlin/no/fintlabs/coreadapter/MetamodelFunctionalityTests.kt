@@ -5,7 +5,6 @@ import no.fintlabs.coreadapter.util.generateIdPrefix
 import no.novari.metamodel.MetamodelService
 import org.junit.jupiter.api.Test
 
-
 class MetamodelFunctionalityTests {
 
     private val model: MetamodelService = MetamodelConfig().metamodelService()
