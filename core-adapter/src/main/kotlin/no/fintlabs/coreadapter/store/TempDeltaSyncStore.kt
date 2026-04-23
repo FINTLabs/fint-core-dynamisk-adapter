@@ -26,11 +26,12 @@ class TempDeltaSyncStore {
 
     fun addAllResources(
         key: ResourceKey,
+        prefix: String,
         resources: List<FintResource>,
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id = resource.getId()
+            val id = resource.getId(prefix)
             map[id] = StoredResource(id, resource)
         }
     }
@@ -63,19 +64,6 @@ class TempDeltaSyncStore {
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
     fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
-
-    fun List<FintResource>.toStoredResources(): List<StoredResource> {
-        val toStore = mutableListOf<StoredResource>()
-        for (resource in this) {
-            toStore.add(
-                StoredResource(
-                    id = resource.getId(),
-                    resource = resource,
-                ),
-            )
-        }
-        return toStore
-    }
 
     private fun Collection<StoredResource>.toFintResources(): List<FintResource> {
         if (isEmpty()) return emptyList()

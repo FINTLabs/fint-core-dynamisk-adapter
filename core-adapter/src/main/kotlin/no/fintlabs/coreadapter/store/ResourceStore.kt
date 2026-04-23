@@ -20,11 +20,12 @@ class ResourceStore {
     //TODO: Store Resources with idPrefix, use idPrefix to set id
     fun addAllResources(
         key: ResourceKey,
+        prefix: String,
         resources: List<FintResource>,
     ) {
         val map = mapFor(key)
         resources.forEach { resource ->
-            val id: String = resource.getId()
+            val id: String = resource.getId(prefix)
             map[id] = StoredResource(id, resource)
         }
     }
@@ -59,19 +60,7 @@ class ResourceStore {
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
     fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
-
-    fun List<FintResource>.toStoredResources(): List<StoredResource> {
-        val toStore = mutableListOf<StoredResource>()
-        for (resource in this) {
-            toStore.add(
-                StoredResource(
-                    id = resource.getId(),
-                    resource = resource,
-                ),
-            )
-        }
-        return toStore
-    }
+    
 
     private fun Collection<StoredResource>.toFintResources(): List<FintResource> {
         if (isEmpty()) return emptyList()

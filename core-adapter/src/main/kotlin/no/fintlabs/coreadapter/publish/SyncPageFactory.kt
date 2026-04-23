@@ -13,13 +13,11 @@ import org.springframework.stereotype.Component
 class SyncPageFactory(
     private val props: AdapterProperties,
 ) {
-    fun buildEntries(resources: List<FintResource>): MutableList<SyncPageEntry> =
+    fun buildEntries(resources: List<FintResource>, prefix: String): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
-                //TODO: This uses Id, which may require advanced stuff to set in the future.
-                // There is little access to
                 val id =
-                    requireNotNull(resource.getId()) {
+                    requireNotNull(resource.getId(prefix)) {
                         "Missing identifier for ${resource.javaClass.simpleName}"
                     }
                 SyncPageEntry.of(id, resource)
