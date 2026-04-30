@@ -1,9 +1,9 @@
 package no.fintlabs.coreadapter.store
 
-import no.fintlabs.coreadapter.data.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource
-import no.fintlabs.coreadapter.data.StoredResource
-import no.fintlabs.coreadapter.util.getId
+import no.fintlabs.dynamiskadapter.StoredResource
+import no.fintlabs.dynamiskadapter.util.getId
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap

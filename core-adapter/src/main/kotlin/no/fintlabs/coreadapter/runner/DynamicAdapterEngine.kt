@@ -2,15 +2,15 @@ package no.fintlabs.coreadapter.runner
 
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
-import no.fintlabs.coreadapter.data.DeltaSyncDataset
-import no.fintlabs.coreadapter.data.DynamicAdapterProperties
-import no.fintlabs.coreadapter.data.ExpandedDeltaMetadata
-import no.fintlabs.coreadapter.data.ExpandedMetadata
-import no.fintlabs.coreadapter.data.InitialDataset
-import no.fintlabs.coreadapter.data.toExpandedMetadata
+import no.fintlabs.dynamiskadapter.DeltaSyncDataset
+import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
+import no.fintlabs.dynamiskadapter.ExpandedDeltaMetadata
+import no.fintlabs.dynamiskadapter.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.InitialDataset
+import no.fintlabs.dynamiskadapter.toExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
-import no.fintlabs.coreadapter.util.generateIdMetadata
+import no.fintlabs.dynamiskadapter.util.generateIdMetadata
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource

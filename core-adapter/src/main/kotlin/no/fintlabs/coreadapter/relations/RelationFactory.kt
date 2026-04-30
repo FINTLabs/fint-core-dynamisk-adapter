@@ -2,13 +2,13 @@ package no.fintlabs.coreadapter.relations
 
 import no.novari.fint.model.FintMultiplicity
 import no.novari.fint.model.FintRelation
-import no.fintlabs.coreadapter.data.DynamicAdapterProperties
-import no.fintlabs.coreadapter.data.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
+import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
-import no.fintlabs.coreadapter.util.generateIdMetadata
-import no.fintlabs.coreadapter.util.putLink
-import no.fintlabs.coreadapter.util.toResourceKey
+import no.fintlabs.dynamiskadapter.util.generateIdMetadata
+import no.fintlabs.dynamiskadapter.util.putLink
+import no.fintlabs.dynamiskadapter.util.toResourceKey
 import no.novari.metamodel.MetamodelService
 import org.springframework.stereotype.Component
 import kotlin.random.Random

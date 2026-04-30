@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.data
+package no.fintlabs.dynamiskadapter
 
 import no.fintlabs.coreadapter.store.ResourceKey
 

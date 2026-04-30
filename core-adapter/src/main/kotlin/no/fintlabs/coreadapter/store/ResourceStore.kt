@@ -1,11 +1,11 @@
 package no.fintlabs.coreadapter.store
 
-import no.fintlabs.coreadapter.data.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource
-import no.fintlabs.coreadapter.data.StoredResource
+import no.fintlabs.dynamiskadapter.StoredResource
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
-import no.fintlabs.coreadapter.util.getId
+import no.fintlabs.dynamiskadapter.util.getId
 
 typealias ResourceKey = String
 // ResourceKey = domain/component/resource

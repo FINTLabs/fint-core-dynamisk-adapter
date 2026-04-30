@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.data
+package no.fintlabs.dynamiskadapter
 
 import no.novari.fint.model.resource.FintResource
 

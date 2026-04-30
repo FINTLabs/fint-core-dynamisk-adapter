@@ -1,14 +1,11 @@
-package no.fintlabs.coreadapter.util
+package no.fintlabs.coreengine.util
 
-import no.fintlabs.coreadapter.data.IdFieldType
+import no.fintlabs.dynamiskadapter.IdFieldType
 import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
 import no.novari.metamodel.model.Resource
 import java.lang.reflect.Field
-
-data class IdMetadata(
-    val prefix: String,
-    val type: IdFieldType,
-)
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
 
 fun Resource.generateIdMetadata(): IdMetadata {
     val clazz = this.resourceClass
@@ -56,5 +53,5 @@ private fun getAllFields(clazz: Class<*>): List<Field> =
         .toList()
 
 private fun Field.isRequired(): Boolean =
-    this.isAnnotationPresent(javax.validation.constraints.NotNull::class.java) ||
-            this.isAnnotationPresent(javax.validation.constraints.NotBlank::class.java)
+    this.isAnnotationPresent(NotNull::class.java) ||
+            this.isAnnotationPresent(NotBlank::class.java)

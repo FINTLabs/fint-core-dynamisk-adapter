@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.data.models
+package no.fintlabs.dynamiskadapter.models
 
 data class HeartBeatRequest(
     val adapterId: String,

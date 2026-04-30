@@ -6,9 +6,9 @@ import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
-import no.fintlabs.coreadapter.data.DynamicAdapterProperties
-import no.fintlabs.coreadapter.data.ExpandedMetadata
-import no.fintlabs.coreadapter.data.models.HeartBeatRequest
+import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
+import no.fintlabs.dynamiskadapter.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.models.HeartBeatRequest
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import org.springframework.stereotype.Component

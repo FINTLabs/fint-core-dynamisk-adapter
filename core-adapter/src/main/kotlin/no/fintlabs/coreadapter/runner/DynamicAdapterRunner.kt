@@ -13,8 +13,8 @@ import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
-import no.fintlabs.coreadapter.data.DynamicAdapterProperties
-import no.fintlabs.coreadapter.data.toExpandedMetadata
+import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
+import no.fintlabs.dynamiskadapter.toExpandedMetadata
 import no.fintlabs.coreadapter.publish.DynamicAdapterPublisher
 import no.fintlabs.coreadapter.relations.RelationFactory
 import no.fintlabs.coreadapter.relations.SetType
@@ -37,7 +37,7 @@ class DynamicAdapterRunner(
     override fun run(args: ApplicationArguments) {
         if (props.initialDataSets.isEmpty()) {
             println("No initial dataset found. Shutting down...")
-            
+
         }
         val isRegistered = registerAndBootstrap()
         if (!isRegistered) {

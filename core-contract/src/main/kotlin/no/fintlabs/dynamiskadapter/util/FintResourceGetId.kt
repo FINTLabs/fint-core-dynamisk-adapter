@@ -1,6 +1,6 @@
-package no.fintlabs.coreadapter.util
+package no.fintlabs.dynamiskadapter.util
 
-import no.fintlabs.coreadapter.data.IdFieldType
+import no.fintlabs.dynamiskadapter.IdFieldType
 import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
 import no.novari.fint.model.resource.FintResource
 

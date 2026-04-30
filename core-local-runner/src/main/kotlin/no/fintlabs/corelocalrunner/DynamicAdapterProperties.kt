@@ -1,8 +1,8 @@
-package no.fintlabs.coreadapter.data
+package no.fintlabs.corelocalrunner
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+//import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "dynamisk-adapter")
+//@ConfigurationProperties(prefix = "dynamisk-adapter")
 data class DynamicAdapterProperties(
     val recursive: Boolean = false,
     val link: Boolean = true,
