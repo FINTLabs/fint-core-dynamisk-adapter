@@ -6,8 +6,8 @@ plugins {
 }
 
 group = "no.fintlabs"
-version = "1.0.0"
-description = "fint-core-dynamisk-adapter-core-api"
+description = "core-api"
+val fintVersion: String by project
 
 java {
     toolchain {
@@ -20,10 +20,9 @@ repositories {
     mavenCentral()
 }
 
-val fintVersion = "3.21.10"
-
 dependencies {
     implementation(project(":core-contract"))
+    implementation(project(":core-runtime"))
 
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
