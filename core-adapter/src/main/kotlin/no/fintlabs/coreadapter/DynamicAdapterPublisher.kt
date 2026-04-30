@@ -1,16 +1,13 @@
-package no.fintlabs.coreadapter.publish
+package no.fintlabs.coreadapter
 
-import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
-import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
 import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.fintlabs.dynamiskadapter.models.HeartBeatRequest
-import no.fintlabs.coreadapter.store.ResourceStore
-import no.fintlabs.coreadapter.store.TempDeltaSyncStore
+import no.novari.fint.model.resource.FintResource
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -18,11 +15,11 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.UUID
 
+// TODO: Remove as much business logic as possible
+
 @Component
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
-    private val storage: ResourceStore,
-    private val deltaStorage: TempDeltaSyncStore,
     private val factory: SyncPageFactory,
     private val props: AdapterProperties,
     private val dynaProps: DynamicAdapterProperties,

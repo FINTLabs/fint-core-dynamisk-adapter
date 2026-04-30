@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.config.beans
+package no.fintlabs.coreengine.beans
 
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
 import org.springframework.context.annotation.Bean

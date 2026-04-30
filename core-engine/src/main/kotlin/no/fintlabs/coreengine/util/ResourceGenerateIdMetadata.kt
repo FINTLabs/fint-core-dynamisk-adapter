@@ -1,6 +1,7 @@
 package no.fintlabs.coreengine.util
 
 import no.fintlabs.dynamiskadapter.IdFieldType
+import no.fintlabs.dynamiskadapter.data.IdMetadata
 import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
 import no.novari.metamodel.model.Resource
 import java.lang.reflect.Field

@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.runner
+package no.fintlabs.corelocalrunner
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,11 +13,11 @@ import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.coreadapter.config.AdapterProperties
-import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
+import no.fintlabs.coreadapter.DynamicAdapterPublisher
+import no.fintlabs.coreengine.RelationFactory
+import no.fintlabs.coreengine.SetType
+import no.fintlabs.coreengine.DynamicAdapterEngine
 import no.fintlabs.dynamiskadapter.toExpandedMetadata
-import no.fintlabs.coreadapter.publish.DynamicAdapterPublisher
-import no.fintlabs.coreadapter.relations.RelationFactory
-import no.fintlabs.coreadapter.relations.SetType
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -68,7 +68,7 @@ class DynamicAdapterRunner(
             scope.launch { heartBeatLoop() }
         }
 
-        if (props.fullSyncIntervalInDays > 0) {
+        if (props.fullSyncIntervalInDays != 0) {
             scope.launch { fullSyncLoop(props.fullSyncIntervalInDays) }
         }
 
@@ -76,7 +76,7 @@ class DynamicAdapterRunner(
             scope.launch { deltaSyncLoop(props.deltaSyncIntervalInMinutes) }
         }
 
-        runBlocking { scope.coroutineContext[Job]!!.join() }
+        runBlocking { scope.coroutineContext[Job.Key]!!.join() }
     }
 
     private fun registerAndBootstrap(): Boolean {

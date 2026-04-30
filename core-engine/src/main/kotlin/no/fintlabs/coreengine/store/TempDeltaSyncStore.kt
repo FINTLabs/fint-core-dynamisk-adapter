@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.store
+package no.fintlabs.coreengine.store
 
 import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource

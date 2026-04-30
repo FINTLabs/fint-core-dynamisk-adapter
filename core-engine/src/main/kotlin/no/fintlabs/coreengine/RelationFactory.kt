@@ -1,4 +1,4 @@
-package no.fintlabs.coreadapter.relations
+package no.fintlabs.coreengine
 
 import no.novari.fint.model.FintMultiplicity
 import no.novari.fint.model.FintRelation

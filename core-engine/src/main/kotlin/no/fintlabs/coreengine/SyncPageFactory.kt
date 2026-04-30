@@ -1,13 +1,12 @@
-package no.fintlabs.coreadapter.publish
+package no.fintlabs.coreengine
 
-import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.coreadapter.config.AdapterProperties
 import no.fintlabs.dynamiskadapter.ExpandedMetadata
 import no.fintlabs.dynamiskadapter.util.getId
+import no.novari.fint.model.resource.FintResource
 import org.springframework.stereotype.Component
 
 @Component

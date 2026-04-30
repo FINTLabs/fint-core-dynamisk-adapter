@@ -1,7 +1,7 @@
-package no.fintlabs.coreadapter
+package no.fintlabs.coreengine
 
-import no.fintlabs.coreadapter.config.beans.MetamodelConfig
-import no.fintlabs.dynamiskadapter.util.generateIdMetadata
+import no.fintlabs.coreengine.beans.MetamodelConfig
+import no.fintlabs.coreengine.util.generateIdMetadata
 import no.novari.metamodel.MetamodelService
 import org.junit.jupiter.api.Test
 

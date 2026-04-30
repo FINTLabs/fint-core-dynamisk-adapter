@@ -3,7 +3,6 @@ package no.fintlabs.coreadapter.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.UUID
 
-
 @ConfigurationProperties(prefix = "fint.adapter")
 data class AdapterProperties(
     private val id: String,
