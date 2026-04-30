@@ -23,7 +23,6 @@ repositories {
 val fintVersion = "3.21.10"
 
 dependencies {
-    implementation(project(":core-lib"))
     implementation(project(":core-contract"))
 
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
