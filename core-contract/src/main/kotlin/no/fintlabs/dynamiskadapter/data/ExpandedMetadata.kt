@@ -1,4 +1,4 @@
-package no.fintlabs.dynamiskadapter
+package no.fintlabs.dynamiskadapter.data
 
 import no.novari.metamodel.model.Resource
 

@@ -1,6 +1,6 @@
 package no.fintlabs.coreengine.store
 
-import no.fintlabs.dynamiskadapter.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.ExpandedMetadata
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.dynamiskadapter.StoredResource
 import no.fintlabs.dynamiskadapter.util.getId

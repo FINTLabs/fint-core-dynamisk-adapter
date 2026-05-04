@@ -1,10 +1,12 @@
 package no.fintlabs.coreengine
 
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.coreengine.store.ResourceStore
+import no.fintlabs.coreengine.store.TempDeltaSyncStore
 import no.fintlabs.dynamiskadapter.DynamicAdapterService
-import no.fintlabs.dynamiskadapter.ExpandedDeltaMetadata
-import no.fintlabs.dynamiskadapter.ExpandedMetadata
-import no.fintlabs.dynamiskadapter.toExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.ExpandedDeltaMetadata
+import no.fintlabs.dynamiskadapter.data.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.toExpandedMetadata
 import no.novari.fint.model.resource.FintResource
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
@@ -13,25 +15,25 @@ import kotlin.random.Random
 
 @Component
 class DynamicAdapterEngine(
-    private val props: DynamicAdapterProperties,
+    // PROPS REMOVED
     private val model: MetamodelService,
     private val generator: DynamicAdapterService,
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
 ) {
-    private val initialDataSets: List<InitialDataset> = props.initialDataSets
-    private val deltaSyncDataSets: List<DeltaSyncDataset> = props.deltaSyncDataSets
+    //    private val initialDataSets: List<InitialDataset> = props.initialDataSets
+//    private val deltaSyncDataSets: List<DeltaSyncDataset> = props.deltaSyncDataSets
     val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
     val deltaMetadataList: MutableList<ExpandedDeltaMetadata> = mutableListOf()
 
     fun generateCapabilities(): MutableSet<AdapterCapability> {
         val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
-        for (it in props.initialDataSets) {
+        for (it in metadataList) {
             val capability =
                 AdapterCapability(
                     it.component.substringBefore("."),
                     it.component.substringAfter("."),
-                    it.resource,
+                    it.resource.name,
                     1,
                     AdapterCapability.DeltaSyncInterval.IMMEDIATE,
                 )

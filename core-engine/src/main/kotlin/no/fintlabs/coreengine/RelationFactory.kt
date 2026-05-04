@@ -3,7 +3,7 @@ package no.fintlabs.coreengine
 import no.novari.fint.model.FintMultiplicity
 import no.novari.fint.model.FintRelation
 import no.fintlabs.dynamiskadapter.DynamicAdapterProperties
-import no.fintlabs.dynamiskadapter.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.ExpandedMetadata
 import no.fintlabs.coreadapter.store.ResourceStore
 import no.fintlabs.coreadapter.store.TempDeltaSyncStore
 import no.fintlabs.dynamiskadapter.util.generateIdMetadata

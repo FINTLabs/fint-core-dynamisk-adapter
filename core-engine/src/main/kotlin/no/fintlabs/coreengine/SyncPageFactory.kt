@@ -4,7 +4,7 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.dynamiskadapter.ExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.ExpandedMetadata
 import no.fintlabs.dynamiskadapter.util.getId
 import no.novari.fint.model.resource.FintResource
 import org.springframework.stereotype.Component

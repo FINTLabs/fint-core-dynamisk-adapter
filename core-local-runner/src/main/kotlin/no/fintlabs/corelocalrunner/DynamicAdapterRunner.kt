@@ -17,7 +17,7 @@ import no.fintlabs.coreadapter.DynamicAdapterPublisher
 import no.fintlabs.coreengine.RelationFactory
 import no.fintlabs.coreengine.SetType
 import no.fintlabs.coreengine.DynamicAdapterEngine
-import no.fintlabs.dynamiskadapter.toExpandedMetadata
+import no.fintlabs.dynamiskadapter.data.toExpandedMetadata
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
