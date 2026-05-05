@@ -27,6 +27,7 @@ dependencies {
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
@@ -36,7 +37,6 @@ dependencies {
     implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
     implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
     implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
-    implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

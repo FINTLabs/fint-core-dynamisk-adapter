@@ -1,0 +1,60 @@
+package no.fintlabs.adapter
+
+import no.fintlabs.adapter.config.AdapterProperties
+import no.fintlabs.adapter.models.sync.SyncPage
+import no.fintlabs.adapter.models.sync.SyncPageEntry
+import no.fintlabs.adapter.models.sync.SyncPageMetadata
+import no.fintlabs.adapter.models.sync.SyncType
+import no.fintlabs.contract.data.ExpandedMetadata
+import no.fintlabs.contract.util.getId
+import no.novari.fint.model.resource.FintResource
+import org.springframework.stereotype.Component
+
+@Component
+class SyncPageFactory(
+    private val props: AdapterProperties,
+) {
+    fun buildEntries(resources: List<FintResource>, meta: ExpandedMetadata): MutableList<SyncPageEntry> =
+        resources
+            .map { resource ->
+                val id =
+                    requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
+                        "Missing identifier for ${resource.javaClass.simpleName}"
+                    }
+                SyncPageEntry.of(id, resource)
+            }.toMutableList()
+
+    fun buildMetadata(
+        resourceName: String,
+        page: Long,
+        pageSize: Long,
+        totalPages: Long,
+        totalSize: Long,
+        corrId: String,
+        time: Long = System.currentTimeMillis(),
+    ): SyncPageMetadata =
+        SyncPageMetadata
+            .builder()
+            .adapterId(props.adapterId)
+            .orgId(props.orgId)
+            .corrId(corrId)
+            .uriRef("/$resourceName")
+            .page(page)
+            .pageSize(pageSize)
+            .totalPages(totalPages)
+            .totalSize(totalSize)
+            .time(time)
+            .build()
+
+    fun buildPage(
+        syncType: SyncType,
+        metadata: SyncPageMetadata,
+        entries: MutableList<SyncPageEntry>,
+    ): SyncPage =
+        SyncPage
+            .builder()
+            .syncType(syncType)
+            .metadata(metadata)
+            .resources(entries)
+            .build()
+}
