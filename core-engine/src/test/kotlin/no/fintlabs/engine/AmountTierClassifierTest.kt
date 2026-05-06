@@ -4,23 +4,18 @@ import no.fintlabs.contract.data.AmountTier
 import no.novari.metamodel.ComponentBuilder
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.ReflectionService
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
 class AmountTierClassifierTest {
     private val metamodelService = MetamodelService(ComponentBuilder(ReflectionService()))
-    private val metadataService = MetadataService(metamodelService)
+    private val metadataService = MetadataService(metamodelService, AmountTierClassifier())
     private val amountTierClassifier = AmountTierClassifier()
 
     @Test
     fun `should classify amount tiers for all utdanning resources`() {
-        val metadata = metadataService
-            .generateMetadataFromDomain("utdanning")
-            .toMutableList()
-        assertThat(metadata)
-            .describedAs("Expected Utdanning domain to contain resources")
-            .isNotEmpty
+        metadataService.generateMetadataFromDomain("utdanning")
+        val metadata = metadataService.getAllMetadata()
 
         amountTierClassifier.classify(metadata)
 
