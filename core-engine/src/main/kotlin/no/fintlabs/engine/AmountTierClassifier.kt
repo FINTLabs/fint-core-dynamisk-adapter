@@ -9,13 +9,33 @@ import org.springframework.stereotype.Component
 class AmountTierClassifier {
 
     fun classify(resources: MutableList<ExpandedMetadata>) {
+        val relations = buildRelations(resources)
+
+        do {
+            var changed = false
+
+            changed = markKnownResources(resources) || changed
+            changed = markMutualOneToOneAsCore(relations) || changed
+            changed = propagateTierThroughOneToOne(relations) || changed
+            changed = markDependants(relations) || changed
+            changed = markGroupings(relations) || changed
+            changed = markMembershipGroupings(relations) || changed
+
+        } while (changed)
+
+        resources.forEach {
+            it.amountTier = it.amountTier ?: AmountTier.UNKNOWN
+        }
+    }
+
+    private fun buildRelations(resources: List<ExpandedMetadata>): List<Relation> {
         val byName = resources.associateBy { it.resource.name }
 
-        val relations = resources.flatMap { source ->
+        val direct = resources.flatMap { source ->
             source.resource.relations.mapNotNull { relation ->
                 val target = byName[relation.name] ?: return@mapNotNull null
 
-                ResourceRelation(
+                DirectRelation(
                     source = source,
                     target = target,
                     multiplicity = relation.multiplicity
@@ -23,257 +43,154 @@ class AmountTierClassifier {
             }
         }
 
-        val relationPairs = relations.mapNotNull { relation ->
-            val reverse = relations.firstOrNull {
+        return direct.mapNotNull { relation ->
+            val reverse = direct.firstOrNull {
                 it.source == relation.target && it.target == relation.source
-            }
+            } ?: return@mapNotNull null
 
-            if (reverse == null) {
-                null
-            } else {
-                ResourceRelationPair(
-                    left = relation.source,
-                    right = relation.target,
-                    leftToRight = relation.multiplicity,
-                    rightToLeft = reverse.multiplicity
-                )
-            }
-        }
-        var changed: Boolean
-        do {
-            changed = false
-            markKnownCoreResources(resources)
-            markKnownGroupingResources(resources)
-            markCore(relationPairs)
-            changed = propagateCoreThroughSingleRelations(relationPairs) || false
-            changed = markDependants(relationPairs) || changed
-            changed = propagateDependants(relationPairs) || changed
-            changed = markGroupingsFromDependants(relationPairs) || changed
-            changed = markGroupingsFromMemberships(relationPairs) || changed
-            changed = markGroupings(relationPairs) || changed
-        } while (changed)
-
-        resources.forEach {
-            if (it.amountTier == null) {
-                it.amountTier = AmountTier.UNKNOWN
-            }
-        }
-    }
-
-    private fun markCore(pairs: List<ResourceRelationPair>) {
-        pairs.forEach { pair ->
-            if (pair.leftToRight.isSingle() && pair.rightToLeft.isSingle()) {
-                pair.left.amountTier = AmountTier.CORE
-                pair.right.amountTier = AmountTier.CORE
-            }
-        }
-    }
-
-    private fun markDependants(pairs: List<ResourceRelationPair>): Boolean {
-        var changed = false
-
-        pairs
-            .flatMap { it.bothDirections() }
-            .forEach { relation ->
-                if (
-                    relation.source.amountTier == null &&
-                    relation.target.amountTier == AmountTier.CORE &&
-                    relation.sourceToTarget.isSingle() &&
-                    relation.targetToSource.isMany()
-                ) {
-                    relation.source.amountTier = AmountTier.DEPENDANT
-                    changed = true
-                }
-            }
-
-        return changed
-    }
-
-    private fun markGroupings(pairs: List<ResourceRelationPair>): Boolean {
-        var changed = false
-
-        pairs.forEach { pair ->
-            if (
-                pair.left.amountTier == null &&
-                pair.right.amountTier == AmountTier.CORE &&
-                pair.leftToRight.isMany()
-            ) {
-                pair.left.amountTier = AmountTier.GROUPING
-                changed = true
-            }
-
-            if (
-                pair.right.amountTier == null &&
-                pair.left.amountTier == AmountTier.CORE &&
-                pair.rightToLeft.isMany()
-            ) {
-                pair.right.amountTier = AmountTier.GROUPING
-                changed = true
-            }
-        }
-        return changed
-    }
-
-    private fun markGroupingsFromDependants(pairs: List<ResourceRelationPair>): Boolean {
-        var changed = false
-
-        pairs.forEach { pair ->
-            if (
-                pair.left.amountTier == AmountTier.DEPENDANT &&
-                pair.right.amountTier == null &&
-                pair.leftToRight.isSingle() &&
-                pair.rightToLeft.isMany()
-            ) {
-                pair.right.amountTier = AmountTier.GROUPING
-                changed = true
-            }
-
-            if (
-                pair.right.amountTier == AmountTier.DEPENDANT &&
-                pair.left.amountTier == null &&
-                pair.rightToLeft.isSingle() &&
-                pair.leftToRight.isMany()
-            ) {
-                pair.left.amountTier = AmountTier.GROUPING
-                changed = true
-            }
-        }
-        return changed
-    }
-
-    private fun propagateDependants(pairs: List<ResourceRelationPair>): Boolean {
-        var changed = false
-
-        pairs.forEach { pair ->
-            if (
-                pair.left.amountTier == null &&
-                pair.right.amountTier == AmountTier.DEPENDANT &&
-                pair.leftToRight.isSingle()
-            ) {
-                pair.left.amountTier = AmountTier.DEPENDANT
-                changed = true
-            }
-
-            if (
-                pair.right.amountTier == null &&
-                pair.left.amountTier == AmountTier.DEPENDANT &&
-                pair.rightToLeft.isSingle()
-            ) {
-                pair.right.amountTier = AmountTier.DEPENDANT
-                changed = true
-            }
-        }
-        return changed
-    }
-
-
-    private fun markGroupingsFromMemberships(pairs: List<ResourceRelationPair>): Boolean {
-        var changed = false
-
-        pairs
-            .flatMap { it.bothDirections() }
-            .forEach { relation ->
-                if (
-                    relation.source.amountTier == AmountTier.DEPENDANT &&
-                    relation.target.amountTier == null &&
-                    relation.source.resource.name.endsWith("medlemskap", ignoreCase = true) &&
-                    relation.sourceToTarget.isSingle() &&
-                    relation.targetToSource.isMany()
-                ) {
-                    relation.target.amountTier = AmountTier.GROUPING
-                    changed = true
-                }
-            }
-
-        return changed
-    }
-
-    private fun propagateCoreThroughSingleRelations(
-        pairs: List<ResourceRelationPair>
-    ): Boolean {
-        var changed = false
-
-        pairs.forEach { pair ->
-            if (
-                pair.left.amountTier == null &&
-                pair.right.amountTier == AmountTier.CORE &&
-                pair.leftToRight.isSingle() &&
-                pair.rightToLeft.isSingle()
-            ) {
-                pair.left.amountTier = AmountTier.CORE
-                changed = true
-            }
-
-            if (
-                pair.right.amountTier == null &&
-                pair.left.amountTier == AmountTier.CORE &&
-                pair.rightToLeft.isSingle() &&
-                pair.leftToRight.isSingle()
-            ) {
-                pair.right.amountTier = AmountTier.CORE
-                changed = true
-            }
-        }
-        return changed
-    }
-
-    private fun markKnownCoreResources(resources: List<ExpandedMetadata>) {
-        resources.forEach {
-            if (it.resource.name == "person") {
-                it.amountTier = AmountTier.CORE
-            }
-        }
-    }
-
-    private fun markKnownGroupingResources(resources: List<ExpandedMetadata>) {
-        resources.forEach {
-            if (it.resource.name.endsWith("gruppe")) {
-                it.amountTier = AmountTier.GROUPING
-            }
-        }
-    }
-
-    private fun ResourceRelationPair.bothDirections(): List<DirectionalPair> =
-        listOf(
-            DirectionalPair(
-                source = left,
-                target = right,
-                sourceToTarget = leftToRight,
-                targetToSource = rightToLeft
-            ),
-            DirectionalPair(
-                source = right,
-                target = left,
-                sourceToTarget = rightToLeft,
-                targetToSource = leftToRight
+            Relation(
+                source = relation.source,
+                target = relation.target,
+                sourceToTarget = relation.multiplicity,
+                targetToSource = reverse.multiplicity
             )
-        )
+        }
+    }
 
-    private data class DirectionalPair(
-        val source: ExpandedMetadata,
-        val target: ExpandedMetadata,
-        val sourceToTarget: FintMultiplicity,
-        val targetToSource: FintMultiplicity
-    )
+    private fun markKnownResources(resources: List<ExpandedMetadata>): Boolean {
+        var changed = false
 
-    private fun FintMultiplicity.isSingle(): Boolean =
+        resources.forEach { metadata ->
+            val name = metadata.resource.name.lowercase()
+
+            if (name == "person") {
+                changed = metadata.assignTier(AmountTier.CORE) || changed
+            }
+
+            if (name.endsWith("gruppe")) {
+                changed = metadata.assignTier(AmountTier.GROUPING) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun markMutualOneToOneAsCore(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            if (relation.isMutualOneToOne()) {
+                changed = relation.source.assignTier(AmountTier.CORE) || changed
+                changed = relation.target.assignTier(AmountTier.CORE) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun propagateTierThroughOneToOne(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            if (!relation.isMutualOneToOne()) return@forEach
+
+            val sourceTier = relation.source.amountTier
+            val targetTier = relation.target.amountTier
+
+            if (sourceTier != null && targetTier == null) {
+                changed = relation.target.assignTier(sourceTier) || changed
+            }
+
+            if (targetTier != null && sourceTier == null) {
+                changed = relation.source.assignTier(targetTier) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun markDependants(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            if (
+                relation.source.amountTier == null &&
+                relation.target.amountTier == AmountTier.CORE &&
+                relation.sourceToTarget.pointsToOne() &&
+                relation.targetToSource.pointsToMany()
+            ) {
+                changed = relation.source.assignTier(AmountTier.DEPENDANT) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun markGroupings(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            if (
+                relation.source.amountTier == null &&
+                relation.target.amountTier == AmountTier.CORE &&
+                relation.sourceToTarget.pointsToMany()
+            ) {
+                changed = relation.source.assignTier(AmountTier.GROUPING) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun markMembershipGroupings(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            val sourceName = relation.source.resource.name.lowercase()
+
+            if (
+                relation.source.amountTier == AmountTier.DEPENDANT &&
+                sourceName.endsWith("medlemskap") &&
+                relation.target.amountTier == null &&
+                relation.sourceToTarget.pointsToOne() &&
+                relation.targetToSource.pointsToMany()
+            ) {
+                changed = relation.target.assignTier(AmountTier.GROUPING) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun ExpandedMetadata.assignTier(tier: AmountTier): Boolean {
+        if (amountTier != null) return false
+
+        amountTier = tier
+        return true
+    }
+
+    private fun Relation.isMutualOneToOne(): Boolean =
+        sourceToTarget == FintMultiplicity.ONE_TO_ONE &&
+                targetToSource == FintMultiplicity.ONE_TO_ONE
+
+    private fun FintMultiplicity.pointsToOne(): Boolean =
         this == FintMultiplicity.ONE_TO_ONE ||
                 this == FintMultiplicity.NONE_TO_ONE
 
-    private fun FintMultiplicity.isMany(): Boolean =
+    private fun FintMultiplicity.pointsToMany(): Boolean =
         this == FintMultiplicity.ONE_TO_MANY ||
                 this == FintMultiplicity.NONE_TO_MANY
 
-    private data class ResourceRelation(
+    private data class DirectRelation(
         val source: ExpandedMetadata,
         val target: ExpandedMetadata,
         val multiplicity: FintMultiplicity
     )
 
-    private data class ResourceRelationPair(
-        val left: ExpandedMetadata,
-        val right: ExpandedMetadata,
-        val leftToRight: FintMultiplicity,
-        val rightToLeft: FintMultiplicity
+    private data class Relation(
+        val source: ExpandedMetadata,
+        val target: ExpandedMetadata,
+        val sourceToTarget: FintMultiplicity,
+        val targetToSource: FintMultiplicity
     )
 }
