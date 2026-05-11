@@ -90,13 +90,8 @@ class DynamicAdapterRuntimeService(
             val registered = adapter.register(capabilities)
             if (registered) {
                 engine.executeInitialDataset(props.amountTierPolicy)
-                // Generate AmountTiers
+                adapter.performSync()
 
-                // Generate data with props.amountTierPolicy
-
-                // relate data
-
-                // publish
             } else throw IllegalStateException(
                 """Failed to register to provider with capabilities: 
                 $capabilities

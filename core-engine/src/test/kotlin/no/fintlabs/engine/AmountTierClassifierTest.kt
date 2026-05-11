@@ -14,7 +14,13 @@ class AmountTierClassifierTest {
 
     @Test
     fun `should classify amount tiers for all utdanning resources`() {
+        metadataService.generateMetadataFromDomain("administrasjon")
+        metadataService.generateMetadataFromDomain("personvern")
         metadataService.generateMetadataFromDomain("utdanning")
+        metadataService.generateMetadataFromDomain("okonomi")
+        metadataService.generateMetadataFromDomain("ressurs")
+        metadataService.generateMetadataFromDomain("felles")
+        metadataService.generateMetadataFromDomain("arkiv")
         val metadata = metadataService.getAllMetadata()
 
         amountTierClassifier.classify(metadata)
@@ -26,9 +32,6 @@ class AmountTierClassifierTest {
         metadata
             .sortedBy { it.key }
             .forEach {
-                if (it.key.contains("kodeverk")) {
-                    return@forEach
-                }
                 println("${it.key.padEnd(50)} -> ${it.amountTier}")
             }
         assertTrue(metadata.isNotEmpty(), "Expected Utdanning metadata to contain resources")

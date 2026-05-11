@@ -105,11 +105,11 @@ class DynamicAdapterPublisher(
                 if (!dynaProps.localLogicTest) {
                     publish(metadata.key, metadata, syncType, data)
                 } else {
-                    logIfEnabled("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
+                    println("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
                 }
                 if (syncType == SyncType.DELTA) {
                     storage.addAllResources(metadata.key, metadata, data)
-                    logIfEnabled("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
+                    println("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
                 }
             } else {
                 println("No data found in $syncType STORAGE for ${metadata.key}")
@@ -200,8 +200,4 @@ class DynamicAdapterPublisher(
                 .defaultIfEmpty("")
                 .map { body -> response.statusCode() to body }
         }
-
-    private fun logIfEnabled(log: String) {
-        if (dynaProps.consoleLogging) println(log)
-    }
 }
