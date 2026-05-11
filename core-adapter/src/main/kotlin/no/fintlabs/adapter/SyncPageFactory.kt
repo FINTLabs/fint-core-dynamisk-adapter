@@ -11,9 +11,7 @@ import no.novari.fint.model.resource.FintResource
 import org.springframework.stereotype.Component
 
 @Component
-class SyncPageFactory(
-    private val props: AdapterProperties,
-) {
+class SyncPageFactory() {
     fun buildEntries(resources: List<FintResource>, meta: ExpandedMetadata): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
@@ -26,6 +24,8 @@ class SyncPageFactory(
 
     fun buildMetadata(
         resourceName: String,
+        adapterId: String,
+        orgId: String,
         page: Long,
         pageSize: Long,
         totalPages: Long,
@@ -35,8 +35,8 @@ class SyncPageFactory(
     ): SyncPageMetadata =
         SyncPageMetadata
             .builder()
-            .adapterId(props.adapterId)
-            .orgId(props.orgId)
+            .adapterId(adapterId)
+            .orgId(orgId)
             .corrId(corrId)
             .uriRef("/$resourceName")
             .page(page)

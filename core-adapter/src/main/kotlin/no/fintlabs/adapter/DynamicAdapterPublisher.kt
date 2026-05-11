@@ -15,14 +15,11 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.UUID
 
-// TODO: Remove as much business logic as possible
-
 @Component
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
     private val factory: SyncPageFactory,
     private val props: AdapterProperties,
-    private val dynaProps: DynamicAdapterProperties,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         println("Registering to provider...")
@@ -37,62 +34,57 @@ class DynamicAdapterPublisher(
                 list.toMutableSet()
             } else capabilities
 
-        if (!dynaProps.localLogicTest) {
-            val contract =
-                AdapterContract
-                    .builder()
-                    .adapterId(props.adapterId)
-                    .orgId(props.orgId)
-                    .username(props.username)
-                    .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
-                    .capabilities(adapterCapabilities)
-                    .time(0L)
-                    .build()
+        val contract =
+            AdapterContract
+                .builder()
+                .adapterId(props.adapterId)
+                .orgId(props.orgId)
+                .username(props.username)
+                .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
+                .capabilities(adapterCapabilities)
+                .time(0L)
+                .build()
 
-            val response =
-                webClient
-                    .post()
-                    .uri("${props.baseUrl}/provider/register")
-                    .bodyValue(contract)
-                    .exchangeToMono { response ->
-                        response
-                            .bodyToMono<String>()
-                            .defaultIfEmpty("empty")
-                            .map { body ->
-                                response.statusCode().value() to body
-                            }
-                    }.block()
-            println("🔑 Adapter Registration :  $response")
-            return response!!.first == 200
-        }
-        println("Booting Adapter in OFFLINE MODE")
-        return true
+        val response =
+            webClient
+                .post()
+                .uri("${props.baseUrl}/provider/register")
+                .bodyValue(contract)
+                .exchangeToMono { response ->
+                    response
+                        .bodyToMono<String>()
+                        .defaultIfEmpty("empty")
+                        .map { body ->
+                            response.statusCode().value() to body
+                        }
+                }.block()
+        println("🔑 Adapter Registration :  $response")
+        return response!!.first == 200
     }
 
     fun giveHeartBeat() {
-        if (!dynaProps.localLogicTest) {
-            val requestBody =
-                HeartBeatRequest(
-                    props.adapterId,
-                    props.username,
-                    props.orgId,
-                    time = Instant.now().epochSecond,
-                )
-            val response =
-                webClient
-                    .post()
-                    .uri("${props.baseUrl}/provider/heartbeat")
-                    .bodyValue(requestBody)
-                    .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
-                    .block()
+        val requestBody =
+            HeartBeatRequest(
+                props.adapterId,
+                props.username,
+                props.orgId,
+                time = Instant.now().epochSecond,
+            )
+        val response =
+            webClient
+                .post()
+                .uri("${props.baseUrl}/provider/heartbeat")
+                .bodyValue(requestBody)
+                .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
+                .block()
 
-            println("🫀 HeartBeat => HTTP $response")
-        }
+        println("🫀 HeartBeat => HTTP $response")
     }
 
     fun performSync(
         metadataList: MutableList<ExpandedMetadata>,
         syncType: SyncType,
+        maxPageSize: Int,
     ) {
         for (metadata in metadataList) {
             val data =
@@ -102,21 +94,17 @@ class DynamicAdapterPublisher(
                     storage.getAllResources(metadata.key)
                 }
             if (data.isNotEmpty()) {
-                if (!dynaProps.localLogicTest) {
-                    publish(metadata.key, metadata, syncType, data)
-                } else {
-                    println("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
-                }
-                if (syncType == SyncType.DELTA) {
-                    storage.addAllResources(metadata.key, metadata, data)
-                    println("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
-                }
+                publish(metadata.key, metadata, syncType, maxPageSize, data)
             } else {
-                println("No data found in $syncType STORAGE for ${metadata.key}")
+                println("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
+            }
+            if (syncType == SyncType.DELTA) {
+                storage.addAllResources(metadata.key, metadata, data)
+                println("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
             }
         }
         if (syncType == SyncType.DELTA) {
-            deltaStorage.purge(dynaProps.consoleLogging)
+            deltaStorage.purge()
         }
     }
 
@@ -124,13 +112,16 @@ class DynamicAdapterPublisher(
         resourceName: String,
         metadata: ExpandedMetadata,
         syncType: SyncType,
+        maxPageSize: Int,
+        adapterId: String,
+        orgId: String,
         data: List<FintResource>,
     ) {
         if (data.isEmpty()) {
             println("📤 Publish ${syncType.name} :: No data for $resourceName")
         }
 
-        val chunks: List<List<FintResource>> = data.chunked(dynaProps.maxPageSize)
+        val chunks: List<List<FintResource>> = data.chunked(maxPageSize)
         val totalPages = chunks.size
         val totalSize = data.size.toLong()
         val corrId = UUID.randomUUID().toString()
@@ -146,6 +137,8 @@ class DynamicAdapterPublisher(
                     totalPages = totalPages.toLong(),
                     totalSize = totalSize,
                     corrId = corrId,
+                    adapterId = adapterId,
+                    orgId = orgId,
                 )
 
             val page = factory.buildPage(syncType, meta, entries)
