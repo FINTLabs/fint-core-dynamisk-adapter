@@ -37,6 +37,7 @@ class DynamicAdapterEngine(
         relations.relateDataset(metadata, setType = SetType.INITIAL)
     }
 
+
 }
 
 //    fun executeInitialDataset() {
@@ -94,39 +95,5 @@ class DynamicAdapterEngine(
 //                }
 //            }
 //            logIfEnabled("⚙️✅ DynamicAdapterEngine: ${deltaMetadataList.size} types of resources created for deltaSync.")
-//        }
-//    }
-
-//    fun printAllDataIfEnabled() {
-//        if (props.consoleLogDataset) {
-//            println("⚙️ PRINTING ALL DATA:")
-//            for (metadata in metadataList) {
-//                val data = storage.getAll(metadata.key)
-//                println("FULL ${metadata.key}, x${data.size}")
-//                for (i in data) {
-//                    println(i.resource)
-//                }
-//            }
-//            println("")
-//        }
-//    }
-
-//    fun printAllDeltaDataIfEnabled() {
-//        if (props.consoleLogDataset) {
-//            println("⚙️ PRINTING ALL DELTA DATA:")
-//            for (metadata in deltaMetadataList) {
-//                val data = deltaStorage.getAll(metadata.key)
-//                println("DELTA ${metadata.key}, x${data.size}")
-//                for (i in data) {
-//                    println(i.resource)
-//                }
-//            }
-//            println("")
-//        }
-//    }
-
-//    fun deltaDoneLogAmountOfResources() {
-//        for (it in deltaSyncDataSets) {
-//            logIfEnabled("FullStorage now contains ${storage.countResources(it.resourceKey)} ${it.resourceKey}")
 //        }
 //    }
