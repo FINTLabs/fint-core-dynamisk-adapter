@@ -15,9 +15,10 @@ class AmountTierClassifier {
             var changed = false
 
             changed = markKnownResources(resources) || changed
-            changed = markMutualOneToOneAsCore(relations) || changed
+            changed = markMutualSingleRelationsAsCore(relations) || changed
             changed = propagateTierThroughOneToOne(relations) || changed
             changed = markDependants(relations) || changed
+            changed = propagateDependants(relations) || changed
             changed = markGroupings(relations) || changed
             changed = markMembershipGroupings(relations) || changed
 
@@ -67,19 +68,26 @@ class AmountTierClassifier {
                 changed = metadata.assignTier(AmountTier.CORE) || changed
             }
 
-            if (name.endsWith("gruppe")) {
+            if (name.endsWith("gruppe") || name.endsWith("klasse")) {
                 changed = metadata.assignTier(AmountTier.GROUPING) || changed
+            }
+
+            if (name.endsWith("medlemsskap")) {
+                changed = metadata.assignTier(AmountTier.DEPENDANT) || changed
             }
         }
 
         return changed
     }
 
-    private fun markMutualOneToOneAsCore(relations: List<Relation>): Boolean {
+    private fun markMutualSingleRelationsAsCore(relations: List<Relation>): Boolean {
         var changed = false
 
         relations.forEach { relation ->
-            if (relation.isMutualOneToOne()) {
+            if (
+                relation.sourceToTarget.pointsToOne() &&
+                relation.targetToSource.pointsToOne()
+            ) {
                 changed = relation.source.assignTier(AmountTier.CORE) || changed
                 changed = relation.target.assignTier(AmountTier.CORE) || changed
             }
@@ -92,16 +100,14 @@ class AmountTierClassifier {
         var changed = false
 
         relations.forEach { relation ->
-            if (!relation.isMutualOneToOne()) return@forEach
-
             val sourceTier = relation.source.amountTier
             val targetTier = relation.target.amountTier
 
-            if (sourceTier != null && targetTier == null) {
+            if (relation.sourceToTarget == FintMultiplicity.ONE_TO_ONE && sourceTier != null) {
                 changed = relation.target.assignTier(sourceTier) || changed
             }
 
-            if (targetTier != null && sourceTier == null) {
+            if (relation.targetToSource == FintMultiplicity.ONE_TO_ONE && targetTier != null) {
                 changed = relation.source.assignTier(targetTier) || changed
             }
         }
@@ -118,6 +124,22 @@ class AmountTierClassifier {
                 relation.target.amountTier == AmountTier.CORE &&
                 relation.sourceToTarget.pointsToOne() &&
                 relation.targetToSource.pointsToMany()
+            ) {
+                changed = relation.source.assignTier(AmountTier.DEPENDANT) || changed
+            }
+        }
+
+        return changed
+    }
+
+    private fun propagateDependants(relations: List<Relation>): Boolean {
+        var changed = false
+
+        relations.forEach { relation ->
+            if (
+                relation.source.amountTier == null &&
+                relation.target.amountTier == AmountTier.DEPENDANT &&
+                relation.sourceToTarget.pointsToOne()
             ) {
                 changed = relation.source.assignTier(AmountTier.DEPENDANT) || changed
             }
@@ -163,15 +185,16 @@ class AmountTierClassifier {
     }
 
     private fun ExpandedMetadata.assignTier(tier: AmountTier): Boolean {
+        if (amountTier == tier) return false
         if (amountTier != null) return false
 
         amountTier = tier
         return true
     }
 
-    private fun Relation.isMutualOneToOne(): Boolean =
-        sourceToTarget == FintMultiplicity.ONE_TO_ONE &&
-                targetToSource == FintMultiplicity.ONE_TO_ONE
+//    private fun Relation.isMutualOneToOne(): Boolean =
+//        sourceToTarget == FintMultiplicity.ONE_TO_ONE &&
+//                targetToSource == FintMultiplicity.ONE_TO_ONE
 
     private fun FintMultiplicity.pointsToOne(): Boolean =
         this == FintMultiplicity.ONE_TO_ONE ||
