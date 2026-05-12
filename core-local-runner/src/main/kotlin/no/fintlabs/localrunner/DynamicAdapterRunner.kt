@@ -12,7 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.adapter.config.AdapterProperties
+import no.fintlabs.adapter.config.DynaAdapterProperties
 import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.engine.RelationFactory
 import no.fintlabs.engine.SetType
@@ -28,7 +28,7 @@ class DynamicAdapterRunner(
     private val engine: DynamicAdapterEngine,
     private val props: DynamicAdapterProperties,
     private val publisher: DynamicAdapterPublisher,
-    private val fintProps: AdapterProperties,
+    private val fintProps: DynaAdapterProperties,
     private val relationFactory: RelationFactory,
 ) : ApplicationRunner {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

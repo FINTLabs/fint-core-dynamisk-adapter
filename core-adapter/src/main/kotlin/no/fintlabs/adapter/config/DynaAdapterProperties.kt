@@ -1,10 +1,11 @@
 package no.fintlabs.adapter.config
 
+import no.fintlabs.contract.models.ResourceIdentifiers
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.UUID
 
-@ConfigurationProperties(prefix = "fint.adapter")
-data class AdapterProperties(
+@ConfigurationProperties(prefix = "dyna.adapter")
+data class DynaAdapterProperties(
     private val id: String,
     val orgId: String = "fintlabs.no",
     val clientId: String,
@@ -14,14 +15,8 @@ data class AdapterProperties(
     val password: String,
     val idpUri: String,
     val heartbeatIntervalInMinutes: Int = 3,
-    val capabilities: List<Capability> = emptyList(),
+    val capabilities: List<ResourceIdentifiers> = emptyList(),
     val baseUrl: String = "https://beta.felleskomponent.no",
 ) {
     val adapterId = "$id/${UUID.randomUUID()}"
 }
-
-data class Capability(
-    val domainName: String,
-    val packageName: String,
-    val resource: String,
-)

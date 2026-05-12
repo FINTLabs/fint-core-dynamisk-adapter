@@ -10,7 +10,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.engine.DynamicAdapterEngine
-import no.fintlabs.runtime.config.DynamicAdapterConfig
+import no.fintlabs.runtime.config.DynaRuntimeConfig
 import no.fintlabs.runtime.model.CreateDataCommand
 import no.fintlabs.runtime.model.DeltaSyncCommand
 import no.fintlabs.runtime.model.FullSyncCommand
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap
 class DynamicAdapterRuntimeService(
     val engine: DynamicAdapterEngine,
     val adapter: DynamicAdapterPublisher,
-    val props: DynamicAdapterConfig,
+    val props: DynaRuntimeConfig,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

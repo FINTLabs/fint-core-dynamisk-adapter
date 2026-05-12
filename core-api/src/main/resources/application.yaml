@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: fint-core-dyna
+server:
+  port: 8182
+
+dyna:
+  runtime:
+    startupDomains: [ "utdanning" ]
+    amount-tier-policy:
+    heartbeatIntervalInMinutes: 3
+
+  adapter:
+    id: fint-core-dyna
+    baseUrl: https://beta.felleskomponent.no
+    idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
+    heartbeatIntervalInMinutes: 3

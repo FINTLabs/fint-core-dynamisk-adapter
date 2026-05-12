@@ -1,6 +1,5 @@
 package no.fintlabs.adapter
 
-import no.fintlabs.adapter.config.AdapterProperties
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata

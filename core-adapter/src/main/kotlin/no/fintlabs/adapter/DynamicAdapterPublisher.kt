@@ -4,7 +4,7 @@ import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.adapter.config.AdapterProperties
+import no.fintlabs.adapter.config.DynaAdapterProperties
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.HeartBeatRequest
 import no.novari.fint.model.resource.FintResource
@@ -19,7 +19,7 @@ import java.util.UUID
 class DynamicAdapterPublisher(
     private val webClient: WebClient,
     private val factory: SyncPageFactory,
-    private val props: AdapterProperties,
+    private val props: DynaAdapterProperties,
 ) {
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         println("Registering to provider...")
@@ -113,8 +113,6 @@ class DynamicAdapterPublisher(
         metadata: ExpandedMetadata,
         syncType: SyncType,
         maxPageSize: Int,
-        adapterId: String,
-        orgId: String,
         data: List<FintResource>,
     ) {
         if (data.isEmpty()) {
@@ -137,8 +135,8 @@ class DynamicAdapterPublisher(
                     totalPages = totalPages.toLong(),
                     totalSize = totalSize,
                     corrId = corrId,
-                    adapterId = adapterId,
-                    orgId = orgId,
+                    adapterId = props.adapterId,
+                    orgId = props.orgId,
                 )
 
             val page = factory.buildPage(syncType, meta, entries)

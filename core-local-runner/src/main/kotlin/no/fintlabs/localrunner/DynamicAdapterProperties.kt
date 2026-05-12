@@ -2,7 +2,7 @@ package no.fintlabs.localrunner
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "dynamisk-adapter")
+@ConfigurationProperties(prefix = "dyna.local")
 data class DynamicAdapterProperties(
     val recursive: Boolean = false,
     val link: Boolean = true,

@@ -14,8 +14,7 @@ import reactor.core.publisher.Mono
 
 @Configuration
 class WebClientConfig(
-    private val adapterProps: AdapterProperties,
-    private val providerProps: ProviderProperties,
+    private val props: DynaAdapterProperties,
 ) {
     companion object {
         const val REGISTRATION_ID = "fint-adapter"
@@ -31,7 +30,7 @@ class WebClientConfig(
         WebClient
             .builder()
             .filter(createExchangeFilterFunction(authorizedClientManager))
-            .baseUrl(providerProps.baseUrl)
+            .baseUrl(props.baseUrl + ".provider")
             .build()
 
     private fun createExchangeFilterFunction(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager) =
@@ -58,8 +57,8 @@ class WebClientConfig(
                 mutableMapOf<String, Any>()
                     .apply {
                         putAll(authorized.attributes)
-                        put(OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME, adapterProps.username)
-                        put(OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME, adapterProps.password)
+                        put(OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME, props.username)
+                        put(OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME, props.password)
                     }.let { Mono.just(it) }
             }
         }
@@ -70,9 +69,9 @@ class WebClientConfig(
             .withRegistrationId(REGISTRATION_ID)
             .tokenUri("https://idp.felleskomponent.no/nidp/oauth/nam/token")
             .authorizationGrantType(AuthorizationGrantType.PASSWORD)
-            .clientId(adapterProps.clientId)
-            .clientSecret(adapterProps.clientSecret)
-            .scope(adapterProps.scope)
+            .clientId(props.clientId)
+            .clientSecret(props.clientSecret)
+            .scope(props.scope)
             .build()
 
     @Bean
