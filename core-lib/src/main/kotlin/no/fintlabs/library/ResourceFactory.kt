@@ -37,9 +37,14 @@ private enum class FaultType {
     WRONG,
 }
 
-class ResourceFactory {
+class ResourceFactory(
+    seed: String = ""
+) {
+    private val random: Random =
+        if (seed.isBlank()) Random.Default else Random(seed.hashCode())
+
+    private val randomizer = CustomRandomizer(random)
     private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
-    private val randomizer: CustomRandomizer = CustomRandomizer()
 
     fun create(
         resource: Class<out FintResource>,
@@ -90,15 +95,15 @@ class ResourceFactory {
                     // Basic Java classes
 
                     Int::class.java, Integer::class.java -> {
-                        { Random.nextInt() }
+                        { random.nextInt() }
                     }
 
                     Long::class.java, java.lang.Long::class.java -> {
-                        { Random.nextLong() }
+                        { random.nextLong() }
                     }
 
                     Boolean::class.java, java.lang.Boolean::class.java -> {
-                        { Random.nextBoolean() }
+                        { random.nextBoolean() }
                     }
 
                     String::class.java -> {
@@ -145,7 +150,7 @@ class ResourceFactory {
                                 bilagsdato =
                                     Date(
                                         System.currentTimeMillis() -
-                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                                random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }
@@ -297,7 +302,7 @@ class ResourceFactory {
                                 start =
                                     Date(
                                         System.currentTimeMillis() -
-                                                Random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
+                                                random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
                                     )
                             }
                         }
@@ -439,10 +444,10 @@ class ResourceFactory {
     private fun rollFault(errorPercentage: Int): FaultType {
         if (errorPercentage <= 0) return FaultType.NONE
 
-        val roll = Random.nextInt(100)
+        val roll = random.nextInt(100)
         if (roll >= errorPercentage) return FaultType.NONE
 
-        return if (Random.nextBoolean()) FaultType.MISSING else FaultType.WRONG
+        return if (random.nextBoolean()) FaultType.MISSING else FaultType.WRONG
     }
 
     private fun generateWrongValue(
@@ -454,7 +459,7 @@ class ResourceFactory {
             Int::class.java, Integer::class.java -> -1
             Long::class.java, java.lang.Long::class.java -> -1L
             Boolean::class.java, java.lang.Boolean::class.java -> !(normalValue as? Boolean ?: false)
-            String::class.java -> "INVALID_${Random.nextInt(1000, 9999)}"
+            String::class.java -> "INVALID_${random.nextInt(1000, 9999)}"
             Date::class.java -> Date(0) // epoch, often "wrong enough"
 
             List::class.java -> emptyList<Any>()

@@ -2,8 +2,11 @@ package no.fintlabs.library
 
 import no.novari.fint.model.resource.felles.kompleksedatatyper.AdresseResource
 import java.util.UUID
+import kotlin.random.Random
 
-class CustomRandomizer {
+class CustomRandomizer(
+    private val random: Random = Random.Default,
+) {
     fun firstname(): String = firstnameList.random()
 
     fun lastname(): String = lastnameList.random()
@@ -34,10 +37,6 @@ class CustomRandomizer {
 
     fun advancedString(name: String): String =
         when {
-            "ansattnummer" in name -> {
-                "100006"
-            }
-
             "beskrivelse" in name || "kommentar" in name -> {
                 quote()
             }

@@ -6,6 +6,7 @@ server:
 
 dyna:
   runtime:
+    seed: "test-seed-1"
     startupDomains: [ "utdanning" ]
     enableDeltaSync: false
     amount-tier-policy:

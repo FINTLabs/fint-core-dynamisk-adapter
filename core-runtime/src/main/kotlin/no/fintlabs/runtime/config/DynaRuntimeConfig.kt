@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("dyna.runtime")
 class DynaRuntimeConfig {
+    var seed: String = ""
     var startupDomains: List<String> = listOf("utdanning")
     var enableDeltaSync: Boolean = false
     var amountTierPolicy: AmountTierPolicy =
