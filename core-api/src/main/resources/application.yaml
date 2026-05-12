@@ -7,6 +7,7 @@ server:
 dyna:
   runtime:
     startupDomains: [ "utdanning" ]
+    enableDeltaSync: false
     amount-tier-policy:
     heartbeatIntervalInMinutes: 3
 

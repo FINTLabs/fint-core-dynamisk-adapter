@@ -6,6 +6,8 @@ import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,6 +15,7 @@ class MetadataService(
     private val model: MetamodelService,
     private val tierClassifier: AmountTierClassifier,
 ) {
+    val logger: Logger = LoggerFactory.getLogger(MetadataService::class.java)
     private val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
     private val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
 
@@ -44,7 +47,7 @@ class MetadataService(
                 val idMeta = resource.generateIdMetadata()
                 val metadata = ExpandedMetadata(resource, resourceKey, amountTier = null, idMeta.prefix, idMeta.type)
                 metadataList.add(metadata)
-            } else println("Could not find resource: $resourceKey in metamodel.")
+            } else logger.error("Could not find resource: $resourceKey in metamodel.")
         }
         return metadataList
     }

@@ -18,6 +18,8 @@ import no.fintlabs.runtime.model.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.runtime.model.RuntimeJobStatus
 import no.fintlabs.runtime.model.StartupSequence
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -28,6 +30,8 @@ class DynamicAdapterRuntimeService(
     val adapter: DynamicAdapterPublisher,
     val props: DynaRuntimeConfig,
 ) {
+    val logger: Logger = LoggerFactory.getLogger(DynamicAdapterRuntimeService::class.java)
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val queue = Channel<RuntimeCommand>(capacity = Channel.UNLIMITED)
@@ -54,7 +58,7 @@ class DynamicAdapterRuntimeService(
         val result = queue.trySend(command)
         if (result.isFailure) {
             markFailed(command, IllegalStateException("Failed to submit ${command.id}"))
-            error("Failed to submit ${command.id}")
+            logger.error("Failed to submit ${command.id}")
         }
         // TODO: Expand the return of command submission
         return command.id
@@ -92,6 +96,8 @@ class DynamicAdapterRuntimeService(
                 engine.executeInitialDataset(props.amountTierPolicy)
                 adapter.performSync()
 
+                heartbeatLoop(props.heartbeatIntervalInMinutes)
+
             } else throw IllegalStateException(
                 """Failed to register to provider with capabilities: 
                 $capabilities
@@ -126,7 +132,7 @@ class DynamicAdapterRuntimeService(
     private fun updateJobMessage(id: String, message: String) {
         currentJobs[id]?.message = message
         allJobs[id]?.message = message
-        println("JOB UPDATE ${Instant.now()} --- $id: $message")
+        logger.info("JOB UPDATE ${Instant.now()} --- $id: $message")
     }
 
     private fun updateStatus(
@@ -172,7 +178,7 @@ class DynamicAdapterRuntimeService(
                 finishedAt = Instant.now(),
             )
         }
-        println(command)
+        logger.info(command.toString())
         currentJobs.remove(command.id)
     }
 

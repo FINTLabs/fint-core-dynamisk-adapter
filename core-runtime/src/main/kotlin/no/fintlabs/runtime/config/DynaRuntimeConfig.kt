@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("dyna.runtime")
 class DynaRuntimeConfig {
     var startupDomains: List<String> = listOf("utdanning")
+    var enableDeltaSync: Boolean = false
     var amountTierPolicy: AmountTierPolicy =
         AmountTierPolicy(
             grouping = 1..2,
@@ -13,4 +14,7 @@ class DynaRuntimeConfig {
             dependant = 20..30,
             unknown = 1..2,
         )
+    var heartbeatIntervalInMinutes: Int = 3
+
+
 }

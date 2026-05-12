@@ -7,10 +7,12 @@ import no.fintlabs.contract.util.putLink
 import no.fintlabs.contract.util.toResourceKey
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
-private data class Edge(
+data class Edge(
     val from: String,
     val to: String,
 )
@@ -36,6 +38,8 @@ class RelationFactory(
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
 ) {
+    val logger: Logger = LoggerFactory.getLogger(RelationFactory::class.java)
+
     fun relateDataset(
         metadataList: MutableList<ExpandedMetadata>,
         setType: SetType,
@@ -86,18 +90,15 @@ class RelationFactory(
                                 giveLink(resource.key, secondaryMetadata, relation, linkRule, setType)
                                 skip.add(Edge(resource.key, relation.toResourceKey()))
                             } else {
-                                println("")
-                                println("⛓️⚠️ ${resource.key}'s required relation $relation not found.")
-                                println("⛓️⚠️ Adding ${relation.packageName} is recommended.")
-                                println("")
+                                logger.debug("⛓️⚠️ ${resource.key}'s required relation $relation not found.")
+                                logger.debug("⛓️⚠️ Adding ${relation.packageName} is recommended.")
                             }
                         }
                     }
                 }
             }
         }
-        println("⛓️✅ $setType set relating complete.")
-        println("")
+        logger.info("⛓️✅ $setType set relating complete.")
         skip.clear()
     }
 
@@ -115,7 +116,7 @@ class RelationFactory(
         val primName = primaryKey.substringAfterLast("/")
         val secName = secondaryKey.substringAfterLast("/")
         if (secondaryIds.isEmpty()) {
-            println("Zero $secName's found to link with $primName")
+            logger.debug("Zero $secName's found to link with $primName")
             return
         }
 
@@ -161,7 +162,7 @@ class RelationFactory(
 //                )
 //            }
         }
-        println("⛓️ $setType : $primName now has links to $secName")
+        logger.debug("⛓️ $setType : $primName now has links to $secName")
     }
 
     private fun getSecondaryMetadata(

@@ -8,6 +8,8 @@ import no.fintlabs.adapter.config.DynaAdapterProperties
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.HeartBeatRequest
 import no.novari.fint.model.resource.FintResource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -21,8 +23,10 @@ class DynamicAdapterPublisher(
     private val factory: SyncPageFactory,
     private val props: DynaAdapterProperties,
 ) {
+    val logger: Logger = LoggerFactory.getLogger(DynamicAdapterPublisher::class.java)
+
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
-        println("Registering to provider...")
+        logger.info("Registering to provider...")
 
         val missingCapabilities = false
 
@@ -58,7 +62,7 @@ class DynamicAdapterPublisher(
                             response.statusCode().value() to body
                         }
                 }.block()
-        println("🔑 Adapter Registration :  $response")
+        logger.info("🔑 Adapter Registration :  $response")
         return response!!.first == 200
     }
 
@@ -78,7 +82,7 @@ class DynamicAdapterPublisher(
                 .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
                 .block()
 
-        println("🫀 HeartBeat => HTTP $response")
+        logger.debug("🫀 HeartBeat => HTTP $response")
     }
 
     fun performSync(
@@ -96,11 +100,11 @@ class DynamicAdapterPublisher(
             if (data.isNotEmpty()) {
                 publish(metadata.key, metadata, syncType, maxPageSize, data)
             } else {
-                println("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
+                logger.info("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
             }
             if (syncType == SyncType.DELTA) {
                 storage.addAllResources(metadata.key, metadata, data)
-                println("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
+                logger.debug("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
             }
         }
         if (syncType == SyncType.DELTA) {
@@ -116,7 +120,7 @@ class DynamicAdapterPublisher(
         data: List<FintResource>,
     ) {
         if (data.isEmpty()) {
-            println("📤 Publish ${syncType.name} :: No data for $resourceName")
+            logger.error("📤 Publish ${syncType.name} :: No data for $resourceName")
         }
 
         val chunks: List<List<FintResource>> = data.chunked(maxPageSize)
@@ -158,7 +162,7 @@ class DynamicAdapterPublisher(
                     }
                 }
 
-            println(
+            logger.debug(
                 "📤 ${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ",
             )
         }

@@ -23,6 +23,7 @@ repositories {
 dependencies {
     implementation(project(":core-contract"))
     implementation(project(":core-runtime"))
+    implementation(project(":core-adapter"))
 
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
