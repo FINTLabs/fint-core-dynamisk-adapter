@@ -7,32 +7,32 @@ import kotlin.random.Random
 class CustomRandomizer(
     private val random: Random = Random.Default,
 ) {
-    fun firstname(): String = firstnameList.random()
+    fun firstname(): String = firstnameList.random(random)
 
-    fun lastname(): String = lastnameList.random()
+    fun lastname(): String = lastnameList.random(random)
 
     fun fullName(): String = firstname() + " " + lastname()
 
-    fun funnyName(): String = funnyNameList.random()
+    fun funnyName(): String = funnyNameList.random(random)
 
-    fun quote(): String = quoteList.random()
+    fun quote(): String = quoteList.random(random)
 
-    fun uniqueFunnyName(): String = funnyNameList.random() + personNumber()
+    fun uniqueFunnyName(): String = funnyNameList.random(random) + personNumber()
 
-    fun shortNumber(): Int = (1..42).random()
+    fun shortNumber(): Int = (1..42).random(random)
 
-    fun uniqueId(): String = UUID.randomUUID().toString()
+    fun uniqueId(): String = UUID.nameUUIDFromBytes(random.nextLong().toString().toByteArray()).toString()
 
     fun personNumber(): String =
         (1..11)
-            .map { (0..9).random() }
+            .map { (0..9).random(random) }
             .joinToString("")
 
     fun createAddress(): AdresseResource =
         AdresseResource().apply {
             adresselinje = List<String>(size = 1) { streetNameList.random() + " ," + shortNumber().toString() }
             postnummer = "237"
-            poststed = cityNameList.random()
+            poststed = cityNameList.random(random)
         }
 
     fun advancedString(name: String): String =
