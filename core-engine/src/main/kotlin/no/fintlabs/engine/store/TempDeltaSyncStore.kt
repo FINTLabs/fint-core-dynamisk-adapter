@@ -16,13 +16,8 @@ class TempDeltaSyncStore {
     private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> =
         data.computeIfAbsent(key) { ConcurrentHashMap() }
 
-    fun purge(log: Boolean?) {
-        if (log == true) {
-            println("Latest DeltaSyncDataset has been PURGED from temporary storage")
-            println(Instant.now())
-        }
-        data.clear()
-    }
+    fun purge() = data.clear()
+
 
     fun addAllResources(
         key: ResourceKey,

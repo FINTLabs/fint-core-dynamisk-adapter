@@ -1,22 +1,26 @@
 package no.fintlabs.engine
 
+import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
+import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
 import no.fintlabs.library.ResourceFactory
-import no.novari.metamodel.MetamodelService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class DynamicAdapterEngine(
-    private val generator: ResourceFactory,
     private val metadata: MetadataService,
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
     private val relations: RelationFactory,
 ) {
+    private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
+
     fun generateCapabilitiesForDomains(
         domains: List<String>
     ): MutableSet<AdapterCapability> {
@@ -26,7 +30,23 @@ class DynamicAdapterEngine(
         return metadata.generateCapabilities()
     }
 
-    fun executeInitialDataset(amountTierPolicy: AmountTierPolicy) {
+    fun getAllGeneratedResources(
+    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
+        val meta = metadata.getAllMetadata()
+        val fullList = ConcurrentHashMap<ExpandedMetadata, List<FintResource>>()
+
+        for (i in meta) {
+            fullList[i] = storage.getAllResources(i.key)
+            logger.trace("${i.key} : ${fullList[i]?.size}")
+        }
+        return fullList
+    }
+
+    fun executeInitialDataset(
+        amountTierPolicy: AmountTierPolicy,
+        seed: String = "",
+    ) {
+        val generator = ResourceFactory(seed)
         val metadata = metadata.getAllMetadata()
         for (resource in metadata) {
             val amountRange: IntRange = amountTierPolicy.getRange(resource.amountTier ?: AmountTier.UNKNOWN)
@@ -36,6 +56,17 @@ class DynamicAdapterEngine(
         }
         relations.relateDataset(metadata, setType = SetType.INITIAL)
     }
+
+    fun getAllMetadata(): MutableList<ExpandedMetadata> {
+        return metadata.getAllMetadata()
+    }
+
+    fun purgeAllStoredResources() {
+        deltaStorage.purge()
+        storage.purge()
+        logger.debug("Purging all stored resources")
+    }
+
 }
 
 //    fun executeInitialDataset() {

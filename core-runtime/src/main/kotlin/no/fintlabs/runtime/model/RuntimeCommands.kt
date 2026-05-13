@@ -15,7 +15,7 @@ data class StartupSequence(
 ) : RuntimeCommand
 
 data class CreateDataCommand(
-    override val id: String = "create" + UUID.randomUUID().toString(),
+    override val id: String = "create_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
     val component: String,
     val resource: String,

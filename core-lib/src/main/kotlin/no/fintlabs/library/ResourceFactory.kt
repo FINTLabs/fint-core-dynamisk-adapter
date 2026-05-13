@@ -46,6 +46,12 @@ class ResourceFactory(
     private val randomizer = CustomRandomizer(random)
     private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
 
+    //TODO 1: Implement seeded random in errors, perhaps another create function for faulty resources?
+
+    //TODO 2: Ability to generate resource with specified values
+
+    //TODO 3: Random values specified in yaml file rather than hardcoded.
+
     fun create(
         resource: Class<out FintResource>,
         amount: Int,
@@ -64,6 +70,7 @@ class ResourceFactory(
         logIfEnabled(logging, "📋${amount}x $resource")
         return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint, errorPercentage) }
     }
+
 
     private fun getAllUniqueFields(clazz: Class<*>): List<Field> {
         val fields = mutableListOf<Field>()

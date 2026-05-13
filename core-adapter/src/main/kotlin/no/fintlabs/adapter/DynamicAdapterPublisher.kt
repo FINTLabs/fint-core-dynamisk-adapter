@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class DynamicAdapterPublisher(
@@ -87,28 +88,26 @@ class DynamicAdapterPublisher(
 
     fun performSync(
         metadataList: MutableList<ExpandedMetadata>,
+        dataList: ConcurrentHashMap<ExpandedMetadata, List<FintResource>>,
         syncType: SyncType,
         maxPageSize: Int,
     ) {
         for (metadata in metadataList) {
-            val data =
-                if (syncType == SyncType.DELTA) {
-                    deltaStorage.getAllResources(metadata.key)
-                } else {
-                    storage.getAllResources(metadata.key)
-                }
-            if (data.isNotEmpty()) {
+            val data = dataList[metadata]
+            if (!data.isNullOrEmpty()) {
                 publish(metadata.key, metadata, syncType, maxPageSize, data)
             } else {
-                logger.info("FAKE_Sync: $syncType, ${metadata.key}, ${data.size} entries")
+                logger.error("${metadata.key} is null or empty")
             }
-            if (syncType == SyncType.DELTA) {
-                storage.addAllResources(metadata.key, metadata, data)
-                logger.debug("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
-            }
-        }
-        if (syncType == SyncType.DELTA) {
-            deltaStorage.purge()
+
+            //TODO: Move this functionality to Engine
+//            if (syncType == SyncType.DELTA) {
+//                storage.addAllResources(metadata.key, metadata, data)
+//                logger.debug("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
+//            }
+//        }
+//        if (syncType == SyncType.DELTA) {
+//            deltaStorage.purge()
         }
     }
 

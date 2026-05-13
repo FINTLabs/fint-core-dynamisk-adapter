@@ -9,8 +9,23 @@ dyna:
     seed: "test-seed-1"
     startupDomains: [ "utdanning" ]
     enableDeltaSync: false
+    resetEveryNight: false
     amount-tier-policy:
-    heartbeatIntervalInMinutes: 3
+    fint-properties:
+      maxPageSize: 1000
+      maxGeneratedResources: 10000
+      heartbeatIntervalInMinutes: 3
+    delta-config:
+      amount-tier-policy:
+        grouping: 1..3
+        core: 5..5
+        dependant: 5..10
+        unknown: 1..3
+      deltaSyncIntervalInMinutes: 10
+      resources:
+        - resource: ""
+          component: ""
+          domain: ""
 
   adapter:
     id: fint-core-dyna

@@ -17,6 +17,8 @@ class ResourceStore {
     private fun mapFor(key: ResourceKey): ConcurrentHashMap<String, StoredResource> =
         data.computeIfAbsent(key) { ConcurrentHashMap() }
 
+    fun purge() = data.clear()
+
     fun addAllResources(
         meta: ExpandedMetadata,
         resources: List<FintResource>,
