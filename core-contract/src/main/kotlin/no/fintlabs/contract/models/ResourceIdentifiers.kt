@@ -4,4 +4,6 @@ data class ResourceIdentifiers(
     val domain: String,
     val component: String,
     val resource: String,
-)
+) {
+    fun toKey(): String = "$domain/$component/$resource"
+}

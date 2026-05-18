@@ -68,6 +68,10 @@ class MetadataService(
         return capabilities
     }
 
+    fun getMetadataFor(identifier: ResourceIdentifiers): ExpandedMetadata? =
+        metadataList.find { it.key == identifier.toKey() }
+
+
     private fun Resource.generateMetadata(): ExpandedMetadata {
         val resourceKey = "${this.component.domainName}/${this.component.packageName}/${this.name}"
         val idMeta = this.generateIdMetadata()

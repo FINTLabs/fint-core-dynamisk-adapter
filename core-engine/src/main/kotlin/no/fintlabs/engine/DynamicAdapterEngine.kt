@@ -5,6 +5,7 @@ import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
+import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
 import no.fintlabs.library.ResourceFactory
@@ -55,6 +56,13 @@ class DynamicAdapterEngine(
             storage.addAllResources(resource, generated)
         }
         relations.relateDataset(metadata, setType = SetType.INITIAL)
+    }
+
+    fun generateSingularTypeResource(identifier: ResourceIdentifiers, count: Int? = null): List<FintResource> {
+        val metadata = metadata.getMetadataFor(identifier)
+        if (metadata != null) {
+            
+        } else return emptyList()
     }
 
     fun getAllMetadata(): MutableList<ExpandedMetadata> {

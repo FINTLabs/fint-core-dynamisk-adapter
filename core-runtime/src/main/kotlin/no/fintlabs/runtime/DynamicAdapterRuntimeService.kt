@@ -3,14 +3,19 @@ package no.fintlabs.runtime
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
+import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.DynamicAdapterEngine
 import no.fintlabs.runtime.config.DynaRuntimeConfig
 import no.fintlabs.runtime.model.CreateDataCommand
@@ -37,15 +42,20 @@ class DynamicAdapterRuntimeService(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val queue = Channel<RuntimeCommand>(capacity = Channel.UNLIMITED)
+    private val runtimeMutex = Mutex()
+
+    private var queue = Channel<RuntimeCommand>(capacity = Channel.UNLIMITED)
     private val currentJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
+    private var activeWorkerJob: Job? = null
 
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
 
     init {
         scope.launch {
-            workerLoop()
+            activeWorkerJob = scope.launch {
+                workerLoop()
+            }
         }
     }
 
@@ -83,12 +93,11 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun handle(command: RuntimeCommand) {
-        markRunning(command)
         when
                 (command) {
             is StartupSequence -> handleStartup(command)
-            is CreateDataCommand -> handleCreateData(command)
             is FullSyncCommand -> handleFullSync(command)
+            is CreateDataCommand -> handleCreateData(command)
             is DeltaSyncCommand -> handleDeltaSync(command)
         }
     }
@@ -113,6 +122,54 @@ class DynamicAdapterRuntimeService(
         } else throw IllegalStateException("No capabilities to register")
     }
 
+    private suspend fun handleFullSync(command: FullSyncCommand) {
+        logger.debug("Performing full sync...")
+        val metadata = engine.getAllMetadata()
+        val allData = engine.getAllGeneratedResources()
+        adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
+    }
+
+    private suspend fun handleCreateData(command: CreateDataCommand) {
+        val resource = ResourceIdentifiers(
+            domain = command.domain,
+            component = command.component,
+            resource = command.resource,
+        )
+        val resources = engine.generateSingularTypeResource(resource, command.count)
+
+    }
+
+    private suspend fun hardReset() {
+        runtimeMutex.withLock {
+            logger.warn("Performing hard runtime reset...")
+
+            activeWorkerJob?.cancelAndJoin()
+
+            currentJobs.values.forEach {
+                updateStatus(it.id) { status ->
+                    status.copy(
+                        state = JobState.CANCELLED,
+                        finishedAt = Instant.now(),
+                        message = "Cancelled by nightly reset"
+                    )
+                }
+            }
+            currentJobs.clear()
+            queue.close()
+            queue = Channel(capacity = Channel.UNLIMITED)
+
+            engine.purgeAllStoredResources()
+
+            activeWorkerJob =
+                scope.launch {
+                    workerLoop()
+                }
+
+            submit(StartupSequence(domains = props.startupDomains))
+        }
+    }
+
+
     private suspend fun generateAndDeployInitialDataset() {
         engine.executeInitialDataset(props.amountTierPolicy)
         val metadata = engine.getAllMetadata()
@@ -121,14 +178,11 @@ class DynamicAdapterRuntimeService(
     }
 
     @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
-    private fun resetData() {
-        if (props.resetEveryNight) {
-            logger.info("Resetting all data...")
-            engine.purgeAllStoredResources()
+    fun resetData() {
+        if (!props.resetEveryNight) return
 
-            submit(StartupSequence(domains = props.startupDomains))
-        } else {
-            return
+        scope.launch {
+            hardReset()
         }
     }
 

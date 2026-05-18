@@ -6,6 +6,7 @@ enum class JobState {
     QUEUED,
     RUNNING,
     SUCCESS,
+    CANCELLED,
     FAILED
 }
 
