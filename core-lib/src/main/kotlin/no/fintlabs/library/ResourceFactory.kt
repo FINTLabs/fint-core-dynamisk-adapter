@@ -61,16 +61,12 @@ class ResourceFactory(
         randomizer.updateRandom(random)
     }
 
-
     //TODO 1: Implement seeded random in errors, perhaps another create function for faulty resources?
-
-    //TODO 2: Ability to generate resource with specified values
 
     fun create(
         resource: Class<out FintResource>,
         amount: Int,
         logging: Boolean = false,
-        errorPercentage: Int = 0
     ): List<FintResource> {
         val resourceName = resource.simpleName
         var blueprint: Map<String, () -> Any?>
@@ -82,7 +78,27 @@ class ResourceFactory(
             blueprintCache[resourceName] = blueprint
         }
         logIfEnabled(logging, "📋${amount}x $resource")
-        return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint, errorPercentage) }
+        return List(amount) { createInstanceFromBlueprint(logging, resource, blueprint, 0) }
+    }
+
+    fun createWithSingleSpecifiedValue(
+        resource: Class<out FintResource>,
+        fieldName: String,
+        fieldValue: String,
+        amount: Int = 1,
+    ): List<FintResource> {
+
+        val resources = create(resource, amount)
+
+        resources.forEach {
+            applyStringOverride(
+                resource = it,
+                fieldName = fieldName,
+                fieldValue = fieldValue,
+            )
+        }
+
+        return resources
     }
 
 
@@ -365,7 +381,7 @@ class ResourceFactory(
         logging: Boolean,
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
-        errorPercentage: Int
+        errorPercentage: Int = 0,
     ): FintResource {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
@@ -436,6 +452,46 @@ class ResourceFactory(
                     null
                 }
             }.firstOrNull()
+
+    private fun applyStringOverride(
+        resource: FintResource,
+        fieldName: String,
+        fieldValue: String,
+    ) {
+        resource.identifikators.entries
+            .firstOrNull {
+                it.key.equals(fieldName, ignoreCase = true)
+            }
+            ?.value
+            ?.identifikatorverdi = fieldValue
+
+        val fields = getAllUniqueFields(resource.javaClass)
+
+        val targetField =
+            fields.firstOrNull {
+                it.name.equals(fieldName, ignoreCase = true)
+            } ?: return
+
+        targetField.isAccessible = true
+
+        when (targetField.type) {
+
+            String::class.java -> {
+                targetField.set(resource, fieldValue)
+            }
+
+            Identifikator::class.java -> {
+
+                val identifikator =
+                    targetField.get(resource) as? Identifikator
+                        ?: Identifikator().also {
+                            targetField.set(resource, it)
+                        }
+
+                identifikator.identifikatorverdi = fieldValue
+            }
+        }
+    }
 
     private fun isCriticalField(field: Field): Boolean =
         field.type == Identifikator::class.java ||
