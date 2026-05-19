@@ -26,6 +26,7 @@ import no.novari.fint.model.resource.okonomi.faktura.FakturalinjeResource
 import no.novari.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.novari.fint.model.utdanning.elev.Klasse
 import no.novari.fint.model.utdanning.vurdering.Fravarsprosent
+import no.novari.metamodel.model.Resource
 import java.lang.reflect.Field
 import java.util.Date
 import kotlin.collections.iterator
@@ -38,19 +39,32 @@ private enum class FaultType {
 }
 
 class ResourceFactory(
-    seed: String = ""
+    private val config: ResourceFactoryConfig = ResourceFactoryConfig(),
 ) {
-    private val random: Random =
-        if (seed.isBlank()) Random.Default else Random(seed.hashCode())
+    private var random: Random =
+        if (config.seed.isBlank()) {
+            Random.Default
+        } else {
+            Random(config.seed.hashCode())
+        }
 
-    private val randomizer = CustomRandomizer(random)
+    private val randomizer = CustomRandomizer(random, config)
     private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
+
+    fun resetSeed() {
+        random =
+            if (config.seed.isBlank()) {
+                Random.Default
+            } else {
+                Random(config.seed.hashCode())
+            }
+        randomizer.updateRandom(random)
+    }
+
 
     //TODO 1: Implement seeded random in errors, perhaps another create function for faulty resources?
 
     //TODO 2: Ability to generate resource with specified values
-
-    //TODO 3: Random values specified in yaml file rather than hardcoded.
 
     fun create(
         resource: Class<out FintResource>,
