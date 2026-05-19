@@ -1,5 +1,6 @@
 package no.fintlabs.runtime.model
 
+import no.fintlabs.contract.models.ResourceIdentifiers
 import java.time.Instant
 import java.util.UUID
 
@@ -17,10 +18,7 @@ data class StartupSequence(
 data class CreateDataCommand(
     override val id: String = "create_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
-    val domain: String,
-    val component: String,
-    val resource: String,
-    val count: Int,
+    val resources: Map<ResourceIdentifiers, Int>,
 ) : RuntimeCommand
 
 data class FullSyncCommand(

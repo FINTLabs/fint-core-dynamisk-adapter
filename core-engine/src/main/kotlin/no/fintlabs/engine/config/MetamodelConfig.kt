@@ -1,4 +1,4 @@
-package no.fintlabs.engine.beans
+package no.fintlabs.engine.config
 
 
 import no.novari.metamodel.ComponentBuilder

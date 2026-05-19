@@ -1,6 +1,6 @@
 package no.fintlabs.engine
 
-import no.fintlabs.engine.beans.MetamodelConfig
+import no.fintlabs.engine.config.MetamodelConfig
 import no.fintlabs.engine.util.generateIdMetadata
 import no.novari.metamodel.MetamodelService
 import org.junit.jupiter.api.Test

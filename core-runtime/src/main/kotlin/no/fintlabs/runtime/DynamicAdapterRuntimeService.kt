@@ -15,6 +15,9 @@ import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
+import no.fintlabs.contract.data.AmountTier
+import no.fintlabs.contract.data.AmountTierPolicy
+import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.DynamicAdapterEngine
 import no.fintlabs.runtime.config.DynaRuntimeConfig
@@ -96,9 +99,26 @@ class DynamicAdapterRuntimeService(
         when
                 (command) {
             is StartupSequence -> handleStartup(command)
-            is FullSyncCommand -> handleFullSync(command)
-            is CreateDataCommand -> handleCreateData(command)
-            is DeltaSyncCommand -> handleDeltaSync(command)
+            is FullSyncCommand -> handleFullSync()
+            is CreateDataCommand -> {
+                val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
+                for (res in command.resources) {
+                    resources[res.key] = IntRange(res.value, res.value)
+                }
+                handleCreateData(resources)
+            }
+
+            is DeltaSyncCommand -> {
+                val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
+                for (res in props.deltaConfig.resources) {
+                    val metadata = engine.getMetadataFromIdentifier(res)
+                    if (metadata != null) {
+                        resources[metadata.toIdentifiers()] =
+                            props.amountTierPolicy.getRange(metadata.amountTier ?: AmountTier.UNKNOWN)
+                    }
+                }
+                handleCreateData(resources)
+            }
         }
     }
 
@@ -122,21 +142,32 @@ class DynamicAdapterRuntimeService(
         } else throw IllegalStateException("No capabilities to register")
     }
 
-    private suspend fun handleFullSync(command: FullSyncCommand) {
+    private suspend fun handleFullSync() {
         logger.debug("Performing full sync...")
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
         adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
     }
 
-    private suspend fun handleCreateData(command: CreateDataCommand) {
-        val resource = ResourceIdentifiers(
-            domain = command.domain,
-            component = command.component,
-            resource = command.resource,
-        )
-        val resources = engine.generateSingularTypeResource(resource, command.count)
+    private suspend fun handleCreateData(requested: Map<ResourceIdentifiers, IntRange>) {
+        val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
 
+        val resources = engine.generateDeltaSyncData(requested)
+
+        for (res in requested) {
+            val metadata = engine.getMetadataFromIdentifier(res.key)
+            if (metadata != null) {
+                metadataList.add(metadata)
+            }
+        }
+        adapter.performSync(metadataList, resources, syncType = SyncType.DELTA, props.fintProperties.maxPageSize)
+    }
+
+    private suspend fun generateAndDeployInitialDataset() {
+        engine.executeInitialDataset(props.amountTierPolicy)
+        val metadata = engine.getAllMetadata()
+        val allData = engine.getAllGeneratedResources()
+        adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
     }
 
     private suspend fun hardReset() {
@@ -167,14 +198,6 @@ class DynamicAdapterRuntimeService(
 
             submit(StartupSequence(domains = props.startupDomains))
         }
-    }
-
-
-    private suspend fun generateAndDeployInitialDataset() {
-        engine.executeInitialDataset(props.amountTierPolicy)
-        val metadata = engine.getAllMetadata()
-        val allData = engine.getAllGeneratedResources()
-        adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
     }
 
     @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")

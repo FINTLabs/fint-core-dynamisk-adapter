@@ -8,6 +8,7 @@ import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
+import no.fintlabs.engine.util.EngineRandom
 import no.fintlabs.library.ResourceFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -18,7 +19,9 @@ class DynamicAdapterEngine(
     private val metadata: MetadataService,
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
+    private val factory: ResourceFactory,
     private val relations: RelationFactory,
+    private val random: EngineRandom,
 ) {
     private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
 
@@ -32,42 +35,71 @@ class DynamicAdapterEngine(
     }
 
     fun getAllGeneratedResources(
-    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
-        val meta = metadata.getAllMetadata()
-        val fullList = ConcurrentHashMap<ExpandedMetadata, List<FintResource>>()
-
-        for (i in meta) {
-            fullList[i] = storage.getAllResources(i.key)
-            logger.trace("${i.key} : ${fullList[i]?.size}")
-        }
-        return fullList
-    }
+    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> =
+        getAllGeneratedResourcesForSetType(metadata.getAllMetadata(), SetType.INITIAL)
 
     fun executeInitialDataset(
         amountTierPolicy: AmountTierPolicy,
-        seed: String = "",
     ) {
-        val generator = ResourceFactory(seed)
+        factory.resetSeed()
+        random.reset()
         val metadata = metadata.getAllMetadata()
         for (resource in metadata) {
             val amountRange: IntRange = amountTierPolicy.getRange(resource.amountTier ?: AmountTier.UNKNOWN)
             val amount = amountRange.random()
-            val generated = generator.create(resource.resource.resourceClass, amount)
+            val generated = factory.create(resource.resource.resourceClass, amount)
             storage.addAllResources(resource, generated)
         }
         relations.relateDataset(metadata, setType = SetType.INITIAL)
     }
 
-    fun generateSingularTypeResource(identifier: ResourceIdentifiers, count: Int? = null): List<FintResource> {
-        val metadata = metadata.getMetadataFor(identifier)
-        if (metadata != null) {
-            
-        } else return emptyList()
+    fun generateDeltaSyncData(
+        identifiers: Map<ResourceIdentifiers, IntRange>,
+    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
+
+        val deltaMetadataList = mutableListOf<ExpandedMetadata>()
+
+        for (identifier in identifiers) {
+            val metadata = metadata.getMetadataFor(identifier.key)
+            if (metadata != null) {
+                val amount = random.fromRange(identifier.value)
+                deltaStorage.addAllResources(
+                    metadata.key,
+                    metadata,
+                    factory.create(metadata.resource.resourceClass, amount),
+                )
+            } else logger.warn("No resource metadata found for ${identifier.key}")
+        }
+        relations.relateDataset(deltaMetadataList, SetType.DELTA)
+        val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
+        deltaStorage.purge()
+        return fullList
+    }
+
+    private fun getAllGeneratedResourcesForSetType(
+        metadataList: MutableList<ExpandedMetadata>,
+        setType: SetType,
+    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
+        val fullList = ConcurrentHashMap<ExpandedMetadata, List<FintResource>>()
+
+        for (i in metadataList) {
+
+            fullList[i] =
+                if (setType == SetType.DELTA)
+                    deltaStorage.getAllResources(i.key)
+                else storage.getAllResources(i.key)
+
+            logger.trace("${i.key} : $setType : ${fullList[i]?.size}")
+        }
+        return fullList
     }
 
     fun getAllMetadata(): MutableList<ExpandedMetadata> {
         return metadata.getAllMetadata()
     }
+
+    fun getMetadataFromIdentifier(identifiers: ResourceIdentifiers): ExpandedMetadata? =
+        metadata.getMetadataFor(identifiers)
 
     fun purgeAllStoredResources() {
         deltaStorage.purge()
@@ -76,61 +108,3 @@ class DynamicAdapterEngine(
     }
 
 }
-
-//    fun executeInitialDataset() {
-//        initialDataSets.forEach {
-//            val resourceData: Resource? =
-//                model.getResource(
-//                    it.component.substringBefore("."),
-//                    it.component.substringAfter("."),
-//                    it.resource
-//                )
-//            if (resourceData != null) {
-//                val idMeta = resourceData.generateIdMetadata()
-//                val metadata = ExpandedMetadata(resourceData, it.resourceKey, idMeta.prefix, idMeta.type)
-//                metadataList.add(metadata)
-//                val data: List<FintResource> =
-//                    generator.create(
-//                        metadata.resource.resourceClass,
-//                        it.count,
-//                        props.consoleLogging,
-//                        props.errorPercentage
-//                    )
-//                storage.addAllResources(it.resourceKey, metadata, data)
-//            } else {
-//            }
-//        }
-//        println("⚙️✅ DynamicAdapterEngine: ${metadataList.size} types of resources created.")
-//        println("")
-//    }
-
-//    fun executeDeltaSyncDataset() {
-//        for (it in deltaMetadataList) {
-//            val count = Random.Default.nextInt(it.minSize, it.maxSize)
-//            val data: List<FintResource> = generator.create(it.resource.resourceClass, count)
-//            deltaStorage.addAllResources(it.key, it.toExpandedMetadata(), data)
-//        }
-//    }
-
-//    fun generateDeltaSyncMetadata() {
-//        if (props.enableDeltaSync && deltaSyncDataSets.isNotEmpty()) {
-//            deltaSyncDataSets.forEach {
-//                val resourceData: Resource? = model.getResource(
-//                    it.component, it.component, it.resource,
-//                )
-//                if (resourceData != null) {
-//                    val idMeta = resourceData.generateIdMetadata()
-//                    val metaData = ExpandedDeltaMetadata(
-//                        resourceData,
-//                        it.resourceKey,
-//                        idMeta.prefix,
-//                        idMeta.type,
-//                        it.minSize,
-//                        it.maxSize
-//                    )
-//                    deltaMetadataList.add(metaData)
-//                }
-//            }
-//            logIfEnabled("⚙️✅ DynamicAdapterEngine: ${deltaMetadataList.size} types of resources created for deltaSync.")
-//        }
-//    }

@@ -6,7 +6,6 @@ server:
 
 dyna:
   runtime:
-    seed: "test-seed-1"
     startupDomains: [ "utdanning" ]
     enableDeltaSync: false
     resetEveryNight: false
@@ -26,6 +25,9 @@ dyna:
         - resource: ""
           component: ""
           domain: ""
+
+  engine:
+    seed: "test-seed-1"
 
   adapter:
     id: fint-core-dyna
