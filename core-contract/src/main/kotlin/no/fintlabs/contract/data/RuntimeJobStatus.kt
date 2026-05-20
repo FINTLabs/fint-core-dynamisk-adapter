@@ -1,4 +1,4 @@
-package no.fintlabs.runtime.model
+package no.fintlabs.contract.data
 
 import java.time.Instant
 
@@ -18,4 +18,11 @@ data class RuntimeJobStatus(
     val requestedAt: Instant,
     val startedAt: Instant? = null,
     val finishedAt: Instant? = null,
-)
+) {
+    val durationMs: Long?
+        get() = if (startedAt != null && finishedAt != null) {
+            finishedAt.toEpochMilli() - startedAt.toEpochMilli()
+        } else {
+            null
+        }
+}

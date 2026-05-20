@@ -99,15 +99,6 @@ class DynamicAdapterPublisher(
             } else {
                 logger.error("${metadata.key} is null or empty")
             }
-
-            //TODO: Move this functionality to Engine
-//            if (syncType == SyncType.DELTA) {
-//                storage.addAllResources(metadata.key, metadata, data)
-//                logger.debug("${metadata.key} added to FULL STORAGE from DELTA STORAGE")
-//            }
-//        }
-//        if (syncType == SyncType.DELTA) {
-//            deltaStorage.purge()
         }
     }
 

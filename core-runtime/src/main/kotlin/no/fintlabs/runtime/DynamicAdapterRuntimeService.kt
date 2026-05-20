@@ -16,7 +16,6 @@ import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.contract.data.AmountTier
-import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.DynamicAdapterEngine
@@ -24,9 +23,9 @@ import no.fintlabs.runtime.config.DynaRuntimeConfig
 import no.fintlabs.runtime.model.CreateDataCommand
 import no.fintlabs.runtime.model.DeltaSyncCommand
 import no.fintlabs.runtime.model.FullSyncCommand
-import no.fintlabs.runtime.model.JobState
+import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
-import no.fintlabs.runtime.model.RuntimeJobStatus
+import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,6 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class DynamicAdapterRuntimeService(
@@ -51,6 +51,12 @@ class DynamicAdapterRuntimeService(
     private val currentJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private var activeWorkerJob: Job? = null
+
+    private val lastHeartBeatAt = AtomicReference<Instant?>(null)
+    private val lastFullSyncAt = AtomicReference<Instant?>(null)
+    private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
+
+    private var registered: Boolean = false
 
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
 
@@ -96,8 +102,7 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun handle(command: RuntimeCommand) {
-        when
-                (command) {
+        when (command) {
             is StartupSequence -> handleStartup(command)
             is FullSyncCommand -> handleFullSync()
             is CreateDataCommand -> {
@@ -126,7 +131,7 @@ class DynamicAdapterRuntimeService(
         val capabilities = engine.generateCapabilitiesForDomains(command.domains)
         if (capabilities.isNotEmpty()) {
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
-            val registered = adapter.register(capabilities)
+            registered = adapter.register(capabilities)
             if (registered) {
                 updateJobMessage(command.id, "Registeration successful")
                 registeredCapabilities.addAll(capabilities)
@@ -232,6 +237,7 @@ class DynamicAdapterRuntimeService(
         while (scope.isActive) {
             delay(minutes * 60_000L)
             adapter.giveHeartBeat()
+            lastHeartBeatAt.set(Instant.now())
         }
     }
 
@@ -286,7 +292,12 @@ class DynamicAdapterRuntimeService(
                 finishedAt = Instant.now(),
             )
         }
-        logger.info("JOB DONE: ${command.id}, $message")
+        logger.debug("JOB DONE: ${command.id}, $message")
+        when (command) {
+            is FullSyncCommand -> lastHeartBeatAt.set(Instant.now())
+            is DeltaSyncCommand -> lastHeartBeatAt.set(Instant.now())
+            else -> {}
+        }
         currentJobs.remove(command.id)
     }
 
@@ -300,4 +311,12 @@ class DynamicAdapterRuntimeService(
         }
         logger.error("JOB FAILED: ${command.id}, $error")
     }
+
+    fun isResistered(): Boolean = registered
+
+    fun getCurrentJobs(): List<RuntimeJobStatus> = currentJobs.values.sortedBy { it.requestedAt }
+
+    fun getAllJobs(): List<RuntimeJobStatus> = allJobs.values.sortedByDescending { it.requestedAt }
+
+    fun queueSize(): Int = currentJobs.values.count { it.state == JobState.QUEUED }
 }

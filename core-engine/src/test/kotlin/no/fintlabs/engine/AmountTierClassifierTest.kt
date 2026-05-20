@@ -14,13 +14,13 @@ class AmountTierClassifierTest {
 
     @Test
     fun `should classify amount tiers for all utdanning resources`() {
-        metadataService.generateMetadataFromDomain("administrasjon")
-        metadataService.generateMetadataFromDomain("personvern")
+//        metadataService.generateMetadataFromDomain("administrasjon")
+//        metadataService.generateMetadataFromDomain("personvern")
         metadataService.generateMetadataFromDomain("utdanning")
-        metadataService.generateMetadataFromDomain("okonomi")
-        metadataService.generateMetadataFromDomain("ressurs")
-        metadataService.generateMetadataFromDomain("felles")
-        metadataService.generateMetadataFromDomain("arkiv")
+//        metadataService.generateMetadataFromDomain("okonomi")
+//        metadataService.generateMetadataFromDomain("ressurs")
+//        metadataService.generateMetadataFromDomain("felles")
+//        metadataService.generateMetadataFromDomain("arkiv")
         val metadata = metadataService.getAllMetadata()
 
         amountTierClassifier.classify(metadata)

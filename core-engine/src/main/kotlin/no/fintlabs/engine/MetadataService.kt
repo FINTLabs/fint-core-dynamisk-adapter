@@ -21,6 +21,9 @@ class MetadataService(
 
     fun getAllMetadata(): MutableList<ExpandedMetadata> = metadataList
 
+    fun getNamesOfCapabilities(): List<String> =
+        capabilities.map { "${it.domainName}/${it.component}/${it.resourceName}" }
+
     fun generateMetadataFromDomain(domain: String) {
         val generatedMetadata: MutableList<ExpandedMetadata> = mutableListOf()
 

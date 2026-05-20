@@ -45,6 +45,10 @@ class ResourceStore {
 
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
 
+    fun countsByKey(): Map<String, Int> = data.mapValues { it.value.size }
+    
+    fun totalCount(): Int = data.values.sumOf { it.size }
+
     fun countResources(key: ResourceKey): Int = data[key]?.keys?.size ?: 0
 
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()

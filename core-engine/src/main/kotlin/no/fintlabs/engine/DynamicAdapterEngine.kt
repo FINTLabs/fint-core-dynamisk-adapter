@@ -5,6 +5,7 @@ import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
+import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
@@ -106,5 +107,13 @@ class DynamicAdapterEngine(
         storage.purge()
         logger.debug("Purging all stored resources")
     }
+
+    fun resourceStatus(): ResourceStatus =
+        ResourceStatus(
+            metadataCount = metadata.getAllMetadata().size,
+            totalResources = storage.totalCount(),
+            resourcesByKey = storage.countsByKey(),
+            registeredCapabilities = metadata.getNamesOfCapabilities(),
+        )
 
 }
