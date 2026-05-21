@@ -52,9 +52,9 @@ class DynamicAdapterRuntimeService(
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private var activeWorkerJob: Job? = null
 
-    private val lastHeartBeatAt = AtomicReference<Instant?>(null)
-    private val lastFullSyncAt = AtomicReference<Instant?>(null)
-    private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
+    val lastHeartBeatAt = AtomicReference<Instant?>(null)
+    val lastFullSyncAt = AtomicReference<Instant?>(null)
+    val lastDeltaSyncAt = AtomicReference<Instant?>(null)
 
     private var registered: Boolean = false
 

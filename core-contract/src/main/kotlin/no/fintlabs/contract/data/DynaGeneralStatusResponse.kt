@@ -1,7 +1,5 @@
 package no.fintlabs.contract.data
 
-import no.fintlabs.runtime.config.DynaRuntimeConfig
-import no.fintlabs.runtime.model.RuntimeJobStatus
 import java.time.Instant
 
 data class DynaGeneralStatusResponse(
@@ -13,7 +11,7 @@ data class DynaGeneralStatusResponse(
     val lastFullSyncAt: Instant?,
     val lastDeltaSyncAt: Instant?,
     val nextScheduledDeltaSyncAt: Instant?,
-    val dynaSetup: DynaRuntimeConfig,
+//    val dynaSetup: DynaRuntimeConfig,
     val resourceStatus: ResourceStatus,
     val systemStatus: SystemStatus,
 )
