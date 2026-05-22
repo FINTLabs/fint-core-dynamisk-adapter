@@ -31,7 +31,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -52,9 +55,10 @@ class DynamicAdapterRuntimeService(
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private var activeWorkerJob: Job? = null
 
-    val lastHeartBeatAt = AtomicReference<Instant?>(null)
-    val lastFullSyncAt = AtomicReference<Instant?>(null)
-    val lastDeltaSyncAt = AtomicReference<Instant?>(null)
+    private var lastHeartBeatAt: Instant? = null
+    private var lastFullSyncAt: Instant? = null
+    private var lastDeltaSyncAt: Instant? = null
+    private var lastScheduledDeltaSyncAt: Instant? = null
 
     private var registered: Boolean = false
 
@@ -166,6 +170,7 @@ class DynamicAdapterRuntimeService(
             }
         }
         adapter.performSync(metadataList, resources, syncType = SyncType.DELTA, props.fintProperties.maxPageSize)
+        lastDeltaSyncAt = Instant.now()
     }
 
     private suspend fun generateAndDeployInitialDataset() {
@@ -214,16 +219,11 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    private suspend fun fullSyncLoop(days: Int) {
-        while (scope.isActive) {
-            delay(days * 24 * 60 * 60_000L)
-            submit(FullSyncCommand())
-        }
-    }
-
+    var deltaSyncLoopStartedAt: Instant? = null
     private suspend fun deltaLoop() {
         if (!props.enableDeltaSync) return
         else {
+            deltaSyncLoopStartedAt = Instant.now()
             // TODO: If resources exceed maxResources, stop
             // TODO: If props.deltaSetup.resources is empty, stop
             while (scope.isActive) {
@@ -237,7 +237,7 @@ class DynamicAdapterRuntimeService(
         while (scope.isActive) {
             delay(minutes * 60_000L)
             adapter.giveHeartBeat()
-            lastHeartBeatAt.set(Instant.now())
+            lastHeartBeatAt = Instant.now()
         }
     }
 
@@ -294,9 +294,13 @@ class DynamicAdapterRuntimeService(
         }
         logger.debug("JOB DONE: ${command.id}, $message")
         when (command) {
-            is FullSyncCommand -> lastHeartBeatAt.set(Instant.now())
-            is DeltaSyncCommand -> lastHeartBeatAt.set(Instant.now())
-            else -> {}
+            is StartupSequence -> lastFullSyncAt = Instant.now()
+            is FullSyncCommand -> lastFullSyncAt = Instant.now()
+            is CreateDataCommand -> lastDeltaSyncAt = Instant.now()
+            is DeltaSyncCommand -> {
+                lastDeltaSyncAt = Instant.now()
+                lastScheduledDeltaSyncAt = Instant.now()
+            }
         }
         currentJobs.remove(command.id)
     }
@@ -314,9 +318,33 @@ class DynamicAdapterRuntimeService(
 
     fun isResistered(): Boolean = registered
 
+    fun getRunningJob(): RuntimeJobStatus? =
+        currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
+
     fun getCurrentJobs(): List<RuntimeJobStatus> = currentJobs.values.sortedBy { it.requestedAt }
 
     fun getAllJobs(): List<RuntimeJobStatus> = allJobs.values.sortedByDescending { it.requestedAt }
 
     fun queueSize(): Int = currentJobs.values.count { it.state == JobState.QUEUED }
+
+    fun getLastHeartbeat(): Instant? = lastHeartBeatAt
+    fun getLastFullSync(): Instant? = lastFullSyncAt
+    fun getLastDeltaSync(): Instant? = lastDeltaSyncAt
+
+    fun nextScheduledDeltaSync(): String {
+        if (!props.enableDeltaSync) return "Scheduled DeltaSync is DISABLED"
+
+        val lastRun = lastScheduledDeltaSyncAt
+            ?: deltaSyncLoopStartedAt
+
+        val nextRun = lastRun!!.plus(
+            Duration.ofMinutes(
+                props.deltaConfig.deltaSyncIntervalInMinutes.toLong()
+            )
+        )
+        val localTime = nextRun.atZone(ZoneId.systemDefault()).toLocalDateTime()
+        
+        return "Next Scheduled DeltaSync will take place at: " + localTime.truncatedTo(ChronoUnit.SECONDS).toString()
+    }
+
 }

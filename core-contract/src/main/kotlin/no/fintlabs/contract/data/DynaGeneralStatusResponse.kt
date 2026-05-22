@@ -10,7 +10,7 @@ data class DynaGeneralStatusResponse(
     val lastHeartBeatAt: Instant?,
     val lastFullSyncAt: Instant?,
     val lastDeltaSyncAt: Instant?,
-    val nextScheduledDeltaSyncAt: Instant?,
+    val nextScheduledDeltaSyncAt: String,
 //    val dynaSetup: DynaRuntimeConfig,
     val resourceStatus: ResourceStatus,
     val systemStatus: SystemStatus,
@@ -21,5 +21,5 @@ data class SystemStatus(
     val usedMemoryBytes: Long,
     val maxMemoryBytes: Long,
     val threadCount: Int,
-    val processCpuLoad: Double?,
+    val systemLoadAverage: Double?,
 )
