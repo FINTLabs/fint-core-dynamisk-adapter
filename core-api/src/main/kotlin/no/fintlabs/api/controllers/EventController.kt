@@ -1,11 +1,15 @@
 package no.fintlabs.api.controllers
 
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
-import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-@Controller("/event")
+@RestController
+@RequestMapping("/event")
 class EventController(
     private val runtime: DynamicAdapterRuntimeService,
 ) {
-    //TODO
+
+    //TODO : Event functionality not yet implemented
+    
 }

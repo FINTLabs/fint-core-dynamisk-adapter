@@ -16,6 +16,7 @@ import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.contract.data.AmountTier
+import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.DynamicAdapterEngine
@@ -26,6 +27,7 @@ import no.fintlabs.runtime.model.FullSyncCommand
 import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
+import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,6 +38,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
@@ -55,12 +58,20 @@ class DynamicAdapterRuntimeService(
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private var activeWorkerJob: Job? = null
 
-    private var lastHeartBeatAt: Instant? = null
-    private var lastFullSyncAt: Instant? = null
-    private var lastDeltaSyncAt: Instant? = null
-    private var lastScheduledDeltaSyncAt: Instant? = null
+    private val registered = AtomicBoolean(false)
+    private val lastFullSyncAt = AtomicReference<Instant?>(null)
+    private val lastHeartBeatAt = AtomicReference<Instant?>(null)
+    private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
+    private val lastScheduledDeltaSyncAt = AtomicReference<Instant?>(null)
 
-    private var registered: Boolean = false
+    private val heartBeatActive = AtomicBoolean(true)
+
+    private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
+    private val deltaSyncConfig = AtomicReference<DeltaConfig>(props.deltaConfig)
+
+    private val resetEveryNight = AtomicBoolean(props.resetEveryNight)
+    private val startupDomains = AtomicReference<List<String>>(props.startupDomains)
+    private val amountTierPolicy = AtomicReference<AmountTierPolicy>(props.amountTierPolicy)
 
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
 
@@ -75,7 +86,7 @@ class DynamicAdapterRuntimeService(
     @PostConstruct
     fun startupSequence() {
         scope.launch {
-            submit(StartupSequence(domains = props.startupDomains))
+            submit(StartupSequence(domains = startupDomains.get()))
         }
     }
 
@@ -88,11 +99,10 @@ class DynamicAdapterRuntimeService(
             markFailed(command, IllegalStateException("Failed to submit ${command.id}"))
             logger.error("Failed to submit ${command.id}")
         }
-        // TODO: Expand the return of command submission
-        return command.id
+        return "command ${command.id} submitted. \n There are ${queueSize() - 1} queued jobs before yours."
     }
 
-    suspend fun workerLoop() {
+    private suspend fun workerLoop() {
         for (command in queue) {
             markRunning(command)
 
@@ -114,19 +124,20 @@ class DynamicAdapterRuntimeService(
                 for (res in command.resources) {
                     resources[res.key] = IntRange(res.value, res.value)
                 }
-                handleCreateData(resources)
+                handleGenerateResources(resources)
             }
 
             is DeltaSyncCommand -> {
                 val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
-                for (res in props.deltaConfig.resources) {
-                    val metadata = engine.getMetadataFromIdentifier(res)
+                val delta = deltaSyncConfig.get()
+                for (res in delta.resources) {
+                    val metadata: ExpandedMetadata? = engine.getMetadataFromIdentifier(res.key)
                     if (metadata != null) {
                         resources[metadata.toIdentifiers()] =
-                            props.amountTierPolicy.getRange(metadata.amountTier ?: AmountTier.UNKNOWN)
+                            delta.amountTierPolicy.getRange(metadata.amountTier ?: AmountTier.UNKNOWN)
                     }
                 }
-                handleCreateData(resources)
+                handleGenerateResources(resources)
             }
         }
     }
@@ -135,8 +146,10 @@ class DynamicAdapterRuntimeService(
         val capabilities = engine.generateCapabilitiesForDomains(command.domains)
         if (capabilities.isNotEmpty()) {
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
-            registered = adapter.register(capabilities)
-            if (registered) {
+            val registration = adapter.register(capabilities)
+            registered.set(registration)
+            heartBeatActive.set(registration)
+            if (registered.get()) {
                 updateJobMessage(command.id, "Registeration successful")
                 registeredCapabilities.addAll(capabilities)
                 generateAndDeployInitialDataset()
@@ -158,29 +171,34 @@ class DynamicAdapterRuntimeService(
         adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
     }
 
-    private suspend fun handleCreateData(requested: Map<ResourceIdentifiers, IntRange>) {
-        val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
+    private suspend fun handleGenerateResources(requested: Map<ResourceIdentifiers, IntRange>) {
+        if (engine.verifyResourceLimitNotReached()) {
+            val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
 
-        val resources = engine.generateDeltaSyncData(requested)
+            val resources = engine.generateDeltaSyncData(requested)
 
-        for (res in requested) {
-            val metadata = engine.getMetadataFromIdentifier(res.key)
-            if (metadata != null) {
-                metadataList.add(metadata)
+            for (res in requested) {
+                val metadata = engine.getMetadataFromIdentifier(res.key)
+                if (metadata != null) {
+                    metadataList.add(metadata)
+                }
             }
+            adapter.performSync(metadataList, resources, syncType = SyncType.DELTA, props.fintProperties.maxPageSize)
+            lastDeltaSyncAt.set(Instant.now())
+        } else {
+            logger.warn("Failed to generate resources. Max amount of resources limit reached.")
+            enableDeltaSync.set(false)
         }
-        adapter.performSync(metadataList, resources, syncType = SyncType.DELTA, props.fintProperties.maxPageSize)
-        lastDeltaSyncAt = Instant.now()
     }
 
     private suspend fun generateAndDeployInitialDataset() {
-        engine.executeInitialDataset(props.amountTierPolicy)
+        engine.executeInitialDataset(amountTierPolicy.get())
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
         adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
     }
 
-    private suspend fun hardReset() {
+    suspend fun hardReset() {
         runtimeMutex.withLock {
             logger.warn("Performing hard runtime reset...")
 
@@ -206,28 +224,28 @@ class DynamicAdapterRuntimeService(
                     workerLoop()
                 }
 
-            submit(StartupSequence(domains = props.startupDomains))
+            submit(StartupSequence(domains = startupDomains.get()))
         }
     }
 
     @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
-    fun resetData() {
-        if (!props.resetEveryNight) return
+    private fun scheduledDataReset() {
+        if (!resetEveryNight.get()) return
 
         scope.launch {
             hardReset()
         }
     }
 
-    var deltaSyncLoopStartedAt: Instant? = null
+    var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
     private suspend fun deltaLoop() {
-        if (!props.enableDeltaSync) return
+        if (!enableDeltaSync.get()) return
         else {
-            deltaSyncLoopStartedAt = Instant.now()
-            // TODO: If resources exceed maxResources, stop
-            // TODO: If props.deltaSetup.resources is empty, stop
+            deltaSyncLoopStartedAt.set(Instant.now())
             while (scope.isActive) {
-                delay(props.deltaConfig.deltaSyncIntervalInMinutes * 60_000L)
+                // TODO: If resources exceed maxResources, stop
+                // TODO: If props.deltaSetup.resources is empty, stop
+                delay(deltaSyncConfig.get().deltaSyncIntervalInMinutes * 60_000L)
                 submit(DeltaSyncCommand())
             }
         }
@@ -236,10 +254,60 @@ class DynamicAdapterRuntimeService(
     private suspend fun heartbeatLoop(minutes: Int) {
         while (scope.isActive) {
             delay(minutes * 60_000L)
-            adapter.giveHeartBeat()
-            lastHeartBeatAt = Instant.now()
+            if (heartBeatActive.get()) {
+                lastHeartBeatAt.set(Instant.now())
+                adapter.giveHeartBeat()
+            } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
         }
     }
+
+    // Delta setup stuff
+
+    private fun deltaConfig(): DeltaConfig =
+        deltaSyncConfig.get()
+
+    fun setEnableDeltaSync() = enableDeltaSync.set(true)
+
+    fun setDisableDeltaSync() = enableDeltaSync.set(false)
+
+    fun addDeltaSyncResources(
+        resources: Map<ResourceIdentifiers, IntRange?>
+    ) {
+        deltaSyncConfig.updateAndGet { current ->
+            current.copy(
+                resources =
+                    current.resources + resources
+            )
+        }
+    }
+
+    fun setDeltaSyncResources(
+        resources: Map<ResourceIdentifiers, IntRange?>
+    ) {
+        deltaSyncConfig.updateAndGet {
+            it.copy(
+                resources = resources,
+            )
+        }
+    }
+
+    fun setDeltaAmountTierPolicy(newPolicy: AmountTierPolicy) {
+        deltaSyncConfig.updateAndGet {
+            it.copy(
+                amountTierPolicy = newPolicy,
+            )
+        }
+    }
+
+    // Configuration tweaking
+
+    fun setAmountTierPolicy(newPolicy: AmountTierPolicy) = amountTierPolicy.set(newPolicy)
+
+    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy)
+
+    fun setMaxGeneratedResources(int: Int) = engine.setMaxResources(int)
+
+    fun resetMaxGeneratedResources() = engine.resetMaxResources()
 
     // Job Status stuff
 
@@ -294,12 +362,12 @@ class DynamicAdapterRuntimeService(
         }
         logger.debug("JOB DONE: ${command.id}, $message")
         when (command) {
-            is StartupSequence -> lastFullSyncAt = Instant.now()
-            is FullSyncCommand -> lastFullSyncAt = Instant.now()
-            is CreateDataCommand -> lastDeltaSyncAt = Instant.now()
+            is StartupSequence -> lastFullSyncAt.set(Instant.now())
+            is FullSyncCommand -> lastFullSyncAt.set(Instant.now())
+            is CreateDataCommand -> lastDeltaSyncAt.set(Instant.now())
             is DeltaSyncCommand -> {
-                lastDeltaSyncAt = Instant.now()
-                lastScheduledDeltaSyncAt = Instant.now()
+                lastDeltaSyncAt.set(Instant.now())
+                lastScheduledDeltaSyncAt.set(Instant.now())
             }
         }
         currentJobs.remove(command.id)
@@ -316,7 +384,9 @@ class DynamicAdapterRuntimeService(
         logger.error("JOB FAILED: ${command.id}, $error")
     }
 
-    fun isResistered(): Boolean = registered
+    // Status stuff
+
+    fun isRegistered() = registered.get()
 
     fun getRunningJob(): RuntimeJobStatus? =
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
@@ -327,23 +397,23 @@ class DynamicAdapterRuntimeService(
 
     fun queueSize(): Int = currentJobs.values.count { it.state == JobState.QUEUED }
 
-    fun getLastHeartbeat(): Instant? = lastHeartBeatAt
-    fun getLastFullSync(): Instant? = lastFullSyncAt
-    fun getLastDeltaSync(): Instant? = lastDeltaSyncAt
+    fun getLastHeartbeat(): Instant? = lastHeartBeatAt.get()
+    fun getLastFullSync(): Instant? = lastFullSyncAt.get()
+    fun getLastDeltaSync(): Instant? = lastDeltaSyncAt.get()
 
     fun nextScheduledDeltaSync(): String {
         if (!props.enableDeltaSync) return "Scheduled DeltaSync is DISABLED"
 
-        val lastRun = lastScheduledDeltaSyncAt
-            ?: deltaSyncLoopStartedAt
+        val lastRun = lastScheduledDeltaSyncAt.get()
+            ?: deltaSyncLoopStartedAt.get() ?: return "no idea lol *shrug*"
 
-        val nextRun = lastRun!!.plus(
+        val nextRun = lastRun.plus(
             Duration.ofMinutes(
                 props.deltaConfig.deltaSyncIntervalInMinutes.toLong()
             )
         )
         val localTime = nextRun.atZone(ZoneId.systemDefault()).toLocalDateTime()
-        
+
         return "Next Scheduled DeltaSync will take place at: " + localTime.truncatedTo(ChronoUnit.SECONDS).toString()
     }
 

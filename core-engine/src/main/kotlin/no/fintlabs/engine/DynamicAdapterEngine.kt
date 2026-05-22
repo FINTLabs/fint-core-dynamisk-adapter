@@ -7,6 +7,7 @@ import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
+import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
 import no.fintlabs.engine.util.EngineRandom
@@ -14,6 +15,7 @@ import no.fintlabs.library.ResourceFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class DynamicAdapterEngine(
@@ -23,8 +25,11 @@ class DynamicAdapterEngine(
     private val factory: ResourceFactory,
     private val relations: RelationFactory,
     private val random: EngineRandom,
+    private val props: DynaEngineConfig,
 ) {
     private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
+
+    private val maxGeneratedResources = AtomicInteger(props.maxGeneratedResources)
 
     fun generateCapabilitiesForDomains(
         domains: List<String>
@@ -57,13 +62,22 @@ class DynamicAdapterEngine(
     fun generateDeltaSyncData(
         identifiers: Map<ResourceIdentifiers, IntRange>,
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
-
         val deltaMetadataList = mutableListOf<ExpandedMetadata>()
 
         for (identifier in identifiers) {
             val metadata = metadata.getMetadataFor(identifier.key)
             if (metadata != null) {
-                val amount = random.fromRange(identifier.value)
+                deltaMetadataList.add(metadata)
+                var amount = random.fromRange(identifier.value)
+                val remaining = resourcesLeft()
+                if (remaining <= amount) {
+                    amount = remaining.coerceAtLeast(0)
+                    logger.warn("max amount of resources reached. ")
+                    if (amount == 0) {
+                        logger.warn("No resources can be generated. (MAX REACHED)")
+                        continue
+                    }
+                }
                 deltaStorage.addAllResources(
                     metadata.key,
                     metadata,
@@ -74,6 +88,7 @@ class DynamicAdapterEngine(
         relations.relateDataset(deltaMetadataList, SetType.DELTA)
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
         deltaStorage.purge()
+        traceGenCapPercentage()
         return fullList
     }
 
@@ -95,6 +110,10 @@ class DynamicAdapterEngine(
         return fullList
     }
 
+    private fun resourcesLeft(): Int = maxGeneratedResources.get() - storage.totalCount()
+
+    fun verifyResourceLimitNotReached(): Boolean = resourcesLeft() > 0
+
     fun getAllMetadata(): MutableList<ExpandedMetadata> {
         return metadata.getAllMetadata()
     }
@@ -105,13 +124,29 @@ class DynamicAdapterEngine(
     fun purgeAllStoredResources() {
         deltaStorage.purge()
         storage.purge()
-        logger.debug("Purging all stored resources")
+        logger.debug("Purged all stored resources")
+        traceGenCapPercentage()
     }
+
+    // Configuration Manipulation
+
+    fun setMaxResources(amount: Int) = maxGeneratedResources.set(amount)
+
+    fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
+
+    fun traceGenCapPercentage() =
+        logger.trace("Percentage of max generated resources: ${generationCapacityPercentage()}")
+
+    // Status Stuff
+
+    private fun generationCapacityPercentage(): Double =
+        (storage.totalCount().toDouble() / maxGeneratedResources.toDouble() * 100.0)
 
     fun resourceStatus(): ResourceStatus =
         ResourceStatus(
             metadataCount = metadata.getAllMetadata().size,
             totalResources = storage.totalCount(),
+            percentageOfMaxGenerated = generationCapacityPercentage(),
             resourcesByKey = storage.countsByKey(),
             registeredCapabilities = metadata.getNamesOfCapabilities(),
         )

@@ -4,34 +4,43 @@ import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.dto.AmountTierPolicyRequest
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
+import no.fintlabs.runtime.model.CreateDataCommand
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/delta")
-class DeltaController(
+@RequestMapping("/data")
+class DataController(
     private val runtime: DynamicAdapterRuntimeService,
 ) {
-    @PostMapping("/addResources")
-    fun addResources(
+    @PostMapping("/resources")
+    fun generateResources(
         @RequestBody(required = true)
-        resources: Map<ResourceIdentifiers, IntRange?>
-    ) = runtime.addDeltaSyncResources(resources)
+        resources: Map<ResourceIdentifiers, Int>
+    ): String = runtime.submit(
+        CreateDataCommand(
+            resources = resources,
+        )
+    )
 
-    @PostMapping("/setResources")
-    fun setResources(
+    @PostMapping("/resetDataset")
+    suspend fun resetDataset() = runtime.hardReset()
+
+    @PutMapping("/updateDataset")
+    suspend fun updateDataset(
         @RequestBody(required = true)
-        resources: Map<ResourceIdentifiers, IntRange?>
-    ) = runtime.setDeltaSyncResources(resources)
+        domains: List<String>
+    ) {
+        // TODO: /data/updateDataset
+        // replace current dataset with new dataset. If new set
+        // does not include current, remove current data,
 
-    @PostMapping("/enable")
-    fun enable() = runtime.setEnableDeltaSync()
-
-    @PostMapping("/disable")
-    fun disable() = runtime.setDisableDeltaSync()
+        // If new datasets contain non-registered resources, re-register
+    }
 
     @PatchMapping("/setAmountTierPolicy")
     suspend fun setAmountTierPolicy(
@@ -47,7 +56,7 @@ class DeltaController(
             } else {
                 body.groupingMin..body.groupingMax
             }
-        runtime.setAmountTierPolicy(
+        runtime.setDeltaAmountTierPolicy(
             AmountTierPolicy(
                 grouping = body.groupingMin..body.groupingMax,
                 core = body.core..body.core,
@@ -56,4 +65,16 @@ class DeltaController(
             )
         )
     }
+
+    @PatchMapping("/resetAmountTierPolicy")
+    suspend fun resetAmountTierPolicy() = runtime.resetAmountTierPolicy()
+
+    @PatchMapping("/setMaxGeneratedResources")
+    fun setMaxGeneratedResources(
+        @RequestBody(required = true)
+        amount: Int
+    ) = runtime.setMaxGeneratedResources(amount)
+
+    @PatchMapping("/resetMaxGeneratedResources")
+    fun resetMaxGeneratedResources() = runtime.resetMaxGeneratedResources()
 }

@@ -1,5 +1,7 @@
-package no.fintlabs.contract.data
+package no.fintlabs.contract.dto
 
+import no.fintlabs.contract.data.ResourceStatus
+import no.fintlabs.contract.data.RuntimeJobStatus
 import java.time.Instant
 
 data class DynaGeneralStatusResponse(

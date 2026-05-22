@@ -2,14 +2,11 @@ package no.fintlabs.runtime.status
 
 import no.fintlabs.engine.DynamicAdapterEngine
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
-import no.fintlabs.contract.data.DynaGeneralStatusResponse
+import no.fintlabs.contract.dto.DynaGeneralStatusResponse
 import no.fintlabs.contract.data.RuntimeJobStatus
-import no.fintlabs.contract.data.SystemStatus
+import no.fintlabs.contract.dto.SystemStatus
 import org.springframework.stereotype.Service
 import java.lang.management.ManagementFactory
-import java.lang.management.OperatingSystemMXBean
-import java.time.Instant
-import kotlin.Long
 
 @Service
 class DynamicAdapterStatusService(
@@ -18,7 +15,7 @@ class DynamicAdapterStatusService(
 ) {
     fun status(): DynaGeneralStatusResponse =
         DynaGeneralStatusResponse(
-            registered = runtime.isResistered(),
+            registered = runtime.isRegistered(),
             queueSize = runtime.queueSize(),
             runningJob = runtime.getRunningJob(),
             currentJobs = runtime.getCurrentJobs(),

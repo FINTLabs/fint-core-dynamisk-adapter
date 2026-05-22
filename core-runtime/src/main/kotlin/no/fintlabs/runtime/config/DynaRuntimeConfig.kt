@@ -6,31 +6,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("dyna.runtime")
 class DynaRuntimeConfig {
-    var seed: String = ""
-    var startupDomains: List<String> = listOf("utdanning")
-    var enableDeltaSync: Boolean = false
-    var resetEveryNight: Boolean = false
-    var amountTierPolicy: AmountTierPolicy =
+    val startupDomains: List<String> = listOf("utdanning")
+    val enableDeltaSync: Boolean = false
+    val resetEveryNight: Boolean = false
+    val amountTierPolicy: AmountTierPolicy =
         AmountTierPolicy(
             grouping = 1..2,
             core = 10..10,
             dependant = 20..30,
             unknown = 1..2,
         )
-    var fintProperties: FintProperties = FintProperties()
-    var deltaConfig: DeltaConfig = DeltaConfig()
+    val fintProperties: FintProperties = FintProperties()
+    val deltaConfig: DeltaConfig = DeltaConfig()
 }
 
 data class FintProperties(
-    var maxPageSize: Int = 1000,
-    var maxGeneratedResources: Int = 10000,
-    var heartbeatIntervalInMinutes: Int = 3,
+    val maxPageSize: Int = 1000,
+    val heartbeatIntervalInMinutes: Int = 3,
 )
 
 data class DeltaConfig(
-    var deltaSyncIntervalInMinutes: Int = 10,
-    var resources: List<ResourceIdentifiers> = listOf(),
-    var amountTierPolicy: AmountTierPolicy =
+    val deltaSyncIntervalInMinutes: Int = 10,
+    val resources: Map<ResourceIdentifiers, IntRange?> = mapOf(),
+    val amountTierPolicy: AmountTierPolicy =
         AmountTierPolicy(
             grouping = 1..2,
             core = 10..10,

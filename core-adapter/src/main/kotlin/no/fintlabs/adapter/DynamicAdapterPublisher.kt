@@ -29,16 +29,6 @@ class DynamicAdapterPublisher(
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         logger.info("Registering to provider...")
 
-        val missingCapabilities = false
-
-        val adapterCapabilities: MutableSet<AdapterCapability> =
-            if (missingCapabilities) {
-                val list = capabilities.toMutableList()
-                list.removeAt(3)
-                list.removeAt(2)
-                list.toMutableSet()
-            } else capabilities
-
         val contract =
             AdapterContract
                 .builder()
@@ -46,7 +36,7 @@ class DynamicAdapterPublisher(
                 .orgId(props.orgId)
                 .username(props.username)
                 .heartbeatIntervalInMinutes(props.heartbeatIntervalInMinutes)
-                .capabilities(adapterCapabilities)
+                .capabilities(capabilities)
                 .time(0L)
                 .build()
 
@@ -83,7 +73,7 @@ class DynamicAdapterPublisher(
                 .exchangeToMono { response -> Mono.just(response.statusCode().value()) }
                 .block()
 
-        logger.debug("🫀 HeartBeat => HTTP $response")
+        logger.trace("🫀 HeartBeat => HTTP $response")
     }
 
     fun performSync(

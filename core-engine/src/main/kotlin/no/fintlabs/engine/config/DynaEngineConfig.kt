@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class DynaEngineConfig(
     val seed: String = "",
     val minimumRandomPoolSize: Int = 20,
+    val maxGeneratedResources: Int = 10000,
     val firstnameList: List<String> = emptyList(),
     val lastnameList: List<String> = emptyList(),
     val funnyNameList: List<String> = emptyList(),

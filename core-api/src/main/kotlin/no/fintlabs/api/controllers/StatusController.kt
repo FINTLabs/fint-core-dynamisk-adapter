@@ -1,12 +1,14 @@
 package no.fintlabs.api.controllers
 
-import no.fintlabs.contract.data.DynaGeneralStatusResponse
+import no.fintlabs.contract.dto.DynaGeneralStatusResponse
 import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.runtime.status.DynamicAdapterStatusService
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-@Controller("/status")
+@RestController
+@RequestMapping("/status")
 class StatusController(
     private val statusService: DynamicAdapterStatusService,
 ) {
