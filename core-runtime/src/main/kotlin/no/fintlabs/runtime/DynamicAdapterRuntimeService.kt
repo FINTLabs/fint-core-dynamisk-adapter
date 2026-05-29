@@ -27,6 +27,8 @@ import no.fintlabs.runtime.model.FullSyncCommand
 import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
+import no.fintlabs.contract.models.getKeys
+import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
@@ -39,7 +41,9 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+
 
 @Component
 class DynamicAdapterRuntimeService(
@@ -70,10 +74,12 @@ class DynamicAdapterRuntimeService(
     private val deltaSyncConfig = AtomicReference<DeltaConfig>(props.deltaConfig)
 
     private val resetEveryNight = AtomicBoolean(props.resetEveryNight)
-    private val startupDomains = AtomicReference<List<String>>(props.startupDomains)
+    private val activeDomains = AtomicReference<List<String>>(props.startupDomains)
     private val amountTierPolicy = AtomicReference<AmountTierPolicy>(props.amountTierPolicy)
-
+    private val maxPageSize = AtomicInteger(props.fintProperties.maxPageSize)
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
+    private val registeredCapabilitiesFor = AtomicReference<List<String>>(listOf())
+
 
     init {
         scope.launch {
@@ -86,7 +92,7 @@ class DynamicAdapterRuntimeService(
     @PostConstruct
     fun startupSequence() {
         scope.launch {
-            submit(StartupSequence(domains = startupDomains.get()))
+            submit(StartupSequence(domains = activeDomains.get()))
         }
     }
 
@@ -152,6 +158,7 @@ class DynamicAdapterRuntimeService(
             if (registered.get()) {
                 updateJobMessage(command.id, "Registeration successful")
                 registeredCapabilities.addAll(capabilities)
+                registeredCapabilitiesFor.set(capabilities.getKeys())
                 generateAndDeployInitialDataset()
 
                 deltaLoop()
@@ -168,7 +175,12 @@ class DynamicAdapterRuntimeService(
         logger.debug("Performing full sync...")
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
-        adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
+        adapter.performSync(
+            metadataList = metadata,
+            dataList = allData,
+            syncType = SyncType.FULL,
+            maxPageSize = maxPageSize.get(),
+        )
     }
 
     private suspend fun handleGenerateResources(requested: Map<ResourceIdentifiers, IntRange>) {
@@ -183,10 +195,15 @@ class DynamicAdapterRuntimeService(
                     metadataList.add(metadata)
                 }
             }
-            adapter.performSync(metadataList, resources, syncType = SyncType.DELTA, props.fintProperties.maxPageSize)
+            adapter.performSync(
+                metadataList = metadataList,
+                dataList = resources,
+                syncType = SyncType.DELTA,
+                maxPageSize = maxPageSize.get(),
+            )
             lastDeltaSyncAt.set(Instant.now())
         } else {
-            logger.warn("Failed to generate resources. Max amount of resources limit reached.")
+            logger.info("Failed to generate resources. Max amount of resources limit reached.")
             enableDeltaSync.set(false)
         }
     }
@@ -195,7 +212,12 @@ class DynamicAdapterRuntimeService(
         engine.executeInitialDataset(amountTierPolicy.get())
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
-        adapter.performSync(metadata, allData, SyncType.FULL, props.fintProperties.maxPageSize)
+        adapter.performSync(
+            metadataList = metadata,
+            dataList = allData,
+            syncType = SyncType.FULL,
+            maxPageSize = maxPageSize.get(),
+        )
     }
 
     suspend fun hardReset() {
@@ -224,7 +246,7 @@ class DynamicAdapterRuntimeService(
                     workerLoop()
                 }
 
-            submit(StartupSequence(domains = startupDomains.get()))
+            submit(StartupSequence(domains = activeDomains.get()))
         }
     }
 
@@ -243,10 +265,10 @@ class DynamicAdapterRuntimeService(
         else {
             deltaSyncLoopStartedAt.set(Instant.now())
             while (scope.isActive) {
-                // TODO: If resources exceed maxResources, stop
-                // TODO: If props.deltaSetup.resources is empty, stop
                 delay(deltaSyncConfig.get().deltaSyncIntervalInMinutes * 60_000L)
-                submit(DeltaSyncCommand())
+                if (engine.verifyResourceLimitNotReached()) {
+                    submit(DeltaSyncCommand())
+                }
             }
         }
     }
@@ -261,10 +283,34 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    // Delta setup stuff
+    // Controller functions
 
-    private fun deltaConfig(): DeltaConfig =
-        deltaSyncConfig.get()
+    fun updateDataset(domains: List<String>) {
+        if (domains == activeDomains.get()) {
+            logger.info("Updating dataset failed because dataset is already as specified")
+        }
+        val newDomains = domains.filter { !activeDomains.get().contains(it) }
+        if (newDomains.isEmpty()) {
+            activeDomains.set(domains)
+            return
+        } else {
+            val allCapabilities: MutableSet<AdapterCapability> =
+                (engine.generateCapabilitiesForDomains(newDomains)
+                        + registeredCapabilities) as MutableSet<AdapterCapability>
+            val registered = adapter.register(allCapabilities)
+            if (registered) {
+                engine.
+
+                // TODO: Here registering with new Domains worked.
+                // TODO: Generate data from newDomains and perform FullSync
+
+            } else logger.error("Failed to register with $newDomains")
+        }
+    }
+
+    fun resetDataset() = activeDomains.set(props.startupDomains)
+
+    // Delta setup stuff
 
     fun setEnableDeltaSync() = enableDeltaSync.set(true)
 

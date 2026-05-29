@@ -17,6 +17,7 @@ data class DynaAdapterProperties(
     val heartbeatIntervalInMinutes: Int = 3,
     val capabilities: List<ResourceIdentifiers> = emptyList(),
     val baseUrl: String = "https://beta.felleskomponent.no",
+    val offlineTest: Boolean = false,
 ) {
     val adapterId = "$id/${UUID.randomUUID()}"
 }

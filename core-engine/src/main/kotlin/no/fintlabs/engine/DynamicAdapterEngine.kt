@@ -46,9 +46,12 @@ class DynamicAdapterEngine(
 
     fun executeInitialDataset(
         amountTierPolicy: AmountTierPolicy,
+        resetSeed: Boolean = true,
     ) {
-        factory.resetSeed()
-        random.reset()
+        if (resetSeed) {
+            factory.resetSeed()
+            random.reset()
+        }
         val metadata = metadata.getAllMetadata()
         for (resource in metadata) {
             val amountRange: IntRange = amountTierPolicy.getRange(resource.amountTier ?: AmountTier.UNKNOWN)
@@ -61,29 +64,37 @@ class DynamicAdapterEngine(
 
     fun generateDeltaSyncData(
         identifiers: Map<ResourceIdentifiers, IntRange>,
+        generateMetadataForMissing: Boolean = false,
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
         val deltaMetadataList = mutableListOf<ExpandedMetadata>()
 
         for (identifier in identifiers) {
-            val metadata = metadata.getMetadataFor(identifier.key)
-            if (metadata != null) {
-                deltaMetadataList.add(metadata)
-                var amount = random.fromRange(identifier.value)
-                val remaining = resourcesLeft()
-                if (remaining <= amount) {
-                    amount = remaining.coerceAtLeast(0)
-                    logger.warn("max amount of resources reached. ")
-                    if (amount == 0) {
-                        logger.warn("No resources can be generated. (MAX REACHED)")
-                        continue
-                    }
-                }
-                deltaStorage.addAllResources(
-                    metadata.key,
-                    metadata,
-                    factory.create(metadata.resource.resourceClass, amount),
-                )
+            val meta = metadata.getMetadataFor(identifier.key)
+            if (meta == null) {
+
+            } else if (generateMetadataForMissing) {
+                metadata.getMetadataFor()
+
             } else logger.warn("No resource metadata found for ${identifier.key}")
+
+
+            deltaMetadataList.add(meta)
+            var amount = random.fromRange(identifier.value)
+            val remaining = resourcesLeft()
+            if (remaining <= amount) {
+                amount = remaining.coerceAtLeast(0)
+                logger.warn("max amount of resources reached. ")
+                if (amount == 0) {
+                    logger.warn("No resources can be generated. (MAX REACHED)")
+                    continue
+                }
+            }
+            deltaStorage.addAllResources(
+                meta.key,
+                meta,
+                factory.create(meta.resource.resourceClass, amount),
+            )
+
         }
         relations.relateDataset(deltaMetadataList, SetType.DELTA)
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)

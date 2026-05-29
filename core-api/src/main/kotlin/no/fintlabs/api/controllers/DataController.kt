@@ -35,12 +35,16 @@ class DataController(
         @RequestBody(required = true)
         domains: List<String>
     ) {
+        runtime.updateDataset(domains)
         // TODO: /data/updateDataset
         // replace current dataset with new dataset. If new set
         // does not include current, remove current data,
 
         // If new datasets contain non-registered resources, re-register
     }
+
+    @PutMapping("resetDataset")
+    suspend fun resetDataset() = runtime.resetDataset()
 
     @PatchMapping("/setAmountTierPolicy")
     suspend fun setAmountTierPolicy(
