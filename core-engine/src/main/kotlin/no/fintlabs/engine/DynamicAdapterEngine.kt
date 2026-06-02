@@ -70,12 +70,12 @@ class DynamicAdapterEngine(
 
         for (identifier in identifiers) {
             val meta = metadata.getMetadataFor(identifier.key)
-            if (meta == null) {
-
-            } else if (generateMetadataForMissing) {
-                metadata.getMetadataFor()
-
-            } else logger.warn("No resource metadata found for ${identifier.key}")
+                ?: if (generateMetadataForMissing) {
+                    metadata.generateMetadataFromIdentifiers(listOf(identifier.key))
+                } else {
+                    logger.warn("No resource metadata found for ${identifier.key}")
+                    continue
+                }
 
 
             deltaMetadataList.add(meta)
