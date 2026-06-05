@@ -30,6 +30,7 @@ import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.models.getKeys
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.DeltaConfig
+import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -75,7 +76,7 @@ class DynamicAdapterRuntimeService(
 
     private val resetEveryNight = AtomicBoolean(props.resetEveryNight)
     private val activeDomains = AtomicReference<List<String>>(props.startupDomains)
-    private val amountTierPolicy = AtomicReference<AmountTierPolicy>(props.amountTierPolicy)
+    private val amountTierPolicy = AtomicReference<AmountTierPolicy>(props.amountTierPolicy.toAmountTierPolicy())
     private val maxPageSize = AtomicInteger(props.fintProperties.maxPageSize)
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
     private val registeredCapabilitiesFor = AtomicReference<List<String>>(listOf())
@@ -137,10 +138,11 @@ class DynamicAdapterRuntimeService(
                 val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
                 val delta = deltaSyncConfig.get()
                 for (res in delta.resources) {
-                    val metadata: ExpandedMetadata? = engine.getMetadataFromIdentifier(res.key)
+                    val metadata: ExpandedMetadata? = engine.getMetadataFromIdentifier(res.toIdentifiers())
                     if (metadata != null) {
                         resources[metadata.toIdentifiers()] =
-                            delta.amountTierPolicy.getRange(metadata.amountTier ?: AmountTier.UNKNOWN)
+                            delta.amountTierPolicy.toAmountTierPolicy()
+                                .getRange(metadata.amountTier ?: AmountTier.UNKNOWN)
                     }
                 }
                 handleGenerateResources(resources)
@@ -299,8 +301,7 @@ class DynamicAdapterRuntimeService(
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
             if (registered) {
-                engine.
-
+                logger.error("Not yet implemented")
                 // TODO: Here registering with new Domains worked.
                 // TODO: Generate data from newDomains and perform FullSync
 
@@ -319,10 +320,12 @@ class DynamicAdapterRuntimeService(
     fun addDeltaSyncResources(
         resources: Map<ResourceIdentifiers, IntRange?>
     ) {
+        val configResources = resources.toDeltaResourceConfigList()
+
         deltaSyncConfig.updateAndGet { current ->
             current.copy(
                 resources =
-                    current.resources + resources
+                    current.resources + configResources,
             )
         }
     }
@@ -332,7 +335,7 @@ class DynamicAdapterRuntimeService(
     ) {
         deltaSyncConfig.updateAndGet {
             it.copy(
-                resources = resources,
+                resources = resources.toDeltaResourceConfigList(),
             )
         }
     }
@@ -340,7 +343,7 @@ class DynamicAdapterRuntimeService(
     fun setDeltaAmountTierPolicy(newPolicy: AmountTierPolicy) {
         deltaSyncConfig.updateAndGet {
             it.copy(
-                amountTierPolicy = newPolicy,
+                amountTierPolicy = newPolicy.toConfigAmountTier(),
             )
         }
     }
@@ -349,7 +352,7 @@ class DynamicAdapterRuntimeService(
 
     fun setAmountTierPolicy(newPolicy: AmountTierPolicy) = amountTierPolicy.set(newPolicy)
 
-    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy)
+    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
 
     fun setMaxGeneratedResources(int: Int) = engine.setMaxResources(int)
 

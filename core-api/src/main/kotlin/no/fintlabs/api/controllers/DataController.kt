@@ -30,7 +30,7 @@ class DataController(
     @PostMapping("/resetDataset")
     suspend fun resetDataset() = runtime.hardReset()
 
-    @PutMapping("/updateDataset")
+    @PatchMapping("/updateDataset")
     suspend fun updateDataset(
         @RequestBody(required = true)
         domains: List<String>
@@ -42,9 +42,6 @@ class DataController(
 
         // If new datasets contain non-registered resources, re-register
     }
-
-    @PutMapping("resetDataset")
-    suspend fun resetDataset() = runtime.resetDataset()
 
     @PatchMapping("/setAmountTierPolicy")
     suspend fun setAmountTierPolicy(

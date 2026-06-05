@@ -15,4 +15,12 @@ data class AmountTierPolicy(
                 unknown
             }
         }
+
+    fun toConfigAmountTier(): ConfigAmountTierPolicy =
+        ConfigAmountTierPolicy(
+            grouping = DualInt(grouping.first, grouping.last),
+            core = core.first,
+            dependant = DualInt(dependant.first, dependant.last),
+            unknown = DualInt(unknown.first, unknown.last)
+        )
 }
