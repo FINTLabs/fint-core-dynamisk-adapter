@@ -6,32 +6,51 @@ server:
 
 dyna:
   runtime:
-    startupDomains: [ "utdanning" ]
-    enableDeltaSync: false
-    resetEveryNight: false
+    startup-domains: [ "utdanning" ]
+    enable-delta-sync: false
+    reset-every-night: false
     amount-tier-policy:
+      grouping:
+        min: 1
+        max: 2
+      core: 10
+      dependant:
+        min: 20
+        max: 30
+      unknown:
+        min: 1
+        max: 2
     fint-properties:
-      maxPageSize: 1000
-      maxGeneratedResources: 10000
-      heartbeatIntervalInMinutes: 3
+      max-page-size: 1000
+      heartbeat-interval-in-minutes: 3
     delta-config:
       amount-tier-policy:
-        grouping: 1..3
-        core: 5..5
-        dependant: 5..10
-        unknown: 1..3
-      deltaSyncIntervalInMinutes: 10
+        grouping:
+          min: 1
+          max: 2
+        core: 10
+        dependant:
+          min: 20
+          max: 30
+        unknown:
+          min: 1
+          max: 2
+      delta-sync-interval-in-minutes: 10
       resources:
-        - resource: ""
-          component: ""
-          domain: ""
+        - domain: "utdanning"
+          component: "vurdering"
+          resource: "fravarsregistrering"
+        - domain: "utdanning"
+          component: "vurdering"
+          resource: "underveisfagvurdering"
 
   engine:
     seed: "test-seed-1"
+    max-generated-resources: 10000
 
   adapter:
     id: fint-core-dyna
-    baseUrl: https://beta.felleskomponent.no
-    idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
-    heartbeatIntervalInMinutes: 3
-    offlineTest: True
+    base-url: https://beta.felleskomponent.no
+    idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
+    heartbeat-interval-in-minutes: 3
+    offline-test: true

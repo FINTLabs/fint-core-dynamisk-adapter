@@ -61,7 +61,7 @@ class ResourceFactory(
         randomizer.updateRandom(random)
     }
 
-    //TODO 1: Implement seeded random in errors, perhaps another create function for faulty resources?
+    //TODO: Error functions. One for specific error, one for random(seed) error
 
     fun create(
         resource: Class<out FintResource>,

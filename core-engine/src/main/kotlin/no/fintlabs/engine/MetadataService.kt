@@ -8,11 +8,12 @@ import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class MetadataService(
-    private val model: MetamodelService,
+    @Autowired private val model: MetamodelService,
     private val tierClassifier: AmountTierClassifier,
 ) {
     val logger: Logger = LoggerFactory.getLogger(MetadataService::class.java)

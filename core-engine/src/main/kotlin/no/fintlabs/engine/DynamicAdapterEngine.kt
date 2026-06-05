@@ -64,42 +64,37 @@ class DynamicAdapterEngine(
 
     fun generateDeltaSyncData(
         identifiers: Map<ResourceIdentifiers, IntRange>,
-        generateMetadataForMissing: Boolean = false,
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
         val deltaMetadataList = mutableListOf<ExpandedMetadata>()
 
         for (identifier in identifiers) {
             val meta = metadata.getMetadataFor(identifier.key)
-                ?: if (generateMetadataForMissing) {
-                    metadata.generateMetadataFromIdentifiers(listOf(identifier.key))
-                } else {
-                    logger.warn("No resource metadata found for ${identifier.key}")
-                    continue
+            if (meta == null) {
+                logger.warn("No resource metadata found for ${identifier.key}")
+                continue
+            } else {
+                deltaMetadataList.add(meta)
+                var amount = random.fromRange(identifier.value)
+                val remaining = resourcesLeft()
+                if (remaining <= amount) {
+                    amount = remaining.coerceAtLeast(0)
+                    logger.warn("max amount of resources reached. ")
+                    if (amount == 0) {
+                        logger.warn("No resources can be generated. (MAX REACHED)")
+                        continue
+                    }
                 }
-
-
-            deltaMetadataList.add(meta)
-            var amount = random.fromRange(identifier.value)
-            val remaining = resourcesLeft()
-            if (remaining <= amount) {
-                amount = remaining.coerceAtLeast(0)
-                logger.warn("max amount of resources reached. ")
-                if (amount == 0) {
-                    logger.warn("No resources can be generated. (MAX REACHED)")
-                    continue
-                }
+                deltaStorage.addAllResources(
+                    meta.key,
+                    meta,
+                    factory.create(meta.resource.resourceClass, amount),
+                )
             }
-            deltaStorage.addAllResources(
-                meta.key,
-                meta,
-                factory.create(meta.resource.resourceClass, amount),
-            )
-
         }
         relations.relateDataset(deltaMetadataList, SetType.DELTA)
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
         deltaStorage.purge()
-        traceGenCapPercentage()
+        debugGenCapPercentage()
         return fullList
     }
 
@@ -116,7 +111,7 @@ class DynamicAdapterEngine(
                     deltaStorage.getAllResources(i.key)
                 else storage.getAllResources(i.key)
 
-            logger.trace("${i.key} : $setType : ${fullList[i]?.size}")
+            logger.trace("${i.key} : $setType now contains ${fullList[i]?.size} resources.")
         }
         return fullList
     }
@@ -136,7 +131,7 @@ class DynamicAdapterEngine(
         deltaStorage.purge()
         storage.purge()
         logger.debug("Purged all stored resources")
-        traceGenCapPercentage()
+        debugGenCapPercentage()
     }
 
     // Configuration Manipulation
@@ -145,8 +140,8 @@ class DynamicAdapterEngine(
 
     fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
 
-    fun traceGenCapPercentage() =
-        logger.trace("Percentage of max generated resources: ${generationCapacityPercentage()}")
+    fun debugGenCapPercentage() =
+        logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")
 
     // Status Stuff
 

@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     implementation(project(":core-contract"))
+    implementation(project(":core-engine"))
     implementation(project(":core-runtime"))
     implementation(project(":core-adapter"))
 
@@ -31,7 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
+    implementation("no.novari:fint-core-metamodel:3.0.0")
     implementation("no.novari:fint-arkiv-resource-model-java:${fintVersion}")
     implementation("no.novari:fint-felles-resource-model-java:${fintVersion}")
     implementation("no.novari:fint-ressurs-resource-model-java:${fintVersion}")

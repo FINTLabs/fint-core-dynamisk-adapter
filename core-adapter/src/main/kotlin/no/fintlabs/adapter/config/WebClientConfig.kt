@@ -3,14 +3,12 @@ package no.fintlabs.adapter.config
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.client.*
-import org.springframework.security.oauth2.client.endpoint.WebClientReactivePasswordTokenResponseClient
 import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
 
 @Configuration
 class WebClientConfig(
@@ -26,7 +24,7 @@ class WebClientConfig(
      *  - refreshes token if expired
      */
     @Bean
-    fun webClient(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient =
+    fun dynaWebClient(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient =
         WebClient
             .builder()
             .filter(createExchangeFilterFunction(authorizedClientManager))
@@ -44,7 +42,7 @@ class WebClientConfig(
      *  ✔ refreshes tokens automatically when expired
      */
     @Bean
-    fun authorizedClientManager(
+    fun dynaAuthorizedClientManager(
         clientRegistrationRepository: ReactiveClientRegistrationRepository,
         authorizedClientService: ReactiveOAuth2AuthorizedClientService,
     ): ReactiveOAuth2AuthorizedClientManager =
@@ -52,23 +50,19 @@ class WebClientConfig(
             clientRegistrationRepository,
             authorizedClientService,
         ).apply {
-            setAuthorizedClientProvider(createAuthorizedClientProvider())
-            setContextAttributesMapper { authorized ->
-                mutableMapOf<String, Any>()
-                    .apply {
-                        putAll(authorized.attributes)
-                        put(OAuth2AuthorizationContext.USERNAME_ATTRIBUTE_NAME, props.username)
-                        put(OAuth2AuthorizationContext.PASSWORD_ATTRIBUTE_NAME, props.password)
-                    }.let { Mono.just(it) }
-            }
+            setAuthorizedClientProvider(
+                ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+                    .provider(createAuthorizedClientProvider())
+                    .refreshToken()
+                    .build()
+            )
         }
 
     @Bean
     fun passwordClientRegistration(): ClientRegistration =
-        ClientRegistration
-            .withRegistrationId(REGISTRATION_ID)
+        ClientRegistration.withRegistrationId(REGISTRATION_ID)
             .tokenUri("https://idp.felleskomponent.no/nidp/oauth/nam/token")
-            .authorizationGrantType(AuthorizationGrantType.PASSWORD)
+            .authorizationGrantType(AuthorizationGrantType("password"))
             .clientId(props.clientId)
             .clientSecret(props.clientSecret)
             .scope(props.scope)
@@ -79,9 +73,11 @@ class WebClientConfig(
         InMemoryReactiveClientRegistrationRepository(passwordClientRegistration)
 
     fun createAuthorizedClientProvider(): ReactiveOAuth2AuthorizedClientProvider =
-        ReactiveOAuth2AuthorizedClientProviderBuilder
-            .builder()
-            .password { it.accessTokenResponseClient(WebClientReactivePasswordTokenResponseClient()) }
-            .refreshToken()
-            .build()
+        PasswordReactiveOAuth2AuthorizedClientProvider(
+            webClient = WebClient.builder().build(),
+            username = props.username,
+            password = props.password,
+            props = props,
+        )
+
 }

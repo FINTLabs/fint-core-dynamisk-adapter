@@ -28,6 +28,7 @@ class DynamicAdapterPublisher(
 
     fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
         logger.info("Registering to provider...")
+        if (props.offlineTest) return true
 
         val contract =
             AdapterContract
@@ -125,26 +126,31 @@ class DynamicAdapterPublisher(
 
             val page = factory.buildPage(syncType, meta, entries)
 
-            val (status) =
-                when (syncType) {
-                    SyncType.FULL -> {
-                        sendFullSyncPage(resourceName, page).block()
-                            ?: error("No response from provider")
+            if (props.offlineTest) {
+                logger.debug("📤 FakeSync: HTTP $200, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ")
+            } else {
+
+                val (status) =
+                    when (syncType) {
+                        SyncType.FULL -> {
+                            sendFullSyncPage(resourceName, page).block()
+                                ?: error("No response from provider")
+                        }
+
+                        SyncType.DELTA -> {
+                            sendDeltaSyncPage(resourceName, page).block()
+                                ?: error("No response from provider")
+                        }
+
+                        SyncType.DELETE -> {
+                            error("SyncType.DELETE not implemented.")
+                        }
                     }
 
-                    SyncType.DELTA -> {
-                        sendDeltaSyncPage(resourceName, page).block()
-                            ?: error("No response from provider")
-                    }
-
-                    SyncType.DELETE -> {
-                        error("SyncType.DELETE not implemented.")
-                    }
-                }
-
-            logger.debug(
-                "📤 ${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ",
-            )
+                logger.debug(
+                    "📤 ${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) "
+                )
+            }
         }
     }
 
