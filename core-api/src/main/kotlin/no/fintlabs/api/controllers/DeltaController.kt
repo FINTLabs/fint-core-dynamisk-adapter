@@ -15,25 +15,25 @@ import org.springframework.web.bind.annotation.RestController
 class DeltaController(
     private val runtime: DynamicAdapterRuntimeService,
 ) {
-    @PostMapping("/addResources")
+    @PostMapping("/add-resources")
     fun addResources(
         @RequestBody(required = true)
         resources: Map<ResourceIdentifiers, IntRange?>
     ) = runtime.addDeltaSyncResources(resources)
 
-    @PostMapping("/setResources")
+    @PostMapping("/set-resources")
     fun setResources(
         @RequestBody(required = true)
         resources: Map<ResourceIdentifiers, IntRange?>
     ) = runtime.setDeltaSyncResources(resources)
 
-    @PatchMapping("/setInterval")
+    @PatchMapping("/set-interval")
     fun setInterval(
         @RequestBody(required = true)
         interval: Int
     ) = runtime.setDeltaSyncInterval(interval)
-    
-    @PatchMapping("/resetInterval")
+
+    @PatchMapping("/reset-interval")
     fun resetInterval() = runtime.resetDeltaSyncInterval()
 
     @PostMapping("/enable")
@@ -42,7 +42,7 @@ class DeltaController(
     @PostMapping("/disable")
     fun disable() = runtime.setDisableDeltaSync()
 
-    @PatchMapping("/setAmountTierPolicy")
+    @PatchMapping("/set-amount-tier-policy")
     suspend fun setAmountTierPolicy(
         @RequestBody(required = true)
         body: AmountTierPolicyRequest
@@ -66,7 +66,7 @@ class DeltaController(
         )
     }
 
-    @PatchMapping("/resetAmountTierPolicy")
+    @PatchMapping("/reset-amount-tier-policy")
     suspend fun resetAmountTierPolicy() = runtime.resetAmountTierPolicy()
 
 }

@@ -17,20 +17,24 @@ import org.springframework.web.bind.annotation.RestController
 class DataController(
     private val runtime: DynamicAdapterRuntimeService,
 ) {
-    @PostMapping("/resources")
+    @PostMapping("/generate-resources")
     fun generateResources(
         @RequestBody(required = true)
         resources: Map<ResourceIdentifiers, Int>
-    ): String = runtime.submit(
-        CreateDataCommand(
-            resources = resources,
+    ): String {
+        val activeDomains = runtime.getActiveDomains()
+        for (resource in resources.keys) {
+            if (!activeDomains.contains(resource.domain)) return "ERROR: $resource is not in active domains. \n " +
+                    "update dataset to contain ${resource.domain} if you wish to generate this resource."
+        }
+        return runtime.submit(
+            CreateDataCommand(
+                resources = resources,
+            )
         )
-    )
+    }
 
-    @PostMapping("/resetDataset")
-    suspend fun resetDataset() = runtime.hardReset()
-
-    @PatchMapping("/updateDataset")
+    @PatchMapping("/update-dataset")
     suspend fun updateDataset(
         @RequestBody(required = true)
         domains: List<String>
@@ -43,7 +47,15 @@ class DataController(
         // If new datasets contain non-registered resources, re-register
     }
 
-    @PatchMapping("/setAmountTierPolicy")
+    @PatchMapping("/reset-dataset")
+    suspend fun resetDataset(): String {
+        return runtime.resetDataset()
+    }
+
+    @PostMapping("/reset-data")
+    suspend fun resetData() = runtime.hardReset()
+
+    @PatchMapping("/set-Amount-tier-policy")
     suspend fun setAmountTierPolicy(
         @RequestBody(required = true)
         body: AmountTierPolicyRequest
@@ -67,15 +79,15 @@ class DataController(
         )
     }
 
-    @PatchMapping("/resetAmountTierPolicy")
+    @PatchMapping("/reset-amount-tier-policy")
     suspend fun resetAmountTierPolicy() = runtime.resetAmountTierPolicy()
 
-    @PatchMapping("/setMaxGeneratedResources")
+    @PatchMapping("/set-max-generated-resources")
     fun setMaxGeneratedResources(
         @RequestBody(required = true)
         amount: Int
     ) = runtime.setMaxGeneratedResources(amount)
 
-    @PatchMapping("/resetMaxGeneratedResources")
+    @PatchMapping("/reset-max-generated-resources")
     fun resetMaxGeneratedResources() = runtime.resetMaxGeneratedResources()
 }

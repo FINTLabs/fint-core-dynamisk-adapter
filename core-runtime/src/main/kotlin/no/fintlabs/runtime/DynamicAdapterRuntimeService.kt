@@ -310,7 +310,12 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    fun resetDataset() = activeDomains.set(props.startupDomains)
+    fun resetDataset(): String {
+        if (activeDomains.get() != props.startupDomains) {
+            activeDomains.set(props.startupDomains)
+            return "Dataset is already set as standard"
+        } else return "Original dataset has been restored. run /data/reset-data to reset the generated data."
+    }
 
     // Delta setup stuff
 
@@ -446,6 +451,8 @@ class DynamicAdapterRuntimeService(
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
 
     fun getCurrentJobs(): List<RuntimeJobStatus> = currentJobs.values.sortedBy { it.requestedAt }
+
+    fun getActiveDomains(): List<String> = activeDomains.get()
 
     fun getAllJobs(): List<RuntimeJobStatus> = allJobs.values.sortedByDescending { it.requestedAt }
 
