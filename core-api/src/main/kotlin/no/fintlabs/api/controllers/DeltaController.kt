@@ -27,6 +27,15 @@ class DeltaController(
         resources: Map<ResourceIdentifiers, IntRange?>
     ) = runtime.setDeltaSyncResources(resources)
 
+    @PatchMapping("/setInterval")
+    fun setInterval(
+        @RequestBody(required = true)
+        interval: Int
+    ) = runtime.setDeltaSyncInterval(interval)
+    
+    @PatchMapping("/resetInterval")
+    fun resetInterval() = runtime.resetDeltaSyncInterval()
+
     @PostMapping("/enable")
     fun enable() = runtime.setEnableDeltaSync()
 
@@ -56,4 +65,8 @@ class DeltaController(
             )
         )
     }
+
+    @PatchMapping("/resetAmountTierPolicy")
+    suspend fun resetAmountTierPolicy() = runtime.resetAmountTierPolicy()
+
 }

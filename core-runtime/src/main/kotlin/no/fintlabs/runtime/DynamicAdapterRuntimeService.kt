@@ -27,7 +27,6 @@ import no.fintlabs.runtime.model.FullSyncCommand
 import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
-import no.fintlabs.contract.models.getKeys
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
@@ -72,6 +71,7 @@ class DynamicAdapterRuntimeService(
     private val heartBeatActive = AtomicBoolean(true)
 
     private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
+    private val deltaSyncIntervalInMinutes = AtomicInteger(props.deltaConfig.deltaSyncIntervalInMinutes)
     private val deltaSyncConfig = AtomicReference<DeltaConfig>(props.deltaConfig)
 
     private val resetEveryNight = AtomicBoolean(props.resetEveryNight)
@@ -267,7 +267,8 @@ class DynamicAdapterRuntimeService(
         else {
             deltaSyncLoopStartedAt.set(Instant.now())
             while (scope.isActive) {
-                delay(deltaSyncConfig.get().deltaSyncIntervalInMinutes * 60_000L)
+                val interval = deltaSyncIntervalInMinutes.get()
+                delay(interval.toLong() * 60_000L)
                 if (engine.verifyResourceLimitNotReached()) {
                     submit(DeltaSyncCommand())
                 }
@@ -329,6 +330,10 @@ class DynamicAdapterRuntimeService(
             )
         }
     }
+
+    fun setDeltaSyncInterval(intervalInMinutes: Int) = deltaSyncIntervalInMinutes.set(intervalInMinutes)
+
+    fun resetDeltaSyncInterval() = deltaSyncIntervalInMinutes.set(props.deltaConfig.deltaSyncIntervalInMinutes)
 
     fun setDeltaSyncResources(
         resources: Map<ResourceIdentifiers, IntRange?>
@@ -458,7 +463,7 @@ class DynamicAdapterRuntimeService(
 
         val nextRun = lastRun.plus(
             Duration.ofMinutes(
-                props.deltaConfig.deltaSyncIntervalInMinutes.toLong()
+                deltaSyncIntervalInMinutes.toLong()
             )
         )
         val localTime = nextRun.atZone(ZoneId.systemDefault()).toLocalDateTime()
