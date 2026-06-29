@@ -44,7 +44,6 @@ dependencies {
     implementation("no.novari:fint-utdanning-resource-model-java:$fintVersion")
     implementation("no.novari:fint-personvern-resource-model-java:$fintVersion")
     implementation("no.novari:fint-administrasjon-resource-model-java:$fintVersion")
-    implementation("no.fintlabs:fint-core-adapter-common:0.1.6-rc-7")
     implementation("no.fintlabs:fint-core-infra-models:2.1.2")
 
     // TEST

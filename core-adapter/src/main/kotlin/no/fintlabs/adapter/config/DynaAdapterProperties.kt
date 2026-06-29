@@ -4,7 +4,7 @@ import no.fintlabs.contract.models.ResourceIdentifiers
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.UUID
 
-@ConfigurationProperties(prefix = "dyna.adapter")
+@ConfigurationProperties(prefix = "fint.adapter")
 data class DynaAdapterProperties(
     private val id: String,
     val orgId: String = "fintlabs.no",

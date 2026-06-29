@@ -23,7 +23,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
 
     implementation("no.novari:fint-core-metamodel:3.0.0")
-    implementation("no.fintlabs:fint-core-adapter-common:0.1.6-rc-7")
+    implementation("no.fintlabs:fint-core-infra-models:2.1.2")
     implementation("no.novari:fint-arkiv-resource-model-java:$fintVersion")
     implementation("no.novari:fint-felles-resource-model-java:$fintVersion")
     implementation("no.novari:fint-ressurs-resource-model-java:$fintVersion")

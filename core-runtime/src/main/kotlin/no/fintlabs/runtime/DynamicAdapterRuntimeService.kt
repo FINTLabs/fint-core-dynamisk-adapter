@@ -233,7 +233,7 @@ class DynamicAdapterRuntimeService(
                     status.copy(
                         state = JobState.CANCELLED,
                         finishedAt = Instant.now(),
-                        message = "Cancelled by nightly reset"
+                        message = "Cancelled by hard reset"
                     )
                 }
             }
@@ -288,25 +288,24 @@ class DynamicAdapterRuntimeService(
 
     // Controller functions
 
-    fun updateDataset(domains: List<String>) {
+    fun updateDataset(domains: List<String>): String {
         if (domains == activeDomains.get()) {
-            logger.info("Updating dataset failed because dataset is already as specified")
+            return "Updating dataset failed because dataset is already as specified."
         }
         val newDomains = domains.filter { !activeDomains.get().contains(it) }
         if (newDomains.isEmpty()) {
-            activeDomains.set(domains)
-            return
+            return "All specified domains already exist in instance."
         } else {
             val allCapabilities: MutableSet<AdapterCapability> =
                 (engine.generateCapabilitiesForDomains(newDomains)
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
             if (registered) {
-                logger.error("Not yet implemented")
-                // TODO: Here registering with new Domains worked.
-                // TODO: Generate data from newDomains and perform FullSync
+                return "Dataset has been successfully updated. " +
+                        "\n Dataset successfully registered to Provider." +
+                        "\n If you want data from the new dataset, run a POST to /data/reset-data. "
 
-            } else logger.error("Failed to register with $newDomains")
+            } else return "Failed to register with $newDomains."
         }
     }
 
@@ -314,7 +313,7 @@ class DynamicAdapterRuntimeService(
         if (activeDomains.get() != props.startupDomains) {
             activeDomains.set(props.startupDomains)
             return "Dataset is already set as standard"
-        } else return "Original dataset has been restored. run /data/reset-data to reset the generated data."
+        } else return "Original dataset has been restored. run a POST to /data/reset-data to reset the generated data."
     }
 
     // Delta setup stuff

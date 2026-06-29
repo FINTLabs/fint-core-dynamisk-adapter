@@ -2,6 +2,7 @@ package no.fintlabs.adapter.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.security.oauth2.client.*
 import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
@@ -35,6 +36,16 @@ class WebClientConfig(
         ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
             .also { it.setDefaultClientRegistrationId(REGISTRATION_ID) }
 
+    @Bean
+    fun passwordClientRegistration(): ClientRegistration =
+        ClientRegistration.withRegistrationId(REGISTRATION_ID)
+            .tokenUri("https://idp.felleskomponent.no/nidp/oauth/nam/token")
+            .authorizationGrantType(AuthorizationGrantType("password"))
+            .clientId(props.clientId)
+            .clientSecret(props.clientSecret)
+            .scope(props.scope)
+            .build()
+
     /**
      * This manager:
      *  ✔ retrieves tokens via password grant
@@ -42,6 +53,7 @@ class WebClientConfig(
      *  ✔ refreshes tokens automatically when expired
      */
     @Bean
+    @Primary
     fun dynaAuthorizedClientManager(
         clientRegistrationRepository: ReactiveClientRegistrationRepository,
         authorizedClientService: ReactiveOAuth2AuthorizedClientService,
@@ -59,14 +71,12 @@ class WebClientConfig(
         }
 
     @Bean
-    fun passwordClientRegistration(): ClientRegistration =
-        ClientRegistration.withRegistrationId(REGISTRATION_ID)
-            .tokenUri("https://idp.felleskomponent.no/nidp/oauth/nam/token")
-            .authorizationGrantType(AuthorizationGrantType("password"))
-            .clientId(props.clientId)
-            .clientSecret(props.clientSecret)
-            .scope(props.scope)
-            .build()
+    fun dynaAuthorizedClientService(
+        clientRegistrationRepository: ReactiveClientRegistrationRepository,
+    ): ReactiveOAuth2AuthorizedClientService =
+        InMemoryReactiveOAuth2AuthorizedClientService(
+            clientRegistrationRepository
+        )
 
     @Bean
     fun clientRegistrationRepository(passwordClientRegistration: ClientRegistration): ReactiveClientRegistrationRepository =
@@ -79,5 +89,4 @@ class WebClientConfig(
             password = props.password,
             props = props,
         )
-
 }

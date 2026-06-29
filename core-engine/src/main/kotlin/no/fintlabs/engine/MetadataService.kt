@@ -17,6 +17,7 @@ class MetadataService(
     private val tierClassifier: AmountTierClassifier,
 ) {
     val logger: Logger = LoggerFactory.getLogger(MetadataService::class.java)
+    private val domainsGeneratedFor: MutableList<String> = mutableListOf()
     private val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
     private val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
 
@@ -26,34 +27,23 @@ class MetadataService(
         capabilities.map { "${it.domainName}/${it.component}/${it.resourceName}" }
 
     fun generateMetadataFromDomain(domain: String) {
-        val generatedMetadata: MutableList<ExpandedMetadata> = mutableListOf()
+        if (domainsGeneratedFor.contains(domain)) {
+            logger.trace("Metadata for $domain has already been generated.")
+        } else {
+            val generatedMetadata: MutableList<ExpandedMetadata> = mutableListOf()
 
-        val resources = model.getResources().filter { it.component.domainName.equals(domain, ignoreCase = true) }
+            val resources = model.getResources().filter { it.component.domainName.equals(domain, ignoreCase = true) }
 
-        if (resources.isNotEmpty()) {
-            for (resource in resources) {
-                val metadata = resource.generateMetadata()
-                metadataList.add(metadata)
-                generatedMetadata.add(metadata)
-            }
+            if (resources.isNotEmpty()) {
+                for (resource in resources) {
+                    val metadata = resource.generateMetadata()
+                    metadataList.add(metadata)
+                    generatedMetadata.add(metadata)
+                }
+            } else logger.warn("No metadata found for $domain")
+            domainsGeneratedFor.add(domain)
+            tierClassifier.classify(metadataList)
         }
-        tierClassifier.classify(metadataList)
-    }
-
-    fun generateMetadataFromIdentifiers(
-        identifiers: List<ResourceIdentifiers>,
-    ): MutableList<ExpandedMetadata> {
-        val metadataList = mutableListOf<ExpandedMetadata>()
-        for (it in identifiers) {
-            val resource = model.getResource(it.domain, it.component, it.resource)
-            val resourceKey = "${it.domain}/${it.component}/${it.resource}"
-            if (resource != null) {
-                val idMeta = resource.generateIdMetadata()
-                val metadata = ExpandedMetadata(resource, resourceKey, amountTier = null, idMeta.prefix, idMeta.type)
-                metadataList.add(metadata)
-            } else logger.error("Could not find resource: $resourceKey in metamodel.")
-        }
-        return metadataList
     }
 
     fun generateCapabilities(): MutableSet<AdapterCapability> {
