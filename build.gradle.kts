@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "no.fintlabs"
-version = "1.0.0"
+version = "4.0.0"
 description = "fint-core-dynamisk-adapter"
 
 java {
@@ -24,6 +24,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
+
 
     // FINT
     implementation("no.novari:fint-core-metamodel:3.0.0")

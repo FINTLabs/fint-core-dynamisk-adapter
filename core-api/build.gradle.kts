@@ -6,8 +6,8 @@ plugins {
 }
 
 group = "no.fintlabs"
-version = "1.0.0"
-description = "fint-core-dynamisk-adapter-core-api"
+description = "core-api"
+val fintVersion: String by project
 
 java {
     toolchain {
@@ -20,25 +20,28 @@ repositories {
     mavenCentral()
 }
 
-val fintVersion = "3.21.10"
-
 dependencies {
-    implementation(project(":core-lib"))
     implementation(project(":core-contract"))
+    implementation(project(":core-engine"))
+    implementation(project(":core-runtime"))
+    implementation(project(":core-adapter"))
 
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    implementation("no.fintlabs:fint-core-consumer-metamodel:2.0.0-rc-4")
-    implementation("no.fint:fint-utdanning-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-administrasjon-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-personvern-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-okonomi-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-ressurs-resource-model-java:$fintVersion")
-    implementation("no.fint:fint-arkiv-resource-model-java:$fintVersion")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("no.novari:fint-core-metamodel:3.0.0")
+    implementation("no.novari:fint-arkiv-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-felles-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-ressurs-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-okonomi-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-ressurs-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-utdanning-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-personvern-resource-model-java:${fintVersion}")
+    implementation("no.novari:fint-administrasjon-resource-model-java:${fintVersion}")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

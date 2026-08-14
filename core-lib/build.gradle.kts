@@ -38,6 +38,8 @@ dependencies {
     implementation("no.novari:fint-utdanning-resource-model-java:$fintVersion")
     implementation("no.novari:fint-personvern-resource-model-java:$fintVersion")
     implementation("no.novari:fint-administrasjon-resource-model-java:$fintVersion")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
 publishing {

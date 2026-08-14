@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: fint-core-dyna
+server:
+  port: 8182
+
+dyna:
+  runtime:
+    startup-domains: [ "utdanning" ]
+    enable-delta-sync: false
+    reset-every-night: false
+    amount-tier-policy:
+      grouping:
+        min: 1
+        max: 2
+      core: 10
+      dependant:
+        min: 20
+        max: 30
+      unknown:
+        min: 1
+        max: 2
+    fint-properties:
+      max-page-size: 1000
+      heartbeat-interval-in-minutes: 3
+    delta-config:
+      amount-tier-policy:
+        grouping:
+          min: 1
+          max: 2
+        core: 10
+        dependant:
+          min: 20
+          max: 30
+        unknown:
+          min: 1
+          max: 2
+      delta-sync-interval-in-minutes: 10
+      resources:
+        - domain: "utdanning"
+          component: "vurdering"
+          resource: "fravarsregistrering"
+        - domain: "utdanning"
+          component: "vurdering"
+          resource: "underveisfagvurdering"
+
+  engine:
+    seed: "test-seed-1"
+    max-generated-resources: 10000
+
+fint:
+  adapter:
+    id: fint-core-dyna
+    base-url: https://alpha.felleskomponent.no
+    idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
+    heartbeat-interval-in-minutes: 3
+    offline-test: false
+
+logging:
+  level:
+    no.fintlabs: TRACE
+#    no.fintlabs.runtime: TRACE
+#    no.fintlabs.engine: INFO
+#    no.fintlabs.api: INFO
+#    no.fintlabs.adapter: INFO
+#    no.fintlabs.library: INFO

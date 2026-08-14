@@ -3,12 +3,3 @@ spring:
     name: DYNA-core-adapter
   main:
     web-application-type: none
-  config:
-    import: "classpath:dynamisk-adapter.yaml"
-
-fint:
-  adapter:
-    id: fint-core-dyna
-    baseUrl: https://beta.felleskomponent.no
-    idpUri: https://idp.felleskomponent.no/nidp/oauth/nam/token
-    heartbeatIntervalInMinutes: 3
