@@ -163,14 +163,32 @@ class DynamicAdapterRuntimeService(
                 registeredCapabilitiesFor.set(capabilities.getKeys())
                 generateAndDeployInitialDataset()
 
-                deltaLoop()
-                heartbeatLoop(props.fintProperties.heartbeatIntervalInMinutes)
+                startBackgroundLoops()
+
+                updateJobMessage(command.id, "Startup sequence successful")
             } else throw IllegalStateException(
                 """Failed to register to provider with capabilities: 
                 $capabilities
                 """.trimMargin()
             )
         } else throw IllegalStateException("No capabilities to register")
+    }
+
+    private var deltaLoopJob: Job? = null
+    private var heartbeatLoopJob: Job? = null
+
+    private fun startBackgroundLoops() {
+        if (deltaLoopJob?.isActive != true) {
+            deltaLoopJob = scope.launch {
+                deltaLoop()
+            }
+        }
+
+        if (heartbeatLoopJob?.isActive != true) {
+            heartbeatLoopJob = scope.launch {
+                heartbeatLoop(props.fintProperties.heartbeatIntervalInMinutes)
+            }
+        }
     }
 
     private suspend fun handleFullSync() {
@@ -214,6 +232,7 @@ class DynamicAdapterRuntimeService(
         engine.executeInitialDataset(amountTierPolicy.get())
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
+        logger.info("Attempting to deploy initial dataset...")
         adapter.performSync(
             metadataList = metadata,
             dataList = allData,
@@ -263,9 +282,11 @@ class DynamicAdapterRuntimeService(
 
     var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
     private suspend fun deltaLoop() {
-        if (!enableDeltaSync.get()) return
-        else {
+        if (!enableDeltaSync.get()) {
+            logger.info("Delta sync is disabled.")
+        } else {
             deltaSyncLoopStartedAt.set(Instant.now())
+            logger.info("Delta sync loop started.")
             while (scope.isActive) {
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
@@ -289,24 +310,27 @@ class DynamicAdapterRuntimeService(
     // Controller functions
 
     fun updateDataset(domains: List<String>): String {
+        var returnString = ""
+
         if (domains == activeDomains.get()) {
             return "Updating dataset failed because dataset is already as specified."
         }
         val newDomains = domains.filter { !activeDomains.get().contains(it) }
         if (newDomains.isEmpty()) {
-            return "All specified domains already exist in instance."
+            returnString = "All specified domains already exist in instance."
         } else {
             val allCapabilities: MutableSet<AdapterCapability> =
                 (engine.generateCapabilitiesForDomains(newDomains)
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
             if (registered) {
-                return "Dataset has been successfully updated. " +
+                returnString = "Dataset has been successfully updated. " +
                         "\n Dataset successfully registered to Provider." +
                         "\n If you want data from the new dataset, run a POST to /data/reset-data. "
 
-            } else return "Failed to register with $newDomains."
+            } else returnString = "Failed to register with $newDomains."
         }
+        return returnString
     }
 
     fun resetDataset(): String {
@@ -318,7 +342,14 @@ class DynamicAdapterRuntimeService(
 
     // Delta setup stuff
 
-    fun setEnableDeltaSync() = enableDeltaSync.set(true)
+    fun setEnableDeltaSync() {
+        enableDeltaSync.set(true)
+
+        if (deltaLoopJob?.isActive != true)
+            deltaLoopJob = scope.launch {
+                deltaLoop()
+            }
+    }
 
     fun setDisableDeltaSync() = enableDeltaSync.set(false)
 

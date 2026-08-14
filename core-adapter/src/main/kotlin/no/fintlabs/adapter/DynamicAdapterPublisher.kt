@@ -83,6 +83,7 @@ class DynamicAdapterPublisher(
         syncType: SyncType,
         maxPageSize: Int,
     ) {
+        logger.info("Performing ${syncType.name} sync")
         for (metadata in metadataList) {
             val data = dataList[metadata]
             if (!data.isNullOrEmpty()) {

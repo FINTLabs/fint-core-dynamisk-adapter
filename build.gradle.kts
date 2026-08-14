@@ -25,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
 
+
     // FINT
     implementation("no.novari:fint-core-metamodel:3.0.0")
     implementation("no.novari:fint-arkiv-resource-model-java:$fintVersion")

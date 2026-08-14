@@ -38,19 +38,17 @@ class DataController(
     suspend fun updateDataset(
         @RequestBody(required = true)
         domains: List<String>
-    ) {
-        runtime.updateDataset(domains)
-        // TODO: /data/updateDataset
-        // replace current dataset with new dataset. If new set
-        // does not include current, remove current data,
+    ) = runtime.updateDataset(domains)
+    // TODO: /data/updateDataset
+    // replace current dataset with new dataset. If new set
+    // does not include current, remove current data,
 
-        // If new datasets contain non-registered resources, re-register
-    }
+    // If new datasets contain non-registered resources, re-register
+
 
     @PatchMapping("/reset-dataset")
-    suspend fun resetDataset(): String {
-        return runtime.resetDataset()
-    }
+    suspend fun resetDataset(): String = runtime.resetDataset()
+
 
     @PostMapping("/reset-data")
     suspend fun resetData() = runtime.hardReset()
