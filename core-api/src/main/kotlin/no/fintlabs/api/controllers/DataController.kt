@@ -1,10 +1,12 @@
 package no.fintlabs.api.controllers
 
+import no.fintlabs.api.dto.GenerateSpecifiedValueResourceRequest
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.dto.AmountTierPolicyRequest
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import no.fintlabs.runtime.model.CreateDataCommand
+import no.fintlabs.runtime.model.CreateSpecificDataCommand
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -33,6 +35,20 @@ class DataController(
             )
         )
     }
+
+    @PostMapping("/generate-specified-value-resources")
+    fun generateSpecifiedValueResources(
+        @RequestBody(required = true)
+        request: GenerateSpecifiedValueResourceRequest
+    ) =
+        runtime.submit(
+            CreateSpecificDataCommand(
+                resource = request.resource,
+                fieldName = request.fieldName,
+                fieldValue = request.fieldValue,
+                amount = request.amount,
+            )
+        )
 
     @PatchMapping("/update-dataset")
     suspend fun updateDataset(

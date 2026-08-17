@@ -70,7 +70,7 @@ class DynamicAdapterEngine(
         for (identifier in identifiers) {
             val meta = metadata.getMetadataFor(identifier.key)
             if (meta == null) {
-                logger.warn("No resource metadata found for ${identifier.key}")
+                logger.error("No resource metadata found for ${identifier.key}")
                 continue
             } else {
                 deltaMetadataList.add(meta)
@@ -98,6 +98,40 @@ class DynamicAdapterEngine(
         return fullList
     }
 
+    fun generateResourceWithSpecifiedFieldValue(
+        identifiers: ResourceIdentifiers,
+        fieldName: String,
+        fieldValue: String,
+        amount: Int
+    ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>>? {
+        val meta = metadata.getMetadataFor(identifiers)
+
+        if (meta == null) {
+            logger.error("No resource metadata found for ${identifiers.toKey()}")
+            return null
+        }
+        if (resourcesLeft() <= amount) {
+            logger.warn("max amount of resources reached. ")
+            return null
+        }
+
+        deltaStorage.addAllResources(
+            meta.key,
+            meta,
+            factory.createWithSingleSpecifiedValue(
+                meta.resource.resourceClass,
+                fieldName,
+                fieldValue,
+                amount
+            )
+        )
+        relations.relateDataset(mutableListOf(meta), SetType.DELTA)
+        val resources = getAllGeneratedResourcesForSetType(mutableListOf(meta), SetType.DELTA)
+        deltaStorage.purge()
+        debugGenCapPercentage()
+        return resources
+    }
+
     private fun getAllGeneratedResourcesForSetType(
         metadataList: MutableList<ExpandedMetadata>,
         setType: SetType,
@@ -118,7 +152,9 @@ class DynamicAdapterEngine(
 
     private fun resourcesLeft(): Int = maxGeneratedResources.get() - storage.totalCount()
 
-    fun verifyResourceLimitNotReached(): Boolean = resourcesLeft() > 0
+    fun verifyResourceLimitNotReached(): Boolean {
+        return resourcesLeft() > 0
+    }
 
     fun getAllMetadata(): MutableList<ExpandedMetadata> {
         return metadata.getAllMetadata()

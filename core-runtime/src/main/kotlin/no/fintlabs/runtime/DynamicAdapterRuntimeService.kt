@@ -30,6 +30,7 @@ import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
+import no.fintlabs.runtime.model.CreateSpecificDataCommand
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.collections.iterator
 
 
 @Component
@@ -98,7 +100,7 @@ class DynamicAdapterRuntimeService(
     }
 
     fun submit(command: RuntimeCommand): String {
-        logger.debug("Submitting ${command.javaClass.simpleName}, ${command.id}")
+        logger.info("Submitting ${command.javaClass.simpleName}, ${command.id}")
         markQueued(command)
 
         val result = queue.trySend(command)
@@ -123,6 +125,7 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun handle(command: RuntimeCommand) {
+        logger.info("Handling ${command.javaClass.simpleName}, ${command.id}")
         when (command) {
             is StartupSequence -> handleStartup(command)
             is FullSyncCommand -> handleFullSync()
@@ -132,6 +135,10 @@ class DynamicAdapterRuntimeService(
                     resources[res.key] = IntRange(res.value, res.value)
                 }
                 handleGenerateResources(resources)
+            }
+
+            is CreateSpecificDataCommand -> {
+                handleGenerateSpecifiedResources(command)
             }
 
             is DeltaSyncCommand -> {
@@ -223,7 +230,36 @@ class DynamicAdapterRuntimeService(
             )
             lastDeltaSyncAt.set(Instant.now())
         } else {
-            logger.info("Failed to generate resources. Max amount of resources limit reached.")
+            logger.error("Failed to generate resources. Max amount of resources limit reached.")
+            enableDeltaSync.set(false)
+        }
+    }
+
+    private suspend fun handleGenerateSpecifiedResources(command: CreateSpecificDataCommand) {
+        if (engine.verifyResourceLimitNotReached()) {
+
+            val resources = engine
+                .generateResourceWithSpecifiedFieldValue(
+                    command.resource,
+                    command.fieldName,
+                    command.fieldValue,
+                    command.amount
+                )
+
+            if (resources!!.values.isNotEmpty()) {
+                val metadata = resources.keys.first()
+
+                adapter.performSync(
+                    metadataList = mutableListOf(metadata),
+                    dataList = resources,
+                    syncType = SyncType.DELTA,
+                    maxPageSize = maxPageSize.get(),
+                )
+                lastDeltaSyncAt.set(Instant.now())
+            } else logger.error("Failed to generate specified resources for ${command.resource}")
+
+        } else {
+            logger.error("Failed to generate resources. Max amount of resources limit reached.")
             enableDeltaSync.set(false)
         }
     }
@@ -449,15 +485,17 @@ class DynamicAdapterRuntimeService(
                 finishedAt = Instant.now(),
             )
         }
-        logger.debug("JOB DONE: ${command.id}, $message")
+        logger.info("JOB DONE: ${command.id}, $message")
         when (command) {
             is StartupSequence -> lastFullSyncAt.set(Instant.now())
             is FullSyncCommand -> lastFullSyncAt.set(Instant.now())
-            is CreateDataCommand -> lastDeltaSyncAt.set(Instant.now())
             is DeltaSyncCommand -> {
                 lastDeltaSyncAt.set(Instant.now())
                 lastScheduledDeltaSyncAt.set(Instant.now())
             }
+
+            is CreateDataCommand -> lastDeltaSyncAt.set(Instant.now())
+            is CreateSpecificDataCommand -> lastDeltaSyncAt.set(Instant.now())
         }
         currentJobs.remove(command.id)
     }

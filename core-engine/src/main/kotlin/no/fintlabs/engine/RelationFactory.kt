@@ -162,7 +162,7 @@ class RelationFactory(
 //                )
 //            }
         }
-        logger.debug("⛓️ $setType : $primName now has links to $secName")
+        logger.trace("⛓️ $setType : $primName now has links to $secName")
     }
 
     private fun getSecondaryMetadata(
