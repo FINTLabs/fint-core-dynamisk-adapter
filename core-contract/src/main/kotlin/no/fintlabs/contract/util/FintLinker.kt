@@ -3,7 +3,6 @@ package no.fintlabs.contract.util
 import no.novari.fint.model.resource.FintResource
 import no.novari.fint.model.resource.Link
 
-// TODO: Refactor AFTER Store refactor
 fun FintResource.putLink(
     rel: String,
     targetId: String,
