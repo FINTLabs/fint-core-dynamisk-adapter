@@ -54,13 +54,14 @@ fint:
     base-url: https://alpha.felleskomponent.no
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
-    offline-test: false
+    offline-test: true
 
 logging:
   level:
-    no.fintlabs: TRACE
-#    no.fintlabs.runtime: TRACE
-#    no.fintlabs.engine: INFO
-#    no.fintlabs.api: INFO
-#    no.fintlabs.adapter: INFO
-#    no.fintlabs.library: INFO
+    no.fintlabs: INFO
+    #    no.fintlabs.runtime: TRACE
+    #    no.fintlabs.engine: INFO
+    #    no.fintlabs.api: INFO
+    #    no.fintlabs.adapter: INFO
+    #    no.fintlabs.library: INFO
+#    org.springframework.security: TRACE
