@@ -26,7 +26,6 @@ import no.novari.fint.model.resource.okonomi.faktura.FakturalinjeResource
 import no.novari.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.novari.fint.model.utdanning.elev.Klasse
 import no.novari.fint.model.utdanning.vurdering.Fravarsprosent
-import no.novari.metamodel.model.Resource
 import java.lang.reflect.Field
 import java.util.Date
 import kotlin.collections.iterator
@@ -168,7 +167,7 @@ class ResourceFactory(
                     }
 
                     AdresseResource::class.java -> {
-                        { AdresseResource() }
+                        { randomizer.createAddress() }
                     }
 
                     Avskrivning::class.java -> {
