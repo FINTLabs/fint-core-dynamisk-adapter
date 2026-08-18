@@ -141,7 +141,7 @@ class DynamicAdapterEngine(
                     deltaStorage.getAllResources(i.key)
                 else storage.getAllResources(i.key)
 
-            logger.trace("${i.key} : $setType now contains ${fullList[i]?.size} resources.")
+            logger.trace("{} : {} now contains {} resources.", i.key, setType, fullList[i]?.size)
         }
         return fullList
     }

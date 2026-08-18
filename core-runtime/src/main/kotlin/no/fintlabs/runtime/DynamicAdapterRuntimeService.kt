@@ -28,7 +28,6 @@ import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
-import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
 import no.fintlabs.runtime.model.StartupSequence
@@ -75,11 +74,11 @@ class DynamicAdapterRuntimeService(
 
     private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
     private val deltaSyncIntervalInMinutes = AtomicInteger(props.deltaConfig.deltaSyncIntervalInMinutes)
-    private val deltaSyncConfig = AtomicReference<DeltaConfig>(props.deltaConfig)
+    private val deltaSyncConfig = AtomicReference(props.deltaConfig)
 
     private val resetEveryNight = AtomicBoolean(props.resetEveryNight)
-    private val activeDomains = AtomicReference<List<String>>(props.startupDomains)
-    private val amountTierPolicy = AtomicReference<AmountTierPolicy>(props.amountTierPolicy.toAmountTierPolicy())
+    private val activeDomains = AtomicReference(props.startupDomains)
+    private val amountTierPolicy = AtomicReference(props.amountTierPolicy.toAmountTierPolicy())
     private val maxPageSize = AtomicInteger(props.fintProperties.maxPageSize)
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
     private val registeredCapabilitiesFor = AtomicReference<List<String>>(listOf())
@@ -350,25 +349,25 @@ class DynamicAdapterRuntimeService(
     // Controller functions
 
     fun updateDataset(domains: List<String>): String {
-        var returnString = ""
+        var returnString: String
 
         if (domains == activeDomains.get()) {
             return "Updating dataset failed because dataset is already as specified."
         }
         val newDomains = domains.filter { !activeDomains.get().contains(it) }
-        if (newDomains.isEmpty()) {
-            returnString = "All specified domains already exist in instance."
+        returnString = if (newDomains.isEmpty()) {
+            "All specified domains already exist in instance."
         } else {
             val allCapabilities: MutableSet<AdapterCapability> =
                 (engine.generateCapabilitiesForDomains(newDomains)
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
             if (registered.registered) {
-                returnString = "Dataset has been successfully updated. " +
+                "Dataset has been successfully updated. " +
                         "\n Dataset successfully registered to Provider." +
                         "\n If you want data from the new dataset, run a POST to /data/reset-data. "
 
-            } else returnString = "Failed to register with $newDomains."
+            } else "Failed to register with $newDomains."
         }
         return returnString
     }
@@ -520,7 +519,7 @@ class DynamicAdapterRuntimeService(
     // Status stuff
 
     fun isRegistered() = registered.get()
-    
+
     fun isOffline() = offline.get()
 
     fun getRunningJob(): RuntimeJobStatus? =
