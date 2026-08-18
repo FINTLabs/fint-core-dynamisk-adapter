@@ -162,7 +162,7 @@ class DynamicAdapterEngine(
     fun purgeAllStoredResources() {
         deltaStorage.purge()
         storage.purge()
-        logger.debug("Purged all stored resources")
+        logger.info("Purged all stored resources")
         debugGenCapPercentage()
     }
 
@@ -173,12 +173,14 @@ class DynamicAdapterEngine(
     fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
 
     fun debugGenCapPercentage() =
-        logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")
+        logger.info("Percentage of max generated resources: ${generationCapacityPercentage()}")
 
     // Status Stuff
 
-    private fun generationCapacityPercentage(): Double =
-        (storage.totalCount().toDouble() / maxGeneratedResources.toDouble() * 100.0)
+    private fun generationCapacityPercentage(): String {
+        val percentage = (storage.totalCount().toDouble() / maxGeneratedResources.toDouble() * 100.0).toInt()
+        return "$percentage%"
+    }
 
     fun resourceStatus(): ResourceStatus =
         ResourceStatus(
