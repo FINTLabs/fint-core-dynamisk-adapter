@@ -45,7 +45,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.iterator
 
-
 @Component
 class DynamicAdapterRuntimeService(
     val engine: DynamicAdapterEngine,
