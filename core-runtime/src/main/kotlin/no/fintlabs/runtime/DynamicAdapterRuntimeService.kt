@@ -167,7 +167,7 @@ class DynamicAdapterRuntimeService(
             heartBeatActive.set(registration.registered)
             offline.set(registration.offline)
             if (registered.get()) {
-                updateJobMessage(command.id, "Registeration successful")
+                updateJobMessage(command.id, "Registration successful")
                 registeredCapabilities.addAll(capabilities)
                 registeredCapabilitiesFor.set(capabilities.getKeys())
                 generateAndDeployInitialDataset(command)
