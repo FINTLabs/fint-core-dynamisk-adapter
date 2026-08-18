@@ -64,6 +64,7 @@ class DynamicAdapterRuntimeService(
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private var activeWorkerJob: Job? = null
 
+    private val offline = AtomicBoolean(false)
     private val registered = AtomicBoolean(false)
     private val lastFullSyncAt = AtomicReference<Instant?>(null)
     private val lastHeartBeatAt = AtomicReference<Instant?>(null)
@@ -108,6 +109,7 @@ class DynamicAdapterRuntimeService(
             markFailed(command, IllegalStateException("Failed to submit ${command.id}"))
             logger.error("Failed to submit ${command.id}")
         }
+
         return "command ${command.id} submitted. \n There are ${queueSize() - 1} queued jobs before yours."
     }
 
@@ -162,13 +164,14 @@ class DynamicAdapterRuntimeService(
         if (capabilities.isNotEmpty()) {
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
             val registration = adapter.register(capabilities)
-            registered.set(registration)
-            heartBeatActive.set(registration)
+            registered.set(registration.registered)
+            heartBeatActive.set(registration.registered)
+            offline.set(registration.offline)
             if (registered.get()) {
                 updateJobMessage(command.id, "Registeration successful")
                 registeredCapabilities.addAll(capabilities)
                 registeredCapabilitiesFor.set(capabilities.getKeys())
-                generateAndDeployInitialDataset()
+                generateAndDeployInitialDataset(command)
 
                 startBackgroundLoops()
 
@@ -230,8 +233,8 @@ class DynamicAdapterRuntimeService(
             )
             lastDeltaSyncAt.set(Instant.now())
         } else {
-            logger.error("Failed to generate resources. Max amount of resources limit reached.")
             enableDeltaSync.set(false)
+            throw IllegalStateException("Failed to generate resources. Max amount of resources limit reached.")
         }
     }
 
@@ -256,19 +259,19 @@ class DynamicAdapterRuntimeService(
                     maxPageSize = maxPageSize.get(),
                 )
                 lastDeltaSyncAt.set(Instant.now())
-            } else logger.error("Failed to generate specified resources for ${command.resource}")
 
+            } else throw IllegalStateException("Failed to generate specified resources for ${command.resource}")
         } else {
-            logger.error("Failed to generate resources. Max amount of resources limit reached.")
             enableDeltaSync.set(false)
+            throw IllegalStateException("Failed to generate resources. Max amount of resources limit reached.")
         }
     }
 
-    private suspend fun generateAndDeployInitialDataset() {
+    private suspend fun generateAndDeployInitialDataset(command: StartupSequence) {
         engine.executeInitialDataset(amountTierPolicy.get())
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
-        logger.info("Attempting to deploy initial dataset...")
+        updateJobMessage(command.id, "Attempting to deploy initial dataset...")
         adapter.performSync(
             metadataList = metadata,
             dataList = allData,
@@ -317,12 +320,13 @@ class DynamicAdapterRuntimeService(
     }
 
     var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
+
     private suspend fun deltaLoop() {
         if (!enableDeltaSync.get()) {
             logger.info("Delta sync is disabled.")
         } else {
             deltaSyncLoopStartedAt.set(Instant.now())
-            logger.info("Delta sync loop started.")
+            logger.info("Delta sync loop started, " + nextScheduledDeltaSync())
             while (scope.isActive) {
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
@@ -335,8 +339,8 @@ class DynamicAdapterRuntimeService(
 
     private suspend fun heartbeatLoop(minutes: Int) {
         while (scope.isActive) {
-            delay(minutes * 60_000L)
             if (heartBeatActive.get()) {
+                delay(minutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
                 adapter.giveHeartBeat()
             } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
@@ -359,7 +363,7 @@ class DynamicAdapterRuntimeService(
                 (engine.generateCapabilitiesForDomains(newDomains)
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
-            if (registered) {
+            if (registered.registered) {
                 returnString = "Dataset has been successfully updated. " +
                         "\n Dataset successfully registered to Provider." +
                         "\n If you want data from the new dataset, run a POST to /data/reset-data. "
@@ -436,10 +440,12 @@ class DynamicAdapterRuntimeService(
 
     // Job Status stuff
 
-    private fun updateJobMessage(id: String, message: String) {
+    private fun updateJobMessage(id: String, message: String, log: Boolean = true) {
         currentJobs[id]?.message = message
         allJobs[id]?.message = message
-        logger.info("JOB UPDATE ${Instant.now()} --- $id: $message")
+        if (log) {
+            logger.info("JOB UPDATE ${Instant.now()} --- $id: $message")
+        }
     }
 
     private fun updateStatus(
@@ -514,6 +520,8 @@ class DynamicAdapterRuntimeService(
     // Status stuff
 
     fun isRegistered() = registered.get()
+    
+    fun isOffline() = offline.get()
 
     fun getRunningJob(): RuntimeJobStatus? =
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }

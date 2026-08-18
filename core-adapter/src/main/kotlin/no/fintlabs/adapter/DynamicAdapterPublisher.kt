@@ -6,6 +6,7 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.adapter.config.DynaAdapterProperties
 import no.fintlabs.contract.data.ExpandedMetadata
+import no.fintlabs.contract.dto.AdapterRegistrationResponse
 import no.fintlabs.contract.models.HeartBeatRequest
 import no.novari.fint.model.resource.FintResource
 import org.slf4j.Logger
@@ -26,9 +27,9 @@ class DynamicAdapterPublisher(
 ) {
     val logger: Logger = LoggerFactory.getLogger(DynamicAdapterPublisher::class.java)
 
-    fun register(capabilities: MutableSet<AdapterCapability>): Boolean {
+    fun register(capabilities: MutableSet<AdapterCapability>): AdapterRegistrationResponse {
         logger.info("Registering to provider...")
-        if (props.offlineTest) return true
+        if (props.offlineTest) return AdapterRegistrationResponse(registered = true, offline = true)
 
         val contract =
             AdapterContract
@@ -55,7 +56,7 @@ class DynamicAdapterPublisher(
                         }
                 }.block()
         logger.info("🔑 Adapter Registration :  $response")
-        return response!!.first == 200
+        return AdapterRegistrationResponse(registered = response!!.first == 200, offline = false)
     }
 
     fun giveHeartBeat() {

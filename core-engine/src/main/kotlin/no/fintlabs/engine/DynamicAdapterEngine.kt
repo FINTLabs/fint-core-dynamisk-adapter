@@ -105,14 +105,10 @@ class DynamicAdapterEngine(
         amount: Int
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>>? {
         val meta = metadata.getMetadataFor(identifiers)
+            ?: throw IllegalArgumentException("No resource metadata found for ${identifiers.toKey()}")
 
-        if (meta == null) {
-            logger.error("No resource metadata found for ${identifiers.toKey()}")
-            return null
-        }
         if (resourcesLeft() <= amount) {
-            logger.warn("max amount of resources reached. ")
-            return null
+            throw IllegalStateException("max amount of resources reached. ")
         }
 
         deltaStorage.addAllResources(

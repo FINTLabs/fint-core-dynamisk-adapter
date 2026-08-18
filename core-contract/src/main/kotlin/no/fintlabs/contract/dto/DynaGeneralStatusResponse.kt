@@ -5,6 +5,7 @@ import no.fintlabs.contract.data.RuntimeJobStatus
 import java.time.Instant
 
 data class DynaGeneralStatusResponse(
+    val offline: Boolean,
     val registered: Boolean,
     val queueSize: Int,
     val runningJob: RuntimeJobStatus?,

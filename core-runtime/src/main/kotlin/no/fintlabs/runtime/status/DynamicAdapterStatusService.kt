@@ -15,6 +15,7 @@ class DynamicAdapterStatusService(
 ) {
     fun status(): DynaGeneralStatusResponse =
         DynaGeneralStatusResponse(
+            offline = runtime.isOffline(),
             registered = runtime.isRegistered(),
             queueSize = runtime.queueSize(),
             runningJob = runtime.getRunningJob(),
