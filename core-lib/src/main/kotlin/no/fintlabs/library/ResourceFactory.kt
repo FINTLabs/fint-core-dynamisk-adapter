@@ -489,6 +489,14 @@ class ResourceFactory(
 
                 identifikator.identifikatorverdi = fieldValue
             }
+
+            Int::class.java -> {
+                targetField.set(resource, fieldValue.toInt())
+            }
+
+            Long::class.java -> {
+                targetField.set(resource, fieldValue.toLong())
+            }
         }
     }
 
