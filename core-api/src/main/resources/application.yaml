@@ -54,7 +54,8 @@ fint:
     base-url: https://alpha.felleskomponent.no
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
-    offline-test: true
+    event-check-interval-minutes: 5
+    offline-mode: false
 
 logging:
   level:

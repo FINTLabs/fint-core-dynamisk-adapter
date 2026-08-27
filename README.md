@@ -24,7 +24,7 @@ Det er også i denne modulens application.yaml fil all konfigurasjon spesifisere
 Ved oppstart
 
 *Environment variabler må også settes opp utenom disse for at applikasjonen skal kunne kjøre uten
-`fint.adapter.offline-test = true`.
+`fint.adapter.offline-mode = true`.
 Se intern dokumentasjon for hvordan å fylle inn disse.
 
 # **core-lib: Enkelt implementerbart bibliotek for ressursgenerering**
@@ -86,4 +86,4 @@ val sivert = factory
 
 Dette kan gjøres for felter av typene: `String`, `Int`, `Long` og `Identifikator`.
 Feltverdien må sendes inn i form av en `String`, men gjøres om til den korrekte typen under genereringen.
-Etterspør du flere ressurser vil kun spesifiserte feltet være likt. Alle andre vil være tilfeldig generert. 
+Etterspør du flere ressurser vil kun spesifiserte feltet være likt. Alle andre vil være tilfeldig generert.

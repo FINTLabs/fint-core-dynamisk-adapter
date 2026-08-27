@@ -2,11 +2,16 @@ package no.fintlabs.engine
 
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
+import no.fintlabs.adapter.models.sync.SyncPageEntry
+import no.fintlabs.adapter.operation.OperationType
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
+import no.fintlabs.contract.util.getId
 import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
@@ -98,6 +103,50 @@ class DynamicAdapterEngine(
         return fullList
     }
 
+    // EVENTS
+    // TODO
+    fun executeEventRequest(event: RequestFintEvent): ResponseFintEvent {
+        val resourceKey: String = "${event.domainName}/${event.packageName}/${event.resourceName}"
+        val resourceId: String = event.value
+
+        val actualResource: FintResource? = storage.getResource''(resourceKey)
+
+        when (event.operationType) {
+            OperationType.CREATE -> {
+
+            }
+
+            OperationType.UPDATE -> {
+
+            }
+
+            OperationType.DELETE -> {
+
+            }
+
+            OperationType.VALIDATE -> {
+
+            }
+
+        }
+
+        val actual: SyncPageEntry?
+
+        return ResponseFintEvent
+            .ResponseFintEventBuilder()
+            .value()
+
+        // TODO: Perhaps creating the SyncPageEntry here is would be better, so a complete ResponseFintEvent can be
+        // Delivered from the
+//        fun buildEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
+//            val id =
+//                requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
+//                    "Missing identifier for ${resource.javaClass.simpleName}"
+//                }
+//            return SyncPageEntry.of(id, resource)
+//        }
+    }
+
     fun generateResourceWithSpecifiedFieldValue(
         identifiers: ResourceIdentifiers,
         fieldName: String,
@@ -145,6 +194,7 @@ class DynamicAdapterEngine(
         }
         return fullList
     }
+
 
     private fun resourcesLeft(): Int = maxGeneratedResources.get() - storage.totalCount()
 

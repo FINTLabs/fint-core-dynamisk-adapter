@@ -1,5 +1,6 @@
 package no.fintlabs.runtime.model
 
+import no.fintlabs.adapter.operation.OperationType
 import no.fintlabs.contract.models.ResourceIdentifiers
 import java.time.Instant
 import java.util.UUID
@@ -39,4 +40,11 @@ data class FullSyncCommand(
 data class DeltaSyncCommand(
     override val id: String = "deltaSync_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
+) : RuntimeCommand
+
+data class EventHandlingCommand(
+    override val id: String = "eventHandling_" + UUID.randomUUID().toString(),
+    override val requestedAt: Instant = Instant.now(),
+    val operationType: OperationType,
+    val eventCorrId: String,
 ) : RuntimeCommand

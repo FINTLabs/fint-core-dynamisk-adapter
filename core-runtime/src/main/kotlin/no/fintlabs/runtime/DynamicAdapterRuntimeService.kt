@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import no.fintlabs.adapter.DynamicAdapterPublisher
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
@@ -30,6 +31,7 @@ import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
+import no.fintlabs.runtime.model.EventHandlingCommand
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -57,6 +59,7 @@ class DynamicAdapterRuntimeService(
 
     private val runtimeMutex = Mutex()
 
+
     private var queue = Channel<RuntimeCommand>(capacity = Channel.UNLIMITED)
     private val currentJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
@@ -68,8 +71,12 @@ class DynamicAdapterRuntimeService(
     private val lastHeartBeatAt = AtomicReference<Instant?>(null)
     private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
     private val lastScheduledDeltaSyncAt = AtomicReference<Instant?>(null)
+    private var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
 
     private val heartBeatActive = AtomicBoolean(true)
+
+    private val eventCheckIntervalMinutes = AtomicInteger(0)
+    private val eventCache: MutableMap<String, RequestFintEvent> = Map<String, RequestFintEvent>()
 
     private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
     private val deltaSyncIntervalInMinutes = AtomicInteger(props.deltaConfig.deltaSyncIntervalInMinutes)
@@ -154,6 +161,10 @@ class DynamicAdapterRuntimeService(
                 }
                 handleGenerateResources(resources)
             }
+
+            is EventHandlingCommand -> {
+                executeEventRequest(command)
+            }
         }
     }
 
@@ -161,10 +172,13 @@ class DynamicAdapterRuntimeService(
         val capabilities = engine.generateCapabilitiesForDomains(command.domains)
         if (capabilities.isNotEmpty()) {
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
+
             val registration = adapter.register(capabilities)
             registered.set(registration.registered)
             heartBeatActive.set(registration.registered)
             offline.set(registration.offline)
+            eventCheckIntervalMinutes.set(registration.eventCheckIntervalMinutes)
+
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
                 registeredCapabilities.addAll(capabilities)
@@ -184,6 +198,7 @@ class DynamicAdapterRuntimeService(
 
     private var deltaLoopJob: Job? = null
     private var heartbeatLoopJob: Job? = null
+    private var eventCheckLoop: Job? = null
 
     private fun startBackgroundLoops() {
         if (deltaLoopJob?.isActive != true) {
@@ -194,7 +209,13 @@ class DynamicAdapterRuntimeService(
 
         if (heartbeatLoopJob?.isActive != true) {
             heartbeatLoopJob = scope.launch {
-                heartbeatLoop(props.fintProperties.heartbeatIntervalInMinutes)
+                heartbeatLoop()
+            }
+        }
+
+        if (eventCheckLoop?.isActive != true) {
+            eventCheckLoop = scope.launch {
+                eventCheckLoop()
             }
         }
     }
@@ -317,8 +338,6 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
-
     private suspend fun deltaLoop() {
         if (!enableDeltaSync.get()) {
             logger.info("Delta sync is disabled.")
@@ -335,14 +354,56 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    private suspend fun heartbeatLoop(minutes: Int) {
+    private suspend fun heartbeatLoop() {
         while (scope.isActive) {
             if (heartBeatActive.get()) {
-                delay(minutes * 60_000L)
+                delay(props.fintProperties.heartbeatIntervalInMinutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
                 adapter.giveHeartBeat()
             } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
         }
+    }
+
+    // Events
+
+    private suspend fun eventCheckLoop() {
+        while (scope.isActive) {
+            if (eventCheckIntervalMinutes.get() >= 1) {
+                delay(eventCheckIntervalMinutes.toLong() * 60_000L)
+                checkForEvents()
+            } else logger.warn("EVENT CHECKING IS DEACTIVATED")
+        }
+    }
+
+    private fun checkForEvents() {
+        // Tell ADAPTER to check for EVENTS
+        val events: List<RequestFintEvent> = adapter.getEvents()
+        if (events.isEmpty()) {
+            logger.info("Event check done, no events returned.")
+        } else {
+            for (event in events) {
+
+                // TODO: Validate it is a valid doable event
+
+                // TODO: Create Command
+
+                // TODO: Save RequestFintEvent to local EVENT_CACHE
+
+                submit(command)
+            }
+        }
+    }
+
+    // TODO
+    private fun executeEventRequest(command: EventHandlingCommand) {
+
+        val request = eventCache[command.eventCorrId]
+        if (request != null) {
+
+            val execution = engine.executeEventRequest(request)
+
+            adapter.postEvent(execution)
+        } else logger.error("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
     }
 
     // Controller functions

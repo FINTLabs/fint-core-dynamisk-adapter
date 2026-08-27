@@ -5,6 +5,8 @@ import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.adapter.config.DynaAdapterProperties
+import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.dto.AdapterRegistrationResponse
 import no.fintlabs.contract.models.HeartBeatRequest
@@ -29,7 +31,11 @@ class DynamicAdapterPublisher(
 
     fun register(capabilities: MutableSet<AdapterCapability>): AdapterRegistrationResponse {
         logger.info("Registering to provider...")
-        if (props.offlineTest) return AdapterRegistrationResponse(registered = true, offline = true)
+        if (props.offlineMode) return AdapterRegistrationResponse(
+            registered = true,
+            offline = true,
+            eventCheckIntervalMinutes = 0
+        )
 
         val contract =
             AdapterContract
@@ -56,7 +62,11 @@ class DynamicAdapterPublisher(
                         }
                 }.block()
         logger.info("🔑 Adapter Registration :  $response")
-        return AdapterRegistrationResponse(registered = response!!.first == 200, offline = false)
+        return AdapterRegistrationResponse(
+            registered = response!!.first == 200,
+            offline = false,
+            eventCheckIntervalMinutes = props.eventCheckIntervalMinutes
+        )
     }
 
     fun giveHeartBeat() {
@@ -95,6 +105,25 @@ class DynamicAdapterPublisher(
         }
     }
 
+    //TODO:
+    fun getEvents(): List<RequestFintEvent> =
+        webClient
+            .get()
+            .uri("${props.baseUrl}/event")
+            .bodyToMono<List<RequestFintEvent>>()
+            .block()
+
+    fun postEvent(event: ResponseFintEvent) =
+        webClient
+            .post()
+            .uri("${props.baseUrl}/event")
+            .bodyValue(event)
+            .exchangeToMono { response ->
+                Mono
+                    .just(logger.debug("Event reply status:${response.statusCode().value()}"))
+            }
+            .block()
+
     private fun publish(
         resourceName: String,
         metadata: ExpandedMetadata,
@@ -128,7 +157,7 @@ class DynamicAdapterPublisher(
 
             val page = factory.buildPage(syncType, meta, entries)
 
-            if (props.offlineTest) {
+            if (props.offlineMode) {
                 logger.debug("📤 FakeSync: HTTP $200, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ")
             } else {
 

@@ -14,12 +14,16 @@ class SyncPageFactory() {
     fun buildEntries(resources: List<FintResource>, meta: ExpandedMetadata): MutableList<SyncPageEntry> =
         resources
             .map { resource ->
-                val id =
-                    requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
-                        "Missing identifier for ${resource.javaClass.simpleName}"
-                    }
-                SyncPageEntry.of(id, resource)
+                buildEntry(resource, meta)
             }.toMutableList()
+    
+    fun buildEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
+        val id =
+            requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
+                "Missing identifier for ${resource.javaClass.simpleName}"
+            }
+        return SyncPageEntry.of(id, resource)
+    }
 
     fun buildMetadata(
         resourceName: String,
