@@ -12,6 +12,7 @@ import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
+import no.fintlabs.contract.util.getId
 import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
@@ -119,10 +120,13 @@ class DynamicAdapterEngine(
             )
         )
 
+
         val actualResource: FintResource? = objectMapper.readValue(
             event.value,
             resourceClass!!.resource.resourceClass
         )
+
+        val actual: SyncPageEntry?
 
         when (event.operationType) {
             OperationType.CREATE -> {
@@ -130,8 +134,15 @@ class DynamicAdapterEngine(
             }
 
             OperationType.UPDATE -> {
-                val newResourceId = actualResource!!.identifikators.firstNotNullOf { it.key == resourceClass.idPrefix }.
-                val res = storage.replaceResource(resourceKey, newResourceId, actualResource)
+                val resourceId: String = actualResource!!.identifikators.firstNotNullOf { resourceClass.idPrefix }
+
+                val res = storage.replaceResource(resourceKey, resourceId, actualResource)
+
+                if (res) {
+                    actual = resourceToSyncPageEntry(actualResource, resourceClass)
+                } else {
+                    // TODO: Possibility of Errors and fails needs to be initialized before when loop, and passed on to the ResponseEvent.
+                }
             }
 
             OperationType.DELETE -> {
@@ -144,25 +155,19 @@ class DynamicAdapterEngine(
 
         }
 
-        val actual: SyncPageEntry?
 
         val response = ResponseFintEvent
             .builder()
             .adapterId(adapterId)
             .orgId(event.orgId)
+            .value(actual)
             .handledAt(Instant.now().toEpochMilli())
 
         return response
 
         // TODO: Perhaps creating the SyncPageEntry here is would be better, so a complete ResponseFintEvent can be delivered
-//        fun buildEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
-//            val id =
-//                requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
-//                    "Missing identifier for ${resource.javaClass.simpleName}"
-//                }
-//            return SyncPageEntry.of(id, resource)
-//        }
     }
+
 
     fun generateResourceWithSpecifiedFieldValue(
         identifiers: ResourceIdentifiers,
@@ -210,6 +215,14 @@ class DynamicAdapterEngine(
             logger.trace("{} : {} now contains {} resources.", i.key, setType, fullList[i]?.size)
         }
         return fullList
+    }
+
+    private fun resourceToSyncPageEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
+        val id =
+            requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
+                "Missing identifier for ${resource.javaClass.simpleName}"
+            }
+        return SyncPageEntry.of(id, resource)
     }
 
 
