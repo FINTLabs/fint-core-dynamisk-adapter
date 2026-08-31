@@ -67,6 +67,7 @@ class DynamicAdapterRuntimeService(
 
     private val offline = AtomicBoolean(false)
     private val registered = AtomicBoolean(false)
+    private val adapterId = AtomicReference<String?>(null)
     private val lastFullSyncAt = AtomicReference<Instant?>(null)
     private val lastHeartBeatAt = AtomicReference<Instant?>(null)
     private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
@@ -178,6 +179,7 @@ class DynamicAdapterRuntimeService(
             heartBeatActive.set(registration.registered)
             offline.set(registration.offline)
             eventCheckIntervalMinutes.set(registration.eventCheckIntervalMinutes)
+            adapterId.set(registration.adapterId)
 
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
@@ -400,7 +402,7 @@ class DynamicAdapterRuntimeService(
         val request = eventCache[command.eventCorrId]
         if (request != null) {
 
-            val execution = engine.executeEventRequest(request)
+            val execution = engine.executeEventRequest(request, adapterId.get())
 
             adapter.postEvent(execution)
         } else logger.error("executeEventRequest event[${command.eventCorrId}] not found in eventCache")

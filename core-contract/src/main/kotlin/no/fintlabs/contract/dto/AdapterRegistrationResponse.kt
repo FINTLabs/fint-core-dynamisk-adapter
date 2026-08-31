@@ -4,4 +4,5 @@ data class AdapterRegistrationResponse(
     val registered: Boolean,
     val offline: Boolean,
     val eventCheckIntervalMinutes: Int,
+    val adapterId: String,
 )

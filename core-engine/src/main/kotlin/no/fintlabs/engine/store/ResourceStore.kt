@@ -43,13 +43,30 @@ class ResourceStore {
         map[id] = stored
     }
 
+    fun replaceResource(
+        key: ResourceKey,
+        id: String,
+        resource: FintResource
+    ): Boolean {
+        val map = mapFor(key)
+
+        if (!map.containsKey(id)) {
+            return false
+        }
+        
+        map[id] = StoredResource(id, resource)
+        return true
+    }
+
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
 
     fun countsByKey(): Map<String, Int> = data.mapValues { it.value.size }
-    
+
     fun totalCount(): Int = data.values.sumOf { it.size }
 
     fun countResources(key: ResourceKey): Int = data[key]?.keys?.size ?: 0
+
+    fun getById(key: ResourceKey, id: String): StoredResource? = data[key]?.get(id)
 
     fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 

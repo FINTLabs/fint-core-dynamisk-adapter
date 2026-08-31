@@ -34,7 +34,8 @@ class DynamicAdapterPublisher(
         if (props.offlineMode) return AdapterRegistrationResponse(
             registered = true,
             offline = true,
-            eventCheckIntervalMinutes = 0
+            eventCheckIntervalMinutes = 0,
+            adapterId = props.adapterId,
         )
 
         val contract =
@@ -65,7 +66,8 @@ class DynamicAdapterPublisher(
         return AdapterRegistrationResponse(
             registered = response!!.first == 200,
             offline = false,
-            eventCheckIntervalMinutes = props.eventCheckIntervalMinutes
+            eventCheckIntervalMinutes = props.eventCheckIntervalMinutes,
+            adapterId = props.adapterId,
         )
     }
 

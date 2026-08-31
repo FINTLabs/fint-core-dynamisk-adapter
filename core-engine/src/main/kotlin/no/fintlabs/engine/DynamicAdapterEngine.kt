@@ -1,5 +1,6 @@
 package no.fintlabs.engine
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.event.RequestFintEvent
@@ -11,7 +12,6 @@ import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
-import no.fintlabs.contract.util.getId
 import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
@@ -19,6 +19,7 @@ import no.fintlabs.engine.util.EngineRandom
 import no.fintlabs.library.ResourceFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,6 +34,8 @@ class DynamicAdapterEngine(
     private val props: DynaEngineConfig,
 ) {
     private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
+
+    private val objectMapper = ObjectMapper()
 
     private val maxGeneratedResources = AtomicInteger(props.maxGeneratedResources)
 
@@ -105,19 +108,30 @@ class DynamicAdapterEngine(
 
     // EVENTS
     // TODO
-    fun executeEventRequest(event: RequestFintEvent): ResponseFintEvent {
-        val resourceKey: String = "${event.domainName}/${event.packageName}/${event.resourceName}"
-        val resourceId: String = event.value
+    fun executeEventRequest(event: RequestFintEvent, adapterId: String?): ResponseFintEvent {
+        val resourceKey = "${event.domainName}/${event.packageName}/${event.resourceName}"
 
-        val actualResource: FintResource? = storage.getResource''(resourceKey)
+        val resourceClass = metadata.getMetadataFor(
+            ResourceIdentifiers(
+                event.domainName,
+                event.packageName,
+                event.resourceName
+            )
+        )
+
+        val actualResource: FintResource? = objectMapper.readValue(
+            event.value,
+            resourceClass!!.resource.resourceClass
+        )
 
         when (event.operationType) {
             OperationType.CREATE -> {
-
+                storage.addAllResources(resourceClass, listOf<FintResource>(actualResource!!))
             }
 
             OperationType.UPDATE -> {
-
+                val newResourceId = actualResource!!.identifikators.firstNotNullOf { it.key == resourceClass.idPrefix }.
+                val res = storage.replaceResource(resourceKey, newResourceId, actualResource)
             }
 
             OperationType.DELETE -> {
@@ -132,12 +146,15 @@ class DynamicAdapterEngine(
 
         val actual: SyncPageEntry?
 
-        return ResponseFintEvent
-            .ResponseFintEventBuilder()
-            .value()
+        val response = ResponseFintEvent
+            .builder()
+            .adapterId(adapterId)
+            .orgId(event.orgId)
+            .handledAt(Instant.now().toEpochMilli())
 
-        // TODO: Perhaps creating the SyncPageEntry here is would be better, so a complete ResponseFintEvent can be
-        // Delivered from the
+        return response
+
+        // TODO: Perhaps creating the SyncPageEntry here is would be better, so a complete ResponseFintEvent can be delivered
 //        fun buildEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
 //            val id =
 //                requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
