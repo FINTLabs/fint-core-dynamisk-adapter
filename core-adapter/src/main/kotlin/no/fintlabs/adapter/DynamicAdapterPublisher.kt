@@ -110,8 +110,10 @@ class DynamicAdapterPublisher(
         webClient
             .get()
             .uri("${props.baseUrl}/event")
+            .retrieve()
             .bodyToMono<List<RequestFintEvent>>()
             .block()
+            ?: emptyList()
 
     fun postEvent(event: ResponseFintEvent) =
         webClient
