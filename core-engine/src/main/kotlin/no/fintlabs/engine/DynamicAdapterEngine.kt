@@ -1,18 +1,13 @@
 package no.fintlabs.engine
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.event.RequestFintEvent
-import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.adapter.models.sync.SyncPageEntry
-import no.fintlabs.adapter.operation.OperationType
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
 import no.fintlabs.contract.models.ResourceIdentifiers
-import no.fintlabs.contract.util.getId
 import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
 import no.fintlabs.engine.store.TempDeltaSyncStore
@@ -20,7 +15,6 @@ import no.fintlabs.engine.util.EngineRandom
 import no.fintlabs.library.ResourceFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,10 +27,9 @@ class DynamicAdapterEngine(
     private val relations: RelationFactory,
     private val random: EngineRandom,
     private val props: DynaEngineConfig,
+    private val eventHandler: EventHandler,
 ) {
     private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
-
-    private val objectMapper = ObjectMapper()
 
     private val maxGeneratedResources = AtomicInteger(props.maxGeneratedResources)
 
@@ -109,65 +102,19 @@ class DynamicAdapterEngine(
 
     // EVENTS
     // TODO
-    fun executeEventRequest(event: RequestFintEvent, adapterId: String?): ResponseFintEvent {
-        val resourceKey = "${event.domainName}/${event.packageName}/${event.resourceName}"
-
-        val resourceClass = metadata.getMetadataFor(
-            ResourceIdentifiers(
-                event.domainName,
-                event.packageName,
-                event.resourceName
-            )
-        )
-
-
-        val actualResource: FintResource? = objectMapper.readValue(
-            event.value,
-            resourceClass!!.resource.resourceClass
-        )
-
-        val actual: SyncPageEntry?
-
-        when (event.operationType) {
-            OperationType.CREATE -> {
-                storage.addAllResources(resourceClass, listOf<FintResource>(actualResource!!))
-            }
-
-            OperationType.UPDATE -> {
-                val resourceId: String = actualResource!!.identifikators.firstNotNullOf { resourceClass.idPrefix }
-
-                val res = storage.replaceResource(resourceKey, resourceId, actualResource)
-
-                if (res) {
-                    actual = resourceToSyncPageEntry(actualResource, resourceClass)
-                } else {
-                    // TODO: Possibility of Errors and fails needs to be initialized before when loop, and passed on to the ResponseEvent.
-                }
-            }
-
-            OperationType.DELETE -> {
-
-            }
-
-            OperationType.VALIDATE -> {
-
-            }
-
+    fun executeEventRequest(
+        event: RequestFintEvent,
+    ) {
+        try {
+            eventHandler.validateEventRequest(event)
+        } catch (e: Exception) {
+            logger.error("invalid event: ${event.corrId} : ${e.message}", e)
         }
 
+        val handledEvent = eventHandler.handle(event)
 
-        val response = ResponseFintEvent
-            .builder()
-            .adapterId(adapterId)
-            .orgId(event.orgId)
-            .value(actual)
-            .handledAt(Instant.now().toEpochMilli())
 
-        return response
-
-        // TODO: Perhaps creating the SyncPageEntry here is would be better, so a complete ResponseFintEvent can be delivered
     }
-
 
     fun generateResourceWithSpecifiedFieldValue(
         identifiers: ResourceIdentifiers,
@@ -216,15 +163,6 @@ class DynamicAdapterEngine(
         }
         return fullList
     }
-
-    private fun resourceToSyncPageEntry(resource: FintResource, meta: ExpandedMetadata): SyncPageEntry {
-        val id =
-            requireNotNull(resource.getId(meta.idPrefix, meta.idFieldType)) {
-                "Missing identifier for ${resource.javaClass.simpleName}"
-            }
-        return SyncPageEntry.of(id, resource)
-    }
-
 
     private fun resourcesLeft(): Int = maxGeneratedResources.get() - storage.totalCount()
 

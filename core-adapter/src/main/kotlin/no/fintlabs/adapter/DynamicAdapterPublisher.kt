@@ -35,7 +35,6 @@ class DynamicAdapterPublisher(
             registered = true,
             offline = true,
             eventCheckIntervalMinutes = 0,
-            adapterId = props.adapterId,
         )
 
         val contract =
@@ -67,7 +66,6 @@ class DynamicAdapterPublisher(
             registered = response!!.first == 200,
             offline = false,
             eventCheckIntervalMinutes = props.eventCheckIntervalMinutes,
-            adapterId = props.adapterId,
         )
     }
 
@@ -107,7 +105,6 @@ class DynamicAdapterPublisher(
         }
     }
 
-    //TODO:
     fun getEvents(): List<RequestFintEvent> =
         webClient
             .get()
@@ -117,16 +114,21 @@ class DynamicAdapterPublisher(
             .block()
             ?: emptyList()
 
-    fun postEvent(event: ResponseFintEvent) =
+    fun postEvent(event: ResponseFintEvent) {
+        val responseEvent = event
+        responseEvent.orgId = props.orgId
+        responseEvent.adapterId = props.adapterId
+
         webClient
             .post()
             .uri("${props.baseUrl}/event")
-            .bodyValue(event)
+            .bodyValue(responseEvent)
             .exchangeToMono { response ->
                 Mono
                     .just(logger.debug("Event reply status:${response.statusCode().value()}"))
             }
             .block()
+    }
 
     private fun publish(
         resourceName: String,

@@ -53,9 +53,17 @@ class ResourceStore {
         if (!map.containsKey(id)) {
             return false
         }
-        
+
         map[id] = StoredResource(id, resource)
         return true
+    }
+
+    fun deleteResource(
+        key: ResourceKey,
+        id: String
+    ): Boolean {
+        val map = mapFor(key)
+        return map.remove(id) != null
     }
 
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
