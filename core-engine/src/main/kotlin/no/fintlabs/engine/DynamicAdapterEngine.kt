@@ -3,6 +3,7 @@ package no.fintlabs.engine
 import no.novari.fint.model.resource.FintResource
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
@@ -100,21 +101,9 @@ class DynamicAdapterEngine(
         return fullList
     }
 
-    // EVENTS
-    // TODO
     fun executeEventRequest(
         event: RequestFintEvent,
-    ) {
-        try {
-            eventHandler.validateEventRequest(event)
-        } catch (e: Exception) {
-            logger.error("invalid event: ${event.corrId} : ${e.message}", e)
-        }
-
-        val handledEvent = eventHandler.handle(event)
-
-
-    }
+    ): ResponseFintEvent = eventHandler.handle(event)
 
     fun generateResourceWithSpecifiedFieldValue(
         identifiers: ResourceIdentifiers,
