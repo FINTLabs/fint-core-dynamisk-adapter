@@ -55,7 +55,7 @@ fint:
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
     event-check-interval-minutes: 5
-    offline-mode: false
+    offline-mode: true
 
 logging:
   level:

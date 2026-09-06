@@ -187,7 +187,7 @@ class DynamicAdapterRuntimeService(
 
                 startBackgroundLoops()
 
-                updateJobMessage(command.id, "Startup sequence successful")
+                updateJobMessage(command.id, "Startup sequence successful", log = false)
             } else throw IllegalStateException(
                 """Failed to register to provider with capabilities: 
                 $capabilities
@@ -367,41 +367,37 @@ class DynamicAdapterRuntimeService(
     // Events
 
     private suspend fun eventCheckLoop() {
-        while (scope.isActive) {
-            if (eventCheckIntervalMinutes.get() >= 1) {
+        if (eventCheckIntervalMinutes.get() >= 1) {
+            while (scope.isActive) {
                 delay(eventCheckIntervalMinutes.toLong() * 60_000L)
                 checkForEvents()
-            } else logger.warn("EVENT CHECKING IS DEACTIVATED")
-        }
+            }
+        } else logger.warn("EVENT CHECKING IS DEACTIVATED")
     }
 
-    private fun checkForEvents() {
+    fun checkForEvents() {
         // Tell ADAPTER to check for EVENTS
         val events: List<RequestFintEvent> = adapter.getEvents()
         if (events.isEmpty()) {
             logger.info("Event check done, no events returned.")
         } else {
             for (event in events) {
-
-                // TODO: Validate it is a valid doable event
-
-                // TODO: Create Command
-
-                // TODO: Save RequestFintEvent to local EVENT_CACHE
-
-                submit(command)
+                eventCache[event.corrId] = event
+                submit(
+                    EventHandlingCommand(
+                        operationType = event.operationType,
+                        eventCorrId = event.corrId,
+                    )
+                )
             }
         }
     }
 
     // TODO
     private fun executeEventRequest(command: EventHandlingCommand) {
-
         val request = eventCache[command.eventCorrId]
         if (request != null) {
-
             val execution = engine.executeEventRequest(request)
-
             adapter.postEvent(execution)
         } else logger.error("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
     }
@@ -542,15 +538,15 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    private fun markSuccess(command: RuntimeCommand, message: String? = null) {
+    private fun markSuccess(command: RuntimeCommand) {
         updateStatus(command.id) {
             it.copy(
                 state = JobState.SUCCESS,
-                message = message,
                 finishedAt = Instant.now(),
             )
         }
-        logger.info("JOB DONE: ${command.id}, $message")
+        val message: String = currentJobs[command.id]?.message ?: ""
+        logger.info("JOB DONE: ${command.id}; $message")
         when (command) {
             is StartupSequence -> lastFullSyncAt.set(Instant.now())
             is FullSyncCommand -> lastFullSyncAt.set(Instant.now())
@@ -561,6 +557,7 @@ class DynamicAdapterRuntimeService(
 
             is CreateDataCommand -> lastDeltaSyncAt.set(Instant.now())
             is CreateSpecificDataCommand -> lastDeltaSyncAt.set(Instant.now())
+            is EventHandlingCommand -> null
         }
         currentJobs.remove(command.id)
     }
