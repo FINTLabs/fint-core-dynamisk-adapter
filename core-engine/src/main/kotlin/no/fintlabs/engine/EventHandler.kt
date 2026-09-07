@@ -29,7 +29,7 @@ class EventHandler(
         var actual: SyncPageEntry = SyncPageEntry()
 
         if (event.value.isEmpty() || event.operationType != OperationType.VALIDATE) {
-            errorMessage = "\"Event request \${event.corrId} has no value \\n One could say it's... worthless.\""
+            errorMessage = "\"Event request ${event.corrId} has no value \n One could say it's... worthless.\""
         } else {
             val resourceKey = "${event.domainName}/${event.packageName}/${event.resourceName}"
             val resourceClass = metadata.getMetadataFor(
