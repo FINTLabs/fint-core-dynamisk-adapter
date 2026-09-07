@@ -24,6 +24,7 @@ data class DynaRuntimeConfig(
 data class FintProperties(
     val maxPageSize: Int = 1000,
     val heartbeatIntervalInMinutes: Int = 3,
+    val eventCheckIntervalInMinutes: Int = 5,
 )
 
 data class DeltaConfig(

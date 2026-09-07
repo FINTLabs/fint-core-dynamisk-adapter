@@ -23,6 +23,7 @@ dyna:
     fint-properties:
       max-page-size: 1000
       heartbeat-interval-in-minutes: 3
+      event-check-interval-minutes: 5
     delta-config:
       amount-tier-policy:
         grouping:
@@ -54,7 +55,6 @@ fint:
     base-url: https://alpha.felleskomponent.no
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
-    event-check-interval-minutes: 5
     offline-mode: true
 
 logging:

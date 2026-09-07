@@ -75,7 +75,7 @@ class DynamicAdapterRuntimeService(
 
     private val heartBeatActive = AtomicBoolean(true)
 
-    private val eventCheckIntervalMinutes = AtomicInteger(0)
+    private val eventCheckIntervalMinutes = AtomicInteger(props.fintProperties.eventCheckIntervalInMinutes)
     private val eventCache: MutableMap<String, RequestFintEvent> = mutableMapOf<String, RequestFintEvent>()
 
     private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
@@ -177,7 +177,6 @@ class DynamicAdapterRuntimeService(
             registered.set(registration.registered)
             heartBeatActive.set(registration.registered)
             offline.set(registration.offline)
-            eventCheckIntervalMinutes.set(registration.eventCheckIntervalMinutes)
 
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
@@ -357,6 +356,7 @@ class DynamicAdapterRuntimeService(
     private suspend fun heartbeatLoop() {
         while (scope.isActive) {
             if (heartBeatActive.get()) {
+                logger.debug("heartbeat loop started.")
                 delay(props.fintProperties.heartbeatIntervalInMinutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
                 adapter.giveHeartBeat()
@@ -369,6 +369,7 @@ class DynamicAdapterRuntimeService(
     private suspend fun eventCheckLoop() {
         if (eventCheckIntervalMinutes.get() >= 1) {
             while (scope.isActive) {
+                logger.debug("Event check loop started with delay of ${eventCheckIntervalMinutes.get()} minutes.")
                 delay(eventCheckIntervalMinutes.toLong() * 60_000L)
                 checkForEvents()
             }
@@ -389,14 +390,21 @@ class DynamicAdapterRuntimeService(
                         eventCorrId = event.corrId,
                     )
                 )
+                logger.debug("EVENT: {} : {} added to queue.", event.operationType.name, event.corrId)
             }
         }
+        logger.info("Event check done, ${events.size} events added to queue.")
     }
 
     // TODO
     private fun executeEventRequest(command: EventHandlingCommand) {
         val request = eventCache[command.eventCorrId]
         if (request != null) {
+            logger.trace(
+                "attempting to execute event request: {} : {}",
+                command.operationType.name,
+                command.eventCorrId
+            )
             val execution = engine.executeEventRequest(request)
             adapter.postEvent(execution)
         } else logger.error("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
