@@ -7,6 +7,7 @@ import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.adapter.config.DynaAdapterProperties
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
+import no.fintlabs.adapter.operation.OperationType
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.dto.AdapterRegistrationResponse
 import no.fintlabs.contract.models.HeartBeatRequest
@@ -103,30 +104,71 @@ class DynamicAdapterPublisher(
         }
     }
 
-    fun getEvents(): List<RequestFintEvent> =
-        webClient
-            .get()
-            .uri("${props.baseUrl}/event")
-            .retrieve()
-            .bodyToMono<List<RequestFintEvent>>()
-            .block()
-            ?: emptyList()
+    fun getEvents(): List<RequestFintEvent> {
+        logger.info("Getting Events...")
+        if (!props.offlineMode) {
+            return webClient
+                .get()
+                .uri("${props.baseUrl}/event")
+                .retrieve()
+                .bodyToMono<List<RequestFintEvent>>()
+                .block()
+                ?: emptyList()
+        } else return listOf<RequestFintEvent>(
+            RequestFintEvent().apply {
+                domainName = "utdanning"
+                orgId = props.orgId
+                corrId = "fakeEventValidate${UUID.randomUUID()}"
+                value = ""
+                operationType = OperationType.VALIDATE
+            },
+            RequestFintEvent().apply {
+                orgId = props.orgId
+                corrId = "fakeEventCreate${UUID.randomUUID()}"
+                value = ""
+                operationType = OperationType.CREATE
+            },
+            RequestFintEvent().apply {
+                orgId = props.orgId
+                corrId = "fakeEventDelete${UUID.randomUUID()}"
+                value = ""
+                operationType = OperationType.DELETE
+            },
+            RequestFintEvent().apply {
+                orgId = props.orgId
+                corrId = "fakeEventUpdate${UUID.randomUUID()}"
+                value = ""
+                operationType = OperationType.UPDATE
+            }
+        )
+    }
 
     fun postEvent(event: ResponseFintEvent) {
         val responseEvent = event
         responseEvent.orgId = props.orgId
         responseEvent.adapterId = props.adapterId
 
-        webClient
-            .post()
-            .uri("${props.baseUrl}/event")
-            .bodyValue(responseEvent)
-            .exchangeToMono { response ->
-                Mono
-                    .just(logger.debug("Event reply status:${response.statusCode().value()}"))
+        if (!props.offlineMode) {
+            webClient
+                .post()
+                .uri("${props.baseUrl}/event")
+                .bodyValue(responseEvent)
+                .exchangeToMono { response ->
+                    Mono
+                        .just(logger.info("Event reply status:${response.statusCode().value()}"))
+                }
+                .block()
+        } else {
+            var errors: String = ""
+            if (event.conflictReason.isNotEmpty() || event.errorMessage.isNotEmpty() || event.rejectReason.isNotEmpty()) {
+                errors = ": ${event.conflictReason} ${event.errorMessage} ${event.rejectReason}"
             }
-            .block()
+            logger.debug("Event POST; ${event.corrId} $errors")
+        }
     }
+
+    // Errors?: ${event.errorMessage} ${event.conflictReason} ${event.rejectReason}
+
 
     private fun publish(
         resourceName: String,

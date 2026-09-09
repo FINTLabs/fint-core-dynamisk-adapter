@@ -43,8 +43,13 @@ data class DeltaSyncCommand(
 ) : RuntimeCommand
 
 data class EventHandlingCommand(
-    override val id: String = "eventHandling_" + UUID.randomUUID().toString(),
+    override val id: String = "eventHandling_${operationType.name}" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
     val operationType: OperationType,
     val eventCorrId: String,
+) : RuntimeCommand
+
+data class EventFetchCommand(
+    override val id: String = "event_fetch_" + UUID.randomUUID().toString(),
+    override val requestedAt: Instant = Instant.now(),
 ) : RuntimeCommand

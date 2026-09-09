@@ -23,7 +23,7 @@ dyna:
     fint-properties:
       max-page-size: 1000
       heartbeat-interval-in-minutes: 3
-      event-check-interval-minutes: 5
+      event-check-interval-in-minutes: 2
     delta-config:
       amount-tier-policy:
         grouping:
@@ -59,7 +59,7 @@ fint:
 
 logging:
   level:
-    no.fintlabs: INFO
+    no.fintlabs: TRACE
     #    no.fintlabs.runtime: TRACE
     #    no.fintlabs.engine: INFO
     #    no.fintlabs.api: INFO

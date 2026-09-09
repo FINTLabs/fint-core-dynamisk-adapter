@@ -31,6 +31,7 @@ import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
+import no.fintlabs.runtime.model.EventFetchCommand
 import no.fintlabs.runtime.model.EventHandlingCommand
 import no.fintlabs.runtime.model.StartupSequence
 import org.slf4j.Logger
@@ -76,7 +77,7 @@ class DynamicAdapterRuntimeService(
     private val heartBeatActive = AtomicBoolean(true)
 
     private val eventCheckIntervalMinutes = AtomicInteger(props.fintProperties.eventCheckIntervalInMinutes)
-    private val eventCache: MutableMap<String, RequestFintEvent> = mutableMapOf<String, RequestFintEvent>()
+    private val eventCache: MutableMap<String, RequestFintEvent> = mutableMapOf()
 
     private val enableDeltaSync = AtomicBoolean(props.enableDeltaSync)
     private val deltaSyncIntervalInMinutes = AtomicInteger(props.deltaConfig.deltaSyncIntervalInMinutes)
@@ -165,6 +166,10 @@ class DynamicAdapterRuntimeService(
             is EventHandlingCommand -> {
                 executeEventRequest(command)
             }
+
+            is EventFetchCommand -> {
+                checkForEvents(command)
+            }
         }
     }
 
@@ -197,7 +202,7 @@ class DynamicAdapterRuntimeService(
 
     private var deltaLoopJob: Job? = null
     private var heartbeatLoopJob: Job? = null
-    private var eventCheckLoop: Job? = null
+    private var eventCheckLoopJob: Job? = null
 
     private fun startBackgroundLoops() {
         if (deltaLoopJob?.isActive != true) {
@@ -212,8 +217,8 @@ class DynamicAdapterRuntimeService(
             }
         }
 
-        if (eventCheckLoop?.isActive != true) {
-            eventCheckLoop = scope.launch {
+        if (eventCheckLoopJob?.isActive != true) {
+            eventCheckLoopJob = scope.launch {
                 eventCheckLoop()
             }
         }
@@ -338,9 +343,7 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun deltaLoop() {
-        if (!enableDeltaSync.get()) {
-            logger.info("Delta sync is disabled.")
-        } else {
+        if (enableDeltaSync.get()) {
             deltaSyncLoopStartedAt.set(Instant.now())
             logger.info("Delta sync loop started, " + nextScheduledDeltaSync())
             while (scope.isActive) {
@@ -350,37 +353,38 @@ class DynamicAdapterRuntimeService(
                     submit(DeltaSyncCommand())
                 }
             }
+        } else {
+            logger.info("AUTOMATIC DELTA_SYNC IS DISABLED")
         }
     }
 
     private suspend fun heartbeatLoop() {
-        while (scope.isActive) {
-            if (heartBeatActive.get()) {
-                logger.debug("heartbeat loop started.")
+        if (heartBeatActive.get()) {
+            logger.debug("heartbeat loop started.")
+            while (scope.isActive) {
                 delay(props.fintProperties.heartbeatIntervalInMinutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
                 adapter.giveHeartBeat()
-            } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
-        }
+            }
+        } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
     }
 
     // Events
 
     private suspend fun eventCheckLoop() {
         if (eventCheckIntervalMinutes.get() >= 1) {
+            logger.debug("Event check loop started with delay of ${eventCheckIntervalMinutes.get()} minutes.")
             while (scope.isActive) {
-                logger.debug("Event check loop started with delay of ${eventCheckIntervalMinutes.get()} minutes.")
                 delay(eventCheckIntervalMinutes.toLong() * 60_000L)
-                checkForEvents()
+                submit(EventFetchCommand())
             }
         } else logger.warn("EVENT CHECKING IS DEACTIVATED")
     }
 
-    fun checkForEvents() {
-        // Tell ADAPTER to check for EVENTS
+    fun checkForEvents(command: EventFetchCommand) {
         val events: List<RequestFintEvent> = adapter.getEvents()
         if (events.isEmpty()) {
-            logger.info("Event check done, no events returned.")
+            updateJobMessage(command.id, "Event check done, no events returned.", false)
         } else {
             for (event in events) {
                 eventCache[event.corrId] = event
@@ -393,10 +397,9 @@ class DynamicAdapterRuntimeService(
                 logger.debug("EVENT: {} : {} added to queue.", event.operationType.name, event.corrId)
             }
         }
-        logger.info("Event check done, ${events.size} events added to queue.")
+        updateJobMessage(command.id, "Event check done, ${events.size} events added to queue.", false)
     }
 
-    // TODO
     private fun executeEventRequest(command: EventHandlingCommand) {
         val request = eventCache[command.eventCorrId]
         if (request != null) {
@@ -407,7 +410,9 @@ class DynamicAdapterRuntimeService(
             )
             val execution = engine.executeEventRequest(request)
             adapter.postEvent(execution)
-        } else logger.error("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
+        } else {
+            throw NullPointerException("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
+        }
     }
 
     // Controller functions
@@ -565,7 +570,10 @@ class DynamicAdapterRuntimeService(
 
             is CreateDataCommand -> lastDeltaSyncAt.set(Instant.now())
             is CreateSpecificDataCommand -> lastDeltaSyncAt.set(Instant.now())
-            is EventHandlingCommand -> null
+
+            is EventHandlingCommand,
+            is EventFetchCommand -> {
+            }
         }
         currentJobs.remove(command.id)
     }

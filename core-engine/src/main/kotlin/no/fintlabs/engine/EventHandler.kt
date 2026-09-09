@@ -22,60 +22,68 @@ class EventHandler(
     private val objectMapper = ObjectMapper()
 
     fun handle(event: RequestFintEvent): ResponseFintEvent {
-        var errorMessage: String = ""
-        var conflictReason: String = ""
-        var rejectedReason: String = ""
-        var valueNotEmpty: Boolean = true
-        var actual: SyncPageEntry = SyncPageEntry()
+        var errorMessage = ""
+        var conflictReason = ""
+        val rejectReason = ""
+        var valueNotEmpty = true
+        var actual = SyncPageEntry()
 
-        if (event.value.isEmpty() || event.operationType != OperationType.VALIDATE) {
-            errorMessage = "\"Event request ${event.corrId} has no value \n One could say it's... worthless.\""
+        if (event.value.isEmpty() && event.operationType != OperationType.VALIDATE) {
+            errorMessage = "ERROR - Event request ${event.corrId} has no value. One could say it's... worthless."
+            logger.trace(errorMessage)
         } else {
-            val resourceKey = "${event.domainName}/${event.packageName}/${event.resourceName}"
-            val resourceClass = metadata.getMetadataFor(
-                ResourceIdentifiers(
-                    event.domainName,
-                    event.packageName,
-                    event.resourceName
+            if (event.operationType == OperationType.VALIDATE) {
+                valueNotEmpty = false
+            } else {
+                val resourceKey = "${event.domainName}/${event.packageName}/${event.resourceName}"
+                val resourceClass = metadata.getMetadataFor(
+                    ResourceIdentifiers(
+                        event.domainName,
+                        event.packageName,
+                        event.resourceName
+                    )
                 )
-            )
 
-            val incomingResource: FintResource? = objectMapper.readValue(
-                event.value,
-                resourceClass!!.resource.resourceClass
-            )
-            val resourceId: String = incomingResource!!.identifikators.firstNotNullOf { resourceClass.idPrefix }
+                val incomingResource: FintResource? = objectMapper.readValue(
+                    event.value,
+                    resourceClass!!.resource.resourceClass
+                )
+                val resourceId: String = incomingResource!!.identifikators.firstNotNullOf { resourceClass.idPrefix }
 
-            when (event.operationType) {
-                OperationType.CREATE -> {
-                    val existing = storage.getById(resourceKey, resourceId)
-                    if (existing == null) {
-                        storage.addAllResources(resourceClass, listOf<FintResource>(incomingResource))
-                        actual = resourceToSyncPageEntry(incomingResource, resourceClass)
-                    } else {
-                        conflictReason = "A resource with this ID already exists, therefore could not be created."
+                when (event.operationType) {
+                    OperationType.CREATE -> {
+                        val existing = storage.getById(resourceKey, resourceId)
+                        if (existing == null) {
+                            storage.addAllResources(resourceClass, listOf(incomingResource))
+                            actual = resourceToSyncPageEntry(incomingResource, resourceClass)
+                        } else {
+                            conflictReason =
+                                "CONFLICT - A resource with this ID already exists, therefore could not be created."
+                            logger.trace(conflictReason)
+                        }
                     }
-                }
 
-                OperationType.UPDATE -> {
-                    val updated = storage.replaceResource(resourceKey, resourceId, incomingResource)
+                    OperationType.UPDATE -> {
+                        val updated = storage.replaceResource(resourceKey, resourceId, incomingResource)
 
-                    if (updated) {
-                        actual = resourceToSyncPageEntry(incomingResource, resourceClass)
-                    } else {
-                        errorMessage = "Resource not found, therefore could not be updated."
+                        if (updated) {
+                            actual = resourceToSyncPageEntry(incomingResource, resourceClass)
+                        } else {
+                            errorMessage = "ERROR - Resource not found, therefore could not be updated."
+                            logger.trace(errorMessage)
+                        }
                     }
-                }
 
-                OperationType.DELETE -> {
-                    val deleted = storage.deleteResource(resourceKey, resourceId)
-                    if (!deleted) {
-                        errorMessage = "Resource ${resourceClass.idPrefix} not found, therefore could not be deleted"
+                    OperationType.DELETE -> {
+                        val deleted = storage.deleteResource(resourceKey, resourceId)
+                        if (!deleted) {
+                            errorMessage =
+                                "ERROR - Resource ${resourceClass.idPrefix} not found, therefore could not be deleted."
+                            logger.trace(errorMessage)
+                        }
                     }
-                }
 
-                OperationType.VALIDATE -> {
-                    valueNotEmpty = false
+                    else -> {}
                 }
             }
         }
@@ -89,8 +97,8 @@ class EventHandler(
             .conflictReason(conflictReason)
             .failed(errorMessage.isNotBlank())
             .errorMessage(errorMessage)
-            .rejected(rejectedReason.isNotBlank())
-            .rejectReason(rejectedReason)
+            .rejected(rejectReason.isNotBlank())
+            .rejectReason(rejectReason)
             .build()
     }
 
