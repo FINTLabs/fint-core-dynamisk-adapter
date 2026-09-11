@@ -60,7 +60,6 @@ class DynamicAdapterRuntimeService(
 
     private val runtimeMutex = Mutex()
 
-
     private var queue = Channel<RuntimeCommand>(capacity = Channel.UNLIMITED)
     private val currentJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
     private val allJobs = ConcurrentHashMap<String, RuntimeJobStatus>()
