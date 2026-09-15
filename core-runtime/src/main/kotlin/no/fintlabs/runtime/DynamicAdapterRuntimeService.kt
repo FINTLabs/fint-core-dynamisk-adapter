@@ -88,8 +88,7 @@ class DynamicAdapterRuntimeService(
     private val maxPageSize = AtomicInteger(props.fintProperties.maxPageSize)
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
     private val registeredCapabilitiesFor = AtomicReference<List<String>>(listOf())
-
-
+    
     init {
         scope.launch {
             activeWorkerJob = scope.launch {
