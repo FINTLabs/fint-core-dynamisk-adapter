@@ -1,0 +1,5 @@
+.gradle
+.git
+.idea
+.kotlin
+core-local-runner

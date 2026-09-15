@@ -1,0 +1,36 @@
+apiVersion: fintlabs.no/v1alpha1
+kind: Application
+metadata:
+  name: fint-core-dynamisk-adapter-backend
+  namespace: novari-no
+  labels:
+    app.kubernetes.io/name: fint-core-dynamisk-adapter-backend
+    app.kubernetes.io/instance: fint-core-dynamisk-adapter-backend
+    app.kubernetes.io/version: latest
+    app.kubernetes.io/component: dynamisk-adapter
+    app.kubernetes.io/part-of: fint-core
+    fintlabs.no/team: core
+    fintlabs.no/org-id: novari-no
+spec:
+  replicas: 1
+  port: 8080
+  orgId: novari-no
+  image: ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend
+
+  #Is this Necessary?
+  strategy:
+    type: RollingUpdate
+
+  onePassword:
+    # TBD: 1-P path
+    itemPath: ""
+  env:
+    - name: JAVA_TOOL_OPTIONS
+      value: |
+        -XX:MaxRAMPercentage=80
+        -XX:+ExitOnOutOfMemoryError
+  resources:
+    requests:
+      memory: 1Gi
+    limits:
+      memory: 1Gi
