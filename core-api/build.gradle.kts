@@ -55,7 +55,7 @@ kotlin {
 }
 
 springBoot {
-    mainClass.set("no.fintlabs.CoreApiApplicationKt")
+    mainClass.set("no.fintlabs.api.CoreApiApplicationKt")
 }
 
 tasks.withType<Test> {
