@@ -39,7 +39,7 @@ jobs:
       - name: Set image
         id: image
         run: |
-          echo "image=ghcr.io/fintlabs/fint-core-dyna:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/fintlabs/fint-core-dyna-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -98,52 +98,52 @@ jobs:
             ${{ needs.build.outputs.image }}
           namespace: novari-no
 
-  deploy-alpha:
-    needs:
-      - build
-      - deploy-beta
-    runs-on: ubuntu-latest
-    environment: alpha
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Azure login
-        uses: azure/login@v3
-        with:
-          creds: ${{ secrets.AKS_ALPHA_FINT_GITHUB }}
-
-      - uses: azure/use-kubelogin@v1
-        with:
-          kubelogin-version: "v0.0.26"
-
-      - name: Set AKS context
-        uses: azure/aks-set-context@v5
-        with:
-          cluster-name: YOUR_ALPHA_CLUSTER
-          resource-group: rg-aks-alpha
-          admin: "true"
-          use-kubelogin: 'true'
-
-      - name: Set 1Password item path
-        env:
-          ONEPASSWORD_ITEM_PATH: ${{ vars.DYNA_ONEPASSWORD_ITEM_PATH }}
-        run: |
-          sed -i "s|DYNA_ONEPASSWORD_ITEM_PATH|${ONEPASSWORD_ITEM_PATH}|g" kustomize/base/dyna.yaml
-
-      - name: Bake manifests
-        id: bake
-        uses: azure/k8s-bake@v4
-        with:
-          renderEngine: kustomize
-          kustomizationPath: kustomize/base
-
-      - name: Deploy
-        uses: azure/k8s-deploy@v6
-        with:
-          action: deploy
-          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: |
-            ${{ needs.build.outputs.image }}
-          namespace: fint-core-dyna
+#  deploy-alpha:
+#    needs:
+#      - build
+#      - deploy-beta
+#    runs-on: ubuntu-latest
+#    environment: alpha
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v5
+#
+#      - name: Azure login
+#        uses: azure/login@v3
+#        with:
+#          creds: ${{ secrets.AKS_ALPHA_FINT_GITHUB }}
+#
+#      - uses: azure/use-kubelogin@v1
+#        with:
+#          kubelogin-version: "v0.0.26"
+#
+#      - name: Set AKS context
+#        uses: azure/aks-set-context@v5
+#        with:
+#          cluster-name: YOUR_ALPHA_CLUSTER
+#          resource-group: rg-aks-alpha
+#          admin: "true"
+#          use-kubelogin: 'true'
+#
+#      - name: Set 1Password item path
+#        env:
+#          ONEPASSWORD_ITEM_PATH: ${{ vars.DYNA_ONEPASSWORD_ITEM_PATH }}
+#        run: |
+#          sed -i "s|DYNA_ONEPASSWORD_ITEM_PATH|${ONEPASSWORD_ITEM_PATH}|g" kustomize/base/dyna.yaml
+#
+#      - name: Bake manifests
+#        id: bake
+#        uses: azure/k8s-bake@v4
+#        with:
+#          renderEngine: kustomize
+#          kustomizationPath: kustomize/base
+#
+#      - name: Deploy
+#        uses: azure/k8s-deploy@v6
+#        with:
+#          action: deploy
+#          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+#          images: |
+#            ${{ needs.build.outputs.image }}
+#          namespace: fint-core-dyna
