@@ -8,9 +8,9 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = ["no.fintlabs"])
 @ConfigurationPropertiesScan(basePackages = ["no.fintlabs"])
-class CoreApiApplication {
+class CoreApiApplication
 
-    fun main(args: Array<String>) {
-        runApplication<CoreApiApplication>(*args)
-    }
+fun main(args: Array<String>) {
+    runApplication<CoreApiApplication>(*args)
 }
+
