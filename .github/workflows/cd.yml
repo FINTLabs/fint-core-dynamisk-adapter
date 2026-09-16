@@ -96,7 +96,7 @@ jobs:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: |
             ${{ needs.build.outputs.image }}
-          namespace: fint-core-dyna
+          namespace: novari-no
 
   deploy-alpha:
     needs:
