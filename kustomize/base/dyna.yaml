@@ -21,7 +21,7 @@ spec:
     type: RollingUpdate
 
   onePassword:
-    itemPath: DYNA_ONEPASSWORD_ITEM_PATH
+    itemPath: vaults/core/items/fint-core-dynamisk-adapter
   env:
     - name: JAVA_TOOL_OPTIONS
       value: |
