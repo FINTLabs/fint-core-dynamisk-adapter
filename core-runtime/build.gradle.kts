@@ -1,8 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.spring") version "2.2.0"
-    id("org.springframework.boot") version "3.3.3"
-    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "2.4.20"
+    kotlin("plugin.spring") version "2.4.20"
 }
 
 group = "no.fintlabs"
@@ -11,7 +9,7 @@ val fintVersion: String by project
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -24,6 +22,8 @@ dependencies {
     implementation(project(":core-contract"))
     implementation(project(":core-adapter"))
     implementation(project(":core-engine"))
+
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3"))
 
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")

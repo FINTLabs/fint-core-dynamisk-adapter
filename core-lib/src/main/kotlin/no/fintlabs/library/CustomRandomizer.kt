@@ -53,7 +53,7 @@ class CustomRandomizer(
 
     fun createAddress(): AdresseResource =
         AdresseResource().apply {
-            adresselinje = List<String>(size = 1) { streetNameList.random() + " ," + shortNumber().toString() }
+            adresselinje = List<String>(size = 1) { streetNameList.random(random) + " ," + shortNumber().toString() }
             postnummer = "237"
             poststed = cityNameList.random(random)
         }

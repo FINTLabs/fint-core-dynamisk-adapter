@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.4.20"
     `maven-publish`
     `java-library`
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 group = "no.fintlabs"
@@ -75,4 +75,8 @@ configurations.all {
     resolutionStrategy {
         force("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     }
+}
+
+tasks.named<Jar>("jar") {
+    enabled = true
 }

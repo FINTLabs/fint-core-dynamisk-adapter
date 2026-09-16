@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.4.20"
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
@@ -8,7 +8,7 @@ version = "4.0.0"
 description = "fint-core-dynamisk-adapter"
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 repositories {

@@ -1,12 +1,11 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.spring") version "2.2.0"
-    id("org.springframework.boot") version "3.3.3"
+    kotlin("jvm") version "2.4.20"
+    kotlin("plugin.spring") version "2.4.20"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 group = "no.fintlabs"
@@ -19,12 +18,13 @@ repositories {
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3"))
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("no.novari:fint-core-metamodel:3.0.0")
     implementation("no.fintlabs:fint-core-infra-models:2.1.2")
@@ -42,4 +42,8 @@ configurations.all {
     resolutionStrategy {
         force("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     }
+}
+
+tasks.named<Jar>("jar") {
+    enabled = true
 }
