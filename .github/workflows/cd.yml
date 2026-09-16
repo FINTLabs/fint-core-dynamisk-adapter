@@ -76,6 +76,12 @@ jobs:
           resource-group: rg-aks-beta
           admin: "true"
 
+      - name: Set 1Password item path
+        env:
+          ONEPASSWORD_ITEM_PATH: ${{ vars.DYNA_ONEPASSWORD_ITEM_PATH }}
+        run: |
+          sed -i "s|DYNA_ONEPASSWORD_ITEM_PATH|${ONEPASSWORD_ITEM_PATH}|g" kustomize/base/dyna.yaml
+
       - name: Bake manifests
         id: bake
         uses: azure/k8s-bake@v4
@@ -119,6 +125,12 @@ jobs:
           resource-group: rg-aks-alpha
           admin: "true"
           use-kubelogin: 'true'
+
+      - name: Set 1Password item path
+        env:
+          ONEPASSWORD_ITEM_PATH: ${{ vars.DYNA_ONEPASSWORD_ITEM_PATH }}
+        run: |
+          sed -i "s|DYNA_ONEPASSWORD_ITEM_PATH|${ONEPASSWORD_ITEM_PATH}|g" kustomize/base/dyna.yaml
 
       - name: Bake manifests
         id: bake

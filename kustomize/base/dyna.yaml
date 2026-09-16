@@ -17,13 +17,11 @@ spec:
   orgId: novari-no
   image: ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend
 
-  #Is this Necessary?
   strategy:
     type: RollingUpdate
 
   onePassword:
-    # TBD: 1-P path
-    itemPath: ""
+    itemPath: DYNA_ONEPASSWORD_ITEM_PATH
   env:
     - name: JAVA_TOOL_OPTIONS
       value: |
