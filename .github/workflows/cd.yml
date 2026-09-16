@@ -89,15 +89,32 @@ jobs:
           renderEngine: kustomize
           kustomizationPath: kustomize/base
 
+      - name: Substitute image into baked YAML
+        id: substitute
+        uses: azure/k8s-artifact-substitute@v2.0.0
+        with:
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: ${{ needs.build.outputs.image }}
+
+      - name: Prepare manifests for deployment
+        id: deploy-manifests
+        shell: bash
+        env:
+          SOURCE_DIRECTORY: ${{ steps.substitute.outputs.directory }}
+        run: |
+          set -euo pipefail
+          destination="$GITHUB_WORKSPACE/.k8s-deploy-manifests"
+          mkdir -p "$destination"
+          cp -aL -- "$SOURCE_DIRECTORY/." "$destination/"
+          echo "manifests=$destination" >> "$GITHUB_OUTPUT"
+
+
       - name: Deploy
-        uses: azure/k8s-deploy@v6
+        uses: azure/k8s-deploy@v7.0.0
         with:
           action: deploy
-          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: |
-            ${{ needs.build.outputs.image }}
+          manifests: ${{ steps.deploy-manifests.outputs.manifests }}
           pull-images: false
-          namespace: novari-no
 
 #  deploy-alpha:
 #    needs:
