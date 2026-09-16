@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -39,7 +39,7 @@ jobs:
       - name: Set image
         id: image
         run: |
-          echo "image=ghcr.io/fintlabs/fint-core-dyna-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
         uses: docker/login-action@v3
