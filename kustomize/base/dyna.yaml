@@ -12,7 +12,7 @@ metadata:
     fintlabs.no/team: core
     fintlabs.no/org-id: novari-no
 spec:
-  replicas: 0
+  replicas: 1
   port: 8080
   orgId: novari-no
   image: ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend
