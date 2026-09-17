@@ -55,11 +55,11 @@ fint:
     base-url: https://alpha.felleskomponent.no
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
-    offline-mode: true
+    offline-mode: false
 
 logging:
   level:
-    no.fintlabs: TRACE
+    no.fintlabs: INFO
     #    no.fintlabs.runtime: TRACE
     #    no.fintlabs.engine: INFO
     #    no.fintlabs.api: INFO
