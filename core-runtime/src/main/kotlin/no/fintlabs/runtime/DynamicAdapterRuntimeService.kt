@@ -88,7 +88,7 @@ class DynamicAdapterRuntimeService(
     private val maxPageSize = AtomicInteger(props.fintProperties.maxPageSize)
     private val registeredCapabilities = mutableSetOf<AdapterCapability>()
     private val registeredCapabilitiesFor = AtomicReference<List<String>>(listOf())
-    
+
     init {
         scope.launch {
             activeWorkerJob = scope.launch {
@@ -104,8 +104,10 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    fun submit(command: RuntimeCommand): String {
-        logger.info("Submitting ${command.javaClass.simpleName}, ${command.id}")
+    fun submit(command: RuntimeCommand, log: Boolean = true): String {
+        if (log) {
+            logger.info("Submitting ${command.javaClass.simpleName}, ${command.id}")
+        }
         markQueued(command)
 
         val result = queue.trySend(command)
@@ -374,7 +376,7 @@ class DynamicAdapterRuntimeService(
             logger.debug("Event check loop started with delay of ${eventCheckIntervalMinutes.get()} minutes.")
             while (scope.isActive) {
                 delay(eventCheckIntervalMinutes.toLong() * 60_000L)
-                submit(EventFetchCommand())
+                submit(EventFetchCommand(), false)
             }
         } else logger.warn("EVENT CHECKING IS DEACTIVATED")
     }
@@ -397,6 +399,12 @@ class DynamicAdapterRuntimeService(
         }
         updateJobMessage(command.id, "Event check done, ${events.size} events added to queue.", false)
     }
+
+    fun setEventInterval(int: Int) = eventCheckIntervalMinutes.set(int)
+
+    fun resetEventInterval() = eventCheckIntervalMinutes.set(props.fintProperties.eventCheckIntervalInMinutes)
+
+    fun disableEventCheck() = eventCheckIntervalMinutes.set(0)
 
     private fun executeEventRequest(command: EventHandlingCommand) {
         val request = eventCache[command.eventCorrId]

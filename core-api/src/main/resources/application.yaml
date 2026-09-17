@@ -23,7 +23,7 @@ dyna:
     fint-properties:
       max-page-size: 1000
       heartbeat-interval-in-minutes: 3
-      event-check-interval-in-minutes: 2
+      event-check-interval-in-minutes: 5
     delta-config:
       amount-tier-policy:
         grouping:
