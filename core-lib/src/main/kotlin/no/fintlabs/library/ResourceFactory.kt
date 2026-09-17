@@ -27,6 +27,7 @@ import no.novari.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.novari.fint.model.utdanning.elev.Klasse
 import no.novari.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
+import java.time.LocalDate
 import java.util.Date
 import kotlin.collections.iterator
 import kotlin.random.Random
@@ -157,7 +158,7 @@ class ResourceFactory(
                     }
 
                     Date::class.java -> {
-                        { Date() }
+                        { LocalDate.now() }
                     }
 
                     // Complex Fint Datatypes
