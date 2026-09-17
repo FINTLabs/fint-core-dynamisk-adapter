@@ -3,6 +3,7 @@ package no.fintlabs.library
 import no.novari.fint.model.resource.felles.kompleksedatatyper.AdresseResource
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.UUID
 import kotlin.random.Random
@@ -60,6 +61,11 @@ class CustomRandomizer(
             postnummer = "237"
             poststed = cityNameList.random(random)
         }
+
+    fun randomDateTime() =
+        LocalDateTime.now()
+            .minusSeconds(random.nextLong(0, 10L * 24 * 60 * 60))
+            .withNano(0)
 
     fun randomDateTimeAsDate(): Date {
         val localDateTime =

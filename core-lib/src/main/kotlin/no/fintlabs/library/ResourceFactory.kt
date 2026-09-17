@@ -172,19 +172,12 @@ class ResourceFactory(
                     LocalDate::class.java -> {
                         {
                             LocalDate.now()
-                                .minusDays(random.nextLong(0, 3650))
-                                .format(DateTimeFormatter.ISO_LOCAL_DATE)
                         }
                     }
 
                     LocalDateTime::class.java -> {
                         {
-                            LocalDateTime.now()
-                                .minusSeconds(
-                                    random.nextLong(0, 10L * 24 * 60 * 60)
-
-                                )
-                                .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            randomizer.randomDateTime()
                         }
                     }
 
