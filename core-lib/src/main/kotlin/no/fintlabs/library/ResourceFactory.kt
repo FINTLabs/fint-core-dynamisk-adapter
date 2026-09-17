@@ -27,7 +27,10 @@ import no.novari.fint.model.resource.okonomi.faktura.FakturamottakerResource
 import no.novari.fint.model.utdanning.elev.Klasse
 import no.novari.fint.model.utdanning.vurdering.Fravarsprosent
 import java.lang.reflect.Field
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import kotlin.collections.iterator
 import kotlin.random.Random
@@ -158,7 +161,31 @@ class ResourceFactory(
                     }
 
                     Date::class.java -> {
-                        { LocalDate.now() }
+                        {
+                            Date(
+                                System.currentTimeMillis() -
+                                        random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
+                            )
+                        }
+                    }
+
+                    LocalDate::class.java -> {
+                        {
+                            LocalDate.now()
+                                .minusDays(random.nextLong(0, 3650))
+                                .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        }
+                    }
+
+                    LocalDateTime::class.java -> {
+                        {
+                            LocalDateTime.now()
+                                .minusSeconds(
+                                    random.nextLong(0, 10L * 24 * 60 * 60)
+
+                                )
+                                .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        }
                     }
 
                     // Complex Fint Datatypes
@@ -336,11 +363,7 @@ class ResourceFactory(
                         {
                             Periode().apply {
                                 beskrivelse = randomizer.quote()
-                                start =
-                                    Date(
-                                        System.currentTimeMillis() -
-                                                random.nextLong(0, 10L * 24 * 60 * 60 * 1000),
-                                    )
+                                start = randomizer.randomDateTimeAsDate()
                             }
                         }
                     }
