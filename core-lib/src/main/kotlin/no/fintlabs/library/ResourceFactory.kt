@@ -39,6 +39,7 @@ private enum class FaultType {
     WRONG,
 }
 
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class ResourceFactory(
     private val config: ResourceFactoryConfig = ResourceFactoryConfig(),
 ) {
