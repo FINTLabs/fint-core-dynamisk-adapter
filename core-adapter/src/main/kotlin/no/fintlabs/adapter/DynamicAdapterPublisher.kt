@@ -115,7 +115,7 @@ class DynamicAdapterPublisher(
                 .bodyToMono<List<RequestFintEvent>>()
                 .block()
                 ?: emptyList()
-        } else return listOf<RequestFintEvent>(
+        } else return listOf(
             RequestFintEvent().apply {
                 domainName = "utdanning"
                 orgId = props.orgId
@@ -145,22 +145,21 @@ class DynamicAdapterPublisher(
     }
 
     fun postEvent(event: ResponseFintEvent) {
-        val responseEvent = event
-        responseEvent.orgId = props.orgId
-        responseEvent.adapterId = props.adapterId
+        event.orgId = props.orgId
+        event.adapterId = props.adapterId
 
         if (!props.offlineMode) {
             webClient
                 .post()
                 .uri("${props.baseUrl}/event")
-                .bodyValue(responseEvent)
+                .bodyValue(event)
                 .exchangeToMono { response ->
                     Mono
                         .just(logger.info("Event reply status:${response.statusCode().value()}"))
                 }
                 .block()
         } else {
-            var errors: String = ""
+            var errors = ""
             if (event.conflictReason.isNotEmpty() || event.errorMessage.isNotEmpty() || event.rejectReason.isNotEmpty()) {
                 errors = ": ${event.conflictReason} ${event.errorMessage} ${event.rejectReason}"
             }

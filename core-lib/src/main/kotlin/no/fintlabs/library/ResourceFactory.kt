@@ -401,7 +401,7 @@ class ResourceFactory(
         logging: Boolean,
         clazz: Class<T>,
         blueprint: Map<String, () -> Any?>,
-        errorPercentage: Int = 0,
+        errorPercentage: Int,
     ): FintResource {
         val instance = clazz.getDeclaredConstructor().newInstance()
 
