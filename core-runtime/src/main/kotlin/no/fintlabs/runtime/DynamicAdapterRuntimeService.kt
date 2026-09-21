@@ -193,9 +193,14 @@ class DynamicAdapterRuntimeService(
 
                 updateJobMessage(command.id, "Startup sequence successful", log = false)
             } else throw IllegalStateException(
-                """Failed to register to provider with capabilities: 
-                $capabilities
-                """.trimMargin()
+                "Failed to register to provider with capabilities:\n" +
+                        capabilities.getKeys()
+                            .groupBy { it.split("/")[1] }
+                            .entries
+                            .joinToString("\n") { (component, keys) ->
+                                "$component:      ${keys.joinToString(", ") { it.substringAfterLast("/") }}"
+                            }
+
             )
         } else throw IllegalStateException("No capabilities to register")
     }
