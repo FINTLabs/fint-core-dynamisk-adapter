@@ -178,8 +178,12 @@ class ResourceFactory(
                     LocalDateTime::class.java -> {
                         {
                             LocalDateTime.now()
-                                .minusSeconds(random.nextLong(0, 365L * 24 * 60 * 60))
+                                .minusSeconds(
+                                    random.nextLong(0, 365L * 24 * 60 * 60)
+                                )
+                                .withNano(0)
                         }
+
                     }
 
                     // Complex Fint Datatypes
@@ -360,6 +364,7 @@ class ResourceFactory(
                                 start = Date(
                                     System.currentTimeMillis() -
                                             random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
+
                                 )
                             }
                         }
