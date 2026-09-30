@@ -41,12 +41,12 @@ jobs:
                 | .value as $config
                 | ($config.organisations // [])[]
                 | {
-                    environment: $environment,
-                    org: .,
-                    cluster: $config.cluster,
-                    resourceGroup: $config.resourceGroup,
-                    azureSecret: $config.azureSecret,
-                    overlay: ("kustomize/overlays/" + .)
+                    "environment": $environment,
+                    "org": .,
+                    "cluster": $config.cluster,
+                    "resourceGroup": $config.resourceGroup,
+                    "azureSecret": $config.azureSecret,
+                    "overlay": ("kustomize/overlays/" + .)
                   }
               ]
             ' kustomize/deployments.yaml
