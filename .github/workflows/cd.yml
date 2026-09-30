@@ -46,7 +46,7 @@ jobs:
                     "cluster": $config.cluster,
                     "resourceGroup": $config.resourceGroup,
                     "azureSecret": $config.azureSecret,
-                    "overlay": ("kustomize/overlays/$environment" + .)
+                    "overlay": ("kustomize/overlays/" + $environment + "/" + .)
                   }
               ]
             ' kustomize/deployments.yaml
