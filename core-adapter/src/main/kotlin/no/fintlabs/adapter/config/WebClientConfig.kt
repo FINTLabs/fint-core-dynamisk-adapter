@@ -25,9 +25,11 @@ class WebClientConfig(
      *  - refreshes token if expired
      */
     @Bean
-    fun dynaWebClient(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient =
-        WebClient
-            .builder()
+    fun dynaWebClient(
+        webclient: WebClient.Builder,
+        authorizedClientManager: ReactiveOAuth2AuthorizedClientManager
+    ): WebClient =
+        webclient
             .filter(createExchangeFilterFunction(authorizedClientManager))
             .baseUrl(props.baseUrl + ".provider")
             .build()

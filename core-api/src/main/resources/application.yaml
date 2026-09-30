@@ -7,9 +7,6 @@ spring:
     date-format: "yyyy-MM-dd'T'HH:mm:ssXXX"
     time-zone: UTC
 
-server:
-  port: 8182
-
 dyna:
   runtime:
     startup-domains: [ "utdanning" ]

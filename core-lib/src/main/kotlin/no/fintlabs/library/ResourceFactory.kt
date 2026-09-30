@@ -364,7 +364,6 @@ class ResourceFactory(
                                 start = Date(
                                     System.currentTimeMillis() -
                                             random.nextLong(0, 10L * 24 * 60 * 60 * 1000)
-
                                 )
                             }
                         }

@@ -180,7 +180,7 @@ class DynamicAdapterEngine(
     fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
 
     fun debugGenCapPercentage() =
-        logger.info("Percentage of max generated resources: ${generationCapacityPercentage()}")
+        logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")
 
     // Status Stuff
 
