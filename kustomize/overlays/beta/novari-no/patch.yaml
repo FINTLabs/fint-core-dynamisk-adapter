@@ -6,14 +6,6 @@ metadata:
   labels:
     fintlabs.no/org-id: novari-no
 
-ingress:
-  routes:
-    - host: beta.felleskomponent.no
-      path: dyna/novari
-      middlewares:
-        - auth-middleware
-
-
 spec:
   orgId: novari-no
   envFrom:
@@ -22,3 +14,10 @@ spec:
 
   onePassword:
     itemPath: "vaults/aks-beta-vault/items/fint-core-dynamisk-adapter-beta"
+
+  ingress:
+    routes:
+      - host: beta.felleskomponent.no
+        path: /dyna/novari
+        middlewares:
+          - auth-middleware
