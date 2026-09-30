@@ -1,5 +1,6 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: Application
+
 metadata:
   name: fint-core-dynamisk-adapter-backend
   labels:
