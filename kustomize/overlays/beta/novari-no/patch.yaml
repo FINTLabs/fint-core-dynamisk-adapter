@@ -7,7 +7,9 @@ metadata:
 
 spec:
   orgId: novari-no
-  envFrom: application.yaml
+  envFrom:
+    - configMapRef:
+        name: dyna-config
 
   onePassword:
     itemPath: "vaults/aks-beta-vault/items/fint-core-dynamisk-adapter-beta"

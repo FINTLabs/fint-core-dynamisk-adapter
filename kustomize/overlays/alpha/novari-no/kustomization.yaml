@@ -12,7 +12,7 @@ patches:
 configMapGenerator:
   - name: dyna-config
     files:
-      - application.yaml
+      - application.env
 
 generatorOptions:
   disableNameSuffixHash: true
