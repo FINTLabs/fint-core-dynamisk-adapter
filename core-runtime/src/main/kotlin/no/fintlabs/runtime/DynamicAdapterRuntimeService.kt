@@ -350,7 +350,7 @@ class DynamicAdapterRuntimeService(
     private suspend fun deltaLoop() {
         if (enableDeltaSync.get()) {
             deltaSyncLoopStartedAt.set(Instant.now())
-            logger.info("Delta sync loop started, " + nextScheduledDeltaSync())
+            logger.info("Delta sync loop started with ${deltaSyncIntervalInMinutes} minutes interval at " + nextScheduledDeltaSync())
             while (scope.isActive) {
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
@@ -365,7 +365,7 @@ class DynamicAdapterRuntimeService(
 
     private suspend fun heartbeatLoop() {
         if (heartBeatActive.get()) {
-            logger.debug("heartbeat loop started.")
+            logger.debug("heartbeat loop started with ${props.fintProperties.heartbeatIntervalInMinutes} minutes interval.")
             while (scope.isActive) {
                 delay(props.fintProperties.heartbeatIntervalInMinutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
@@ -378,7 +378,7 @@ class DynamicAdapterRuntimeService(
 
     private suspend fun eventCheckLoop() {
         if (eventCheckIntervalMinutes.get() >= 1) {
-            logger.debug("Event check loop started with delay of ${eventCheckIntervalMinutes.get()} minutes.")
+            logger.debug("Event check loop started with ${eventCheckIntervalMinutes.get()} minutes interval.")
             while (scope.isActive) {
                 delay(eventCheckIntervalMinutes.toLong() * 60_000L)
                 submit(EventFetchCommand(), false)
