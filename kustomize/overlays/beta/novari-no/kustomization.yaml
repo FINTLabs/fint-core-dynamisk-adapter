@@ -9,6 +9,8 @@ namespace: novari-no
 patches:
   - path: patch.yaml
 
+
+
 configMapGenerator:
   - name: dyna-config
     envs:
