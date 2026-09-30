@@ -1,0 +1,12 @@
+apiVersion: fintlabs.no/v1alpha1
+kind: Application
+metadata:
+  name: fint-core-dynamisk-adapter-backend
+  labels:
+    fintlabs.no/org-id: novari-no
+
+spec:
+  orgId: novari-no
+
+  onePassword:
+    itemPath: "vaults/aks-alpha-vault/items/fint-core-dynamisk-adapter-alpha"

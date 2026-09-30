@@ -1,0 +1,16 @@
+environments:
+  alpha:
+    cluster: aks-alpha-fint-2021-11-18
+    resourceGroup: rg-aks-alpha
+    azureSecret: AKS_ALPHA_FINT_GITHUB
+    organisations: [
+      #        novari-no
+    ]
+
+  beta:
+    cluster: aks-beta-fint-2021-11-23
+    resourceGroup: rg-aks-beta
+    azureSecret: AKS_BETA_FINT_GITHUB
+    organisations: [
+      novari-no
+    ]

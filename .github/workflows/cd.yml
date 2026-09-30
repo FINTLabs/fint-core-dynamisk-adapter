@@ -14,6 +14,51 @@ permissions:
   packages: write
 
 jobs:
+
+  # --------------------------------------------------
+  # Figure out which environment/org combinations exist
+  # --------------------------------------------------
+  setup:
+    runs-on: ubuntu-latest
+
+    outputs:
+      targets: ${{ steps.targets.outputs.targets }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build deployment matrix
+        id: targets
+        shell: bash
+        run: |
+          targets=$(
+            yq -o=json -I=0 '
+              [
+                .environments
+                | to_entries[]
+                | .key as $environment
+                | .value as $config
+                | ($config.organisations // [])[]
+                | {
+                    environment: $environment,
+                    org: .,
+                    cluster: $config.cluster,
+                    resourceGroup: $config.resourceGroup,
+                    azureSecret: $config.azureSecret,
+                    overlay: ("kustomize/overlays/" + .)
+                  }
+              ]
+            ' kustomize/deployments.yaml
+          )
+
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+          echo "$targets"
+
+
+  # --------------------------------------------------
+  # Build DynA once
+  # --------------------------------------------------
   build:
     runs-on: ubuntu-latest
 
@@ -55,10 +100,25 @@ jobs:
           push: true
           tags: ${{ steps.image.outputs.image }}
 
-  deploy-beta:
-    needs: build
+
+  # --------------------------------------------------
+  # Run this once for every target from deployments.yaml
+  # --------------------------------------------------
+  deploy:
+    needs:
+      - setup
+      - build
+
+    if: needs.setup.outputs.targets != '[]'
+
     runs-on: ubuntu-latest
-    environment: beta
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.setup.outputs.targets) }}
+
+    environment: ${{ matrix.target.environment }}
 
     steps:
       - name: Checkout
@@ -67,27 +127,21 @@ jobs:
       - name: Azure login
         uses: azure/login@v3
         with:
-          creds: ${{ secrets.AKS_BETA_FINT_GITHUB }}
+          creds: ${{ secrets[matrix.target.azureSecret] }}
 
       - name: Set AKS context
         uses: azure/aks-set-context@v5
         with:
-          cluster-name: aks-beta-fint-2021-11-23
-          resource-group: rg-aks-beta
+          cluster-name: ${{ matrix.target.cluster }}
+          resource-group: ${{ matrix.target.resourceGroup }}
           admin: "true"
-
-      - name: Set 1Password item path
-        env:
-          ONEPASSWORD_ITEM_PATH: ${{ vars.DYNA_ONEPASSWORD_ITEM_PATH }}
-        run: |
-          sed -i "s|DYNA_ONEPASSWORD_ITEM_PATH|${ONEPASSWORD_ITEM_PATH}|g" kustomize/base/dyna.yaml
 
       - name: Bake manifests
         id: bake
         uses: azure/k8s-bake@v4
         with:
           renderEngine: kustomize
-          kustomizationPath: kustomize/base
+          kustomizationPath: ${{ matrix.target.overlay }}
 
       - name: Substitute image into baked YAML
         id: substitute
@@ -103,11 +157,12 @@ jobs:
           SOURCE_DIRECTORY: ${{ steps.substitute.outputs.directory }}
         run: |
           set -euo pipefail
+
           destination="$GITHUB_WORKSPACE/.k8s-deploy-manifests"
           mkdir -p "$destination"
           cp -aL -- "$SOURCE_DIRECTORY/." "$destination/"
-          echo "manifests=$destination" >> "$GITHUB_OUTPUT"
 
+          echo "manifests=$destination" >> "$GITHUB_OUTPUT"
 
       - name: Deploy
         uses: azure/k8s-deploy@v7.0.0
@@ -116,12 +171,68 @@ jobs:
           manifests: ${{ steps.deploy-manifests.outputs.manifests }}
           pull-images: false
 
-#  deploy-alpha:
-#    needs:
-#      - build
-#      - deploy-beta
+#name: CD
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#concurrency:
+#  group: dyna-deploy
+#  cancel-in-progress: false
+#
+#permissions:
+#  contents: read
+#  packages: write
+#
+#jobs:
+#  build:
 #    runs-on: ubuntu-latest
-#    environment: alpha
+#
+#    outputs:
+#      matrix: ${{ steps.matrix.outputs.matrix }}
+#      #      image: ${{ steps.image.outputs.image }}
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v5
+#
+#      - name: Set up Java
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: temurin
+#          java-version: 25
+#
+#      - name: Set up Gradle
+#        uses: gradle/actions/setup-gradle@v6
+#
+#      - name: Build application
+#        run: ./gradlew :core-api:bootJar
+#
+#      - name: Set image
+#        id: image
+#        run: |
+#          echo "image=ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+#
+#      - name: Login to GHCR
+#        uses: docker/login-action@v3
+#        with:
+#          registry: ghcr.io
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Build and push Docker image
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: .
+#          push: true
+#          tags: ${{ steps.image.outputs.image }}
+#
+#  deploy-beta:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    environment: beta
 #
 #    steps:
 #      - name: Checkout
@@ -130,19 +241,14 @@ jobs:
 #      - name: Azure login
 #        uses: azure/login@v3
 #        with:
-#          creds: ${{ secrets.AKS_ALPHA_FINT_GITHUB }}
-#
-#      - uses: azure/use-kubelogin@v1
-#        with:
-#          kubelogin-version: "v0.0.26"
+#          creds: ${{ secrets.AKS_BETA_FINT_GITHUB }}
 #
 #      - name: Set AKS context
 #        uses: azure/aks-set-context@v5
 #        with:
-#          cluster-name: YOUR_ALPHA_CLUSTER
-#          resource-group: rg-aks-alpha
+#          cluster-name: aks-beta-fint-2021-11-23
+#          resource-group: rg-aks-beta
 #          admin: "true"
-#          use-kubelogin: 'true'
 #
 #      - name: Set 1Password item path
 #        env:
@@ -157,11 +263,30 @@ jobs:
 #          renderEngine: kustomize
 #          kustomizationPath: kustomize/base
 #
+#      - name: Substitute image into baked YAML
+#        id: substitute
+#        uses: azure/k8s-artifact-substitute@v2.0.0
+#        with:
+#          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+#          images: ${{ needs.build.outputs.image }}
+#
+#      - name: Prepare manifests for deployment
+#        id: deploy-manifests
+#        shell: bash
+#        env:
+#          SOURCE_DIRECTORY: ${{ steps.substitute.outputs.directory }}
+#        run: |
+#          set -euo pipefail
+#          destination="$GITHUB_WORKSPACE/.k8s-deploy-manifests"
+#          mkdir -p "$destination"
+#          cp -aL -- "$SOURCE_DIRECTORY/." "$destination/"
+#          echo "manifests=$destination" >> "$GITHUB_OUTPUT"
+#
+#
 #      - name: Deploy
-#        uses: azure/k8s-deploy@v6
+#        uses: azure/k8s-deploy@v7.0.0
 #        with:
 #          action: deploy
-#          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-#          images: |
-#            ${{ needs.build.outputs.image }}
-#          namespace: fint-core-dyna
+#          manifests: ${{ steps.deploy-manifests.outputs.manifests }}
+#          pull-images: false
+#
