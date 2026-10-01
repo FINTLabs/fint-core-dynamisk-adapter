@@ -3,7 +3,6 @@ package no.fintlabs.api.controllers
 import no.fintlabs.api.dto.GenerateSpecifiedValueResourceRequest
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.dto.AmountTierPolicyRequest
-import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import no.fintlabs.runtime.model.CreateDataCommand
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
@@ -21,12 +20,13 @@ class DataController(
     @PostMapping("/generate-resources")
     fun generateResources(
         @RequestBody(required = true)
-        resources: Map<ResourceIdentifiers, Int>
+        resources: Map<String, Int>
     ): String {
         val activeDomains = runtime.getActiveDomains()
         for (resource in resources.keys) {
-            if (!activeDomains.contains(resource.domain)) return "ERROR: $resource is not in active domains. \n " +
-                    "update dataset to contain ${resource.domain} if you wish to generate this resource."
+            val domain = resource.substringBefore("/")
+            if (!activeDomains.contains(domain)) return "ERROR: $resource is not in active domains. \n " +
+                    "update dataset to contain $domain if you wish to generate this resource."
         }
         return runtime.submit(
             CreateDataCommand(

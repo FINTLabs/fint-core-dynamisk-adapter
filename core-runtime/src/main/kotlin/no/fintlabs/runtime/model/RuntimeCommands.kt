@@ -1,7 +1,6 @@
 package no.fintlabs.runtime.model
 
 import no.fintlabs.adapter.operation.OperationType
-import no.fintlabs.contract.models.ResourceIdentifiers
 import java.time.Instant
 import java.util.UUID
 
@@ -20,13 +19,13 @@ data class StartupSequence(
 data class CreateDataCommand(
     override val id: String = "create_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
-    val resources: Map<ResourceIdentifiers, Int>,
+    val resources: Map<String, Int>,
 ) : RuntimeCommand
 
 data class CreateSpecificDataCommand(
     override val id: String = "create_specific_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
-    val resource: ResourceIdentifiers,
+    val resource: String,
     val fieldName: String,
     val fieldValue: String,
     val amount: Int = 1,

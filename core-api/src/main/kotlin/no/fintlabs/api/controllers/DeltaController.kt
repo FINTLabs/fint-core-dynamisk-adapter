@@ -2,7 +2,6 @@ package no.fintlabs.api.controllers
 
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.dto.AmountTierPolicyRequest
-import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -15,16 +14,17 @@ import org.springframework.web.bind.annotation.RestController
 class DeltaController(
     private val runtime: DynamicAdapterRuntimeService,
 ) {
+
     @PostMapping("/add-resources")
     fun addResources(
         @RequestBody(required = true)
-        resources: Map<ResourceIdentifiers, IntRange?>
-    ) = runtime.addDeltaSyncResources(resources)
+        resources: Map<String, IntRange?>
+    ) = runtime.setDeltaSyncResources(resources, replace = true)
 
     @PostMapping("/set-resources")
     fun setResources(
         @RequestBody(required = true)
-        resources: Map<ResourceIdentifiers, IntRange?>
+        resources: Map<String, IntRange?>
     ) = runtime.setDeltaSyncResources(resources)
 
     @PatchMapping("/set-interval")

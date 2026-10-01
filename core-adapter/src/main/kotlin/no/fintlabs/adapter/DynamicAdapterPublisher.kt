@@ -167,9 +167,6 @@ class DynamicAdapterPublisher(
         }
     }
 
-    // Errors?: ${event.errorMessage} ${event.conflictReason} ${event.rejectReason}
-
-
     private fun publish(
         resourceName: String,
         metadata: ExpandedMetadata,
@@ -228,8 +225,14 @@ class DynamicAdapterPublisher(
                     logger.error("${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ")
                 }
 
-                logger.debug(
-                    "📤 ${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) "
+                logger.trace(
+                    "\uD83D\uDCE4 {}: HTTP {}, {} page {}/{} ({} entries) ",
+                    syncType.name,
+                    status,
+                    resourceName,
+                    i + 1,
+                    totalPages,
+                    entries.size
                 )
             }
         }

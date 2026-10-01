@@ -4,6 +4,7 @@ import no.fintlabs.engine.DynamicAdapterEngine
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import no.fintlabs.contract.dto.DynaGeneralStatusResponse
 import no.fintlabs.contract.data.RuntimeJobStatus
+import no.fintlabs.contract.dto.DeltaSetupStatus
 import no.fintlabs.contract.dto.SystemStatus
 import org.springframework.stereotype.Service
 import java.lang.management.ManagementFactory
@@ -13,20 +14,35 @@ class DynamicAdapterStatusService(
     private val runtime: DynamicAdapterRuntimeService,
     private val engine: DynamicAdapterEngine,
 ) {
-    fun status(): DynaGeneralStatusResponse =
-        DynaGeneralStatusResponse(
-            offline = runtime.isOffline(),
-            registered = runtime.isRegistered(),
+    fun status(): DynaGeneralStatusResponse {
+        val rts = runtime.getRuntimeStatus()
+
+        return DynaGeneralStatusResponse(
+            offline = rts.offline,
+            registered = rts.registered,
+
             queueSize = runtime.queueSize(),
             runningJob = runtime.getRunningJob(),
             currentJobs = runtime.getCurrentJobs(),
-            lastHeartBeatAt = runtime.getLastHeartbeat(),
+
             lastFullSyncAt = runtime.getLastFullSync(),
-            lastDeltaSyncAt = runtime.getLastDeltaSync(),
-            nextScheduledDeltaSyncAt = runtime.nextScheduledDeltaSync(),
+
+            heartBeatEnabled = rts.heartbeatEnabled,
+            lastHeartBeatAt = rts.lastHeartBeatAt,
+
+            eventCheckEnabled = rts.eventCheckEnabled,
+            eventCheckIntervalInMinutes = rts.eventCheckIntervalMinutes,
+
+            deltaSetup = DeltaSetupStatus(
+                enabled = rts.deltaSyncEnabled,
+                interval = rts.deltaSyncIntervalMinutes,
+                lastPerformed = runtime.getLastDeltaSync(),
+                nextScheduled = runtime.nextScheduledDeltaSync()
+            ),
             resourceStatus = engine.resourceStatus(),
             systemStatus = systemStatus(),
         )
+    }
 
     fun allJobs(): List<RuntimeJobStatus> =
         runtime.getAllJobs().sortedByDescending { it.requestedAt }

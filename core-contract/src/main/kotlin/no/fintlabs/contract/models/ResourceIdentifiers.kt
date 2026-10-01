@@ -7,5 +7,3 @@ data class ResourceIdentifiers(
 ) {
     fun toKey(): String = "$domain/$component/$resource"
 }
-
-fun Set<ResourceIdentifiers>.getKeys() = map { it.toKey() }

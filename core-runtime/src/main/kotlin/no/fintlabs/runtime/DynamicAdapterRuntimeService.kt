@@ -29,11 +29,13 @@ import no.fintlabs.contract.data.JobState
 import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
+import no.fintlabs.contract.util.resourceToIdentifiers
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
 import no.fintlabs.runtime.model.EventFetchCommand
 import no.fintlabs.runtime.model.EventHandlingCommand
 import no.fintlabs.runtime.model.StartupSequence
+import no.fintlabs.runtime.status.dto.RuntimeStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -140,7 +142,7 @@ class DynamicAdapterRuntimeService(
             is CreateDataCommand -> {
                 val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
                 for (res in command.resources) {
-                    resources[res.key] = IntRange(res.value, res.value)
+                    resources[resourceToIdentifiers(res.key)] = IntRange(res.value, res.value)
                 }
                 handleGenerateResources(resources)
             }
@@ -271,7 +273,7 @@ class DynamicAdapterRuntimeService(
 
             val resources = engine
                 .generateResourceWithSpecifiedFieldValue(
-                    command.resource,
+                    resourceToIdentifiers(command.resource),
                     command.fieldName,
                     command.fieldValue,
                     command.amount
@@ -350,7 +352,7 @@ class DynamicAdapterRuntimeService(
     private suspend fun deltaLoop() {
         if (enableDeltaSync.get()) {
             deltaSyncLoopStartedAt.set(Instant.now())
-            logger.info("Delta sync loop started with ${deltaSyncIntervalInMinutes} minutes interval. " + nextScheduledDeltaSync())
+            logger.info("Delta sync loop started with ${deltaSyncIntervalInMinutes.get()} minutes interval. " + nextScheduledDeltaSync())
             while (scope.isActive) {
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
@@ -472,30 +474,31 @@ class DynamicAdapterRuntimeService(
 
     fun setDisableDeltaSync() = enableDeltaSync.set(false)
 
-    fun addDeltaSyncResources(
-        resources: Map<ResourceIdentifiers, IntRange?>
-    ) {
-        val configResources = resources.toDeltaResourceConfigList()
-
-        deltaSyncConfig.updateAndGet { current ->
-            current.copy(
-                resources =
-                    current.resources + configResources,
-            )
-        }
-    }
-
     fun setDeltaSyncInterval(intervalInMinutes: Int) = deltaSyncIntervalInMinutes.set(intervalInMinutes)
 
     fun resetDeltaSyncInterval() = deltaSyncIntervalInMinutes.set(props.deltaConfig.deltaSyncIntervalInMinutes)
 
     fun setDeltaSyncResources(
-        resources: Map<ResourceIdentifiers, IntRange?>
+        resources: Map<String, IntRange?>,
+        replace: Boolean = false
     ) {
-        deltaSyncConfig.updateAndGet {
-            it.copy(
-                resources = resources.toDeltaResourceConfigList(),
-            )
+        val transformed: Map<ResourceIdentifiers, IntRange?> = resources
+            .map { (key, value) -> resourceToIdentifiers(key) to value }.toMap()
+        val configResources = transformed.toDeltaResourceConfigList()
+
+        if (!replace) {
+            deltaSyncConfig.updateAndGet { current ->
+                current.copy(
+                    resources =
+                        current.resources + configResources,
+                )
+            }
+        } else {
+            deltaSyncConfig.updateAndGet {
+                it.copy(
+                    resources = configResources,
+                )
+            }
         }
     }
 
@@ -602,9 +605,17 @@ class DynamicAdapterRuntimeService(
 
     // Status stuff
 
-    fun isRegistered() = registered.get()
-
-    fun isOffline() = offline.get()
+    fun getRuntimeStatus(): RuntimeStatus =
+        RuntimeStatus(
+            registered = registered.get(),
+            offline = offline.get(),
+            deltaSyncEnabled = (deltaSyncIntervalInMinutes.get() != 0),
+            deltaSyncIntervalMinutes = deltaSyncIntervalInMinutes.get(),
+            heartbeatEnabled = heartBeatActive.get(),
+            lastHeartBeatAt = lastHeartBeatAt.get(),
+            eventCheckEnabled = (eventCheckIntervalMinutes.get() != 0),
+            eventCheckIntervalMinutes = eventCheckIntervalMinutes.get(),
+        )
 
     fun getRunningJob(): RuntimeJobStatus? =
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
@@ -617,7 +628,6 @@ class DynamicAdapterRuntimeService(
 
     fun queueSize(): Int = currentJobs.values.count { it.state == JobState.QUEUED }
 
-    fun getLastHeartbeat(): Instant? = lastHeartBeatAt.get()
     fun getLastFullSync(): Instant? = lastFullSyncAt.get()
     fun getLastDeltaSync(): Instant? = lastDeltaSyncAt.get()
 
@@ -634,7 +644,7 @@ class DynamicAdapterRuntimeService(
         )
         val localTime = nextRun.atZone(ZoneId.systemDefault()).toLocalDateTime()
 
-        return "Next Scheduled DeltaSync will take place at: " + localTime.truncatedTo(ChronoUnit.SECONDS).toString()
+        return "Next Scheduled DeltaSync: " + localTime.truncatedTo(ChronoUnit.SECONDS).toString()
     }
 
 }
