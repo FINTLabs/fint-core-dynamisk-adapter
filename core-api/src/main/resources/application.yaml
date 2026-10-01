@@ -58,7 +58,7 @@ fint:
     scope: fint-adapter
     idp-uri: https://idp.felleskomponent.no/nidp/oauth/nam/token
     heartbeat-interval-in-minutes: 3
-    offline-mode: false
+    offline-mode: true
 
 logging:
   level:

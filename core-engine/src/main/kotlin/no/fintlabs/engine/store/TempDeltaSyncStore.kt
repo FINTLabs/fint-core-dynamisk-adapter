@@ -5,7 +5,6 @@ import no.novari.fint.model.resource.FintResource
 import no.fintlabs.contract.StoredResource
 import no.fintlabs.contract.util.getId
 import org.springframework.stereotype.Component
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.forEach
 
@@ -17,7 +16,6 @@ class TempDeltaSyncStore {
         data.computeIfAbsent(key) { ConcurrentHashMap() }
 
     fun purge() = data.clear()
-
 
     fun addAllResources(
         key: ResourceKey,
@@ -44,8 +42,6 @@ class TempDeltaSyncStore {
     }
 
     fun getIdsFor(key: ResourceKey): List<String> = data[key]?.keys?.toList() ?: emptyList()
-
-    fun getAll(key: ResourceKey): List<StoredResource> = data[key]?.values?.toList() ?: emptyList()
 
     fun getAllResources(key: ResourceKey): List<FintResource> = data[key]?.values?.toFintResources() ?: emptyList()
 

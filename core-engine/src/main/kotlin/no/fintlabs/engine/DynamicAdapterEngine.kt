@@ -96,6 +96,7 @@ class DynamicAdapterEngine(
         }
         relations.relateDataset(deltaMetadataList, SetType.DELTA)
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
+        mergeDeltaStorageToFull(fullList)
         deltaStorage.purge()
         debugGenCapPercentage()
         return fullList
@@ -130,6 +131,7 @@ class DynamicAdapterEngine(
         )
         relations.relateDataset(mutableListOf(meta), SetType.DELTA)
         val resources = getAllGeneratedResourcesForSetType(mutableListOf(meta), SetType.DELTA)
+        mergeDeltaStorageToFull(resources)
         deltaStorage.purge()
         debugGenCapPercentage()
         return resources
@@ -173,6 +175,12 @@ class DynamicAdapterEngine(
         debugGenCapPercentage()
     }
 
+    private fun mergeDeltaStorageToFull(collection: ConcurrentHashMap<ExpandedMetadata, List<FintResource>>) {
+        for (resource in collection) {
+            storage.addAllResources(resource.key, resource.value)
+        }
+    }
+
     // Configuration Manipulation
 
     fun setMaxResources(amount: Int) = maxGeneratedResources.set(amount)
@@ -197,5 +205,4 @@ class DynamicAdapterEngine(
             resourcesByKey = storage.countsByKey(),
             registeredCapabilities = metadata.getNamesOfCapabilities(),
         )
-
 }
