@@ -19,5 +19,3 @@ spec:
     routes:
       - host: beta.felleskomponent.no
         path: /dyna/novari
-        middlewares:
-          - auth-middleware

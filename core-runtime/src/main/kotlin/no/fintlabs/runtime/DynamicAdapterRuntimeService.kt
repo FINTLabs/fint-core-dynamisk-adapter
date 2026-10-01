@@ -350,7 +350,7 @@ class DynamicAdapterRuntimeService(
     private suspend fun deltaLoop() {
         if (enableDeltaSync.get()) {
             deltaSyncLoopStartedAt.set(Instant.now())
-            logger.info("Delta sync loop started with ${deltaSyncIntervalInMinutes} minutes interval at " + nextScheduledDeltaSync())
+            logger.info("Delta sync loop started with ${deltaSyncIntervalInMinutes} minutes interval. " + nextScheduledDeltaSync())
             while (scope.isActive) {
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
