@@ -27,7 +27,7 @@ data class DynaGeneralStatusResponse(
 
 data class DeltaSetupStatus(
     val enabled: Boolean,
-    val interval: Int,
+    val interval: String,
     val lastPerformed: Instant?,
     val nextScheduled: String,
 )

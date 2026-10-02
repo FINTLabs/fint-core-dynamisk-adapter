@@ -35,7 +35,7 @@ class DynamicAdapterStatusService(
 
             deltaSetup = DeltaSetupStatus(
                 enabled = rts.deltaSyncEnabled,
-                interval = rts.deltaSyncIntervalMinutes,
+                interval = "${rts.deltaSyncIntervalMinutes} minutes",
                 lastPerformed = runtime.getLastDeltaSync(),
                 nextScheduled = runtime.nextScheduledDeltaSync()
             ),
