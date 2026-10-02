@@ -15,13 +15,13 @@ class CustomRandomizer(
         config.firstnameList.withDefaults(DEFAULT_FIRSTNAMES, config.minimumRandomPoolSize)
 
     private val lastnameList =
-        config.firstnameList.withDefaults(DEFAULT_LASTNAMES, config.minimumRandomPoolSize)
+        config.lastnameList.withDefaults(DEFAULT_LASTNAMES, config.minimumRandomPoolSize)
 
     private val funnyNameList =
-        config.firstnameList.withDefaults(DEFAULT_FUNNYNAMES, config.minimumRandomPoolSize)
+        config.funnyNameList.withDefaults(DEFAULT_FUNNYNAMES, config.minimumRandomPoolSize)
 
     private val quoteList =
-        config.firstnameList.withDefaults(DEFAULT_QUOTES, 5)
+        config.quoteList.withDefaults(DEFAULT_QUOTES, 5)
 
     private val cityNameList =
         config.cityNameList.withDefaults(DEFAULT_CITYNAMES, 2)
