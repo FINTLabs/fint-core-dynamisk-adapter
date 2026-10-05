@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.max
 
 @Component
 class DynamicAdapterEngine(
@@ -202,7 +201,7 @@ class DynamicAdapterEngine(
         ResourceStatus(
             metadataCount = metadata.getAllMetadata().size,
             totalResources = storage.totalCount(),
-            maxGeneratedResources = props.maxGeneratedResources,
+            maxGeneratedResources = maxGeneratedResources.get(),
             percentageOfMaxGenerated = generationCapacityPercentage(),
             resourcesByKey = storage.countsByKey(),
             registeredCapabilities = metadata.getNamesOfCapabilities(),
