@@ -20,6 +20,7 @@ class DynamicAdapterStatusService(
         return DynaGeneralStatusResponse(
             offline = rts.offline,
             registered = rts.registered,
+            registeredDomains = rts.domains,
 
             queueSize = runtime.queueSize(),
             runningJob = runtime.getRunningJob(),

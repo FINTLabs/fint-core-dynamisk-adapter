@@ -7,6 +7,7 @@ import java.time.Instant
 data class DynaGeneralStatusResponse(
     val registered: Boolean,
     val offline: Boolean,
+    val registeredDomains: List<String>,
 
     val queueSize: Int,
     val runningJob: RuntimeJobStatus?,

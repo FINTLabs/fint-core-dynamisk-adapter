@@ -609,6 +609,7 @@ class DynamicAdapterRuntimeService(
         RuntimeStatus(
             registered = registered.get(),
             offline = offline.get(),
+            domains = activeDomains.get(),
             deltaSyncEnabled = (deltaSyncIntervalInMinutes.get() != 0),
             deltaSyncIntervalMinutes = deltaSyncIntervalInMinutes.get(),
             heartbeatEnabled = heartBeatActive.get(),
