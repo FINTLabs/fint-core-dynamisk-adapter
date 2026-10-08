@@ -40,14 +40,9 @@ dyna:
           min: 1
           max: 2
       delta-sync-interval-in-minutes: 10
-      ## TODO: Rewrite resources here and the later usages to support single string keys ("utdanning/vurdering/fravar...")
       resources:
-        - domain: "utdanning"
-          component: "vurdering"
-          resource: "fravarsregistrering"
-        - domain: "utdanning"
-          component: "vurdering"
-          resource: "underveisfagvurdering"
+        - "utdanning/vurdering/favarsregistrering"
+        - "utdanning/vurdering/underveisfagvurdering"
 
   engine:
     seed: "test-seed-1"
