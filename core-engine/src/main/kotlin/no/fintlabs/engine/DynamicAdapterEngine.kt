@@ -165,6 +165,8 @@ class DynamicAdapterEngine(
         return metadata.getAllMetadata()
     }
 
+    fun getMetadataFromKey(key: String): ExpandedMetadata? = metadata.getMetadataFromString(key)
+
     fun getMetadataFromIdentifier(identifiers: ResourceIdentifiers): ExpandedMetadata? =
         metadata.getMetadataFor(identifiers)
 

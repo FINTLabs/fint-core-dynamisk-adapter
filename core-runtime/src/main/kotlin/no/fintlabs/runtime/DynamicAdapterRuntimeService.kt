@@ -154,8 +154,8 @@ class DynamicAdapterRuntimeService(
             is DeltaSyncCommand -> {
                 val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
                 val delta = deltaSyncConfig.get()
-                for (res in delta.resources) {
-                    val metadata: ExpandedMetadata? = engine.getMetadataFromIdentifier(res.toIdentifiers())
+                for (resource in delta.resources) {
+                    val metadata: ExpandedMetadata? = engine.getMetadataFromKey(resource.resource)
                     if (metadata != null) {
                         resources[metadata.toIdentifiers()] =
                             delta.amountTierPolicy.toAmountTierPolicy()
@@ -486,9 +486,7 @@ class DynamicAdapterRuntimeService(
         resources: Map<String, IntRange?>,
         replace: Boolean = false
     ) {
-        val transformed: Map<ResourceIdentifiers, IntRange?> = resources
-            .map { (key, value) -> resourceToIdentifiers(key) to value }.toMap()
-        val configResources = transformed.toDeltaResourceConfigList()
+        val configResources = resources.toDeltaResourceConfigList()
 
         if (!replace) {
             deltaSyncConfig.updateAndGet { current ->

@@ -62,6 +62,8 @@ class MetadataService(
         return capabilities
     }
 
+    fun getMetadataFromString(res: String): ExpandedMetadata = metadataList.first { it.key == res }
+
     fun getMetadataFor(identifier: ResourceIdentifiers): ExpandedMetadata? =
         metadataList.find { it.key == identifier.toKey() }
 

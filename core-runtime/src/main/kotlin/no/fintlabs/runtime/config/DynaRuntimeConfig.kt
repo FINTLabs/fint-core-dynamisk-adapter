@@ -40,25 +40,22 @@ data class DeltaConfig(
 )
 
 data class DeltaResourceConfig(
-    val domain: String,
-    val component: String,
     val resource: String,
     val min: Int? = null,
     val max: Int? = null,
 ) {
-    fun toKey() = "$domain/$component/$resource"
-
-    fun toIdentifiers() = ResourceIdentifiers(domain, component, resource)
+    fun toIdentifiers() {
+        val parts = resource.split("/")
+        ResourceIdentifiers(parts[1], parts[2], parts[3])
+    }
 }
 
-fun Map<ResourceIdentifiers, IntRange?>.toDeltaResourceConfigList(): List<DeltaResourceConfig> {
+fun Map<String, IntRange?>.toDeltaResourceConfigList(): List<DeltaResourceConfig> {
     val result = mutableListOf<DeltaResourceConfig>()
-    for ((identifiers, range) in this) {
+    for ((key, range) in this) {
         result.add(
             DeltaResourceConfig(
-                domain = identifiers.domain,
-                component = identifiers.component,
-                resource = identifiers.resource,
+                resource = key,
                 min = range?.first(),
                 max = range?.last(),
             )
