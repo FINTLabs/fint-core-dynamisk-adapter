@@ -49,20 +49,20 @@ class DataController(
             )
         )
 
-    @PatchMapping("/update-dataset")
-    suspend fun updateDataset(
+    @PatchMapping("/set-dataset")
+    suspend fun setDataset(
         @RequestBody(required = true)
         domains: List<String>
-    ) = runtime.updateDataset(domains)
+    ) = runtime.setDataset(domains)
+
 
     @PatchMapping("/reset-dataset")
     suspend fun resetDataset(): String = runtime.resetDataset()
 
-
     @PostMapping("/reset-data")
     suspend fun resetData() = runtime.hardReset()
 
-    @PatchMapping("/set-Amount-tier-policy")
+    @PatchMapping("/set-amount-tier-policy")
     suspend fun setAmountTierPolicy(
         @RequestBody(required = true)
         body: AmountTierPolicyRequest

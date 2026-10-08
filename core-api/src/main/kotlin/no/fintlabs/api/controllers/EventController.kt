@@ -16,10 +16,10 @@ class EventController(
     @PostMapping("/check")
     fun checkForEvents() = runtime.submit(EventFetchCommand())
 
-    @PostMapping("/setInterval")
+    @PostMapping("/set-interval")
     fun setInterval(@RequestBody i: Int) = runtime.setEventInterval(i)
 
-    @PostMapping("/resetInterval")
+    @PostMapping("/reset-interval")
     fun resetInterval() = runtime.resetEventInterval()
 
     @PostMapping("/disable")

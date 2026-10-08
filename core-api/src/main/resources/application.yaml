@@ -62,10 +62,9 @@ fint:
 
 logging:
   level:
-    no.fintlabs: INFO
-    #    no.fintlabs.runtime: TRACE
-    #    no.fintlabs.engine: INFO
-    #    no.fintlabs.api: INFO
-    #    no.fintlabs.adapter: INFO
-    #    no.fintlabs.library: INFO
+    no.fintlabs.runtime: TRACE
+    no.fintlabs.engine: TRACE
+    no.fintlabs.api: TRACE
+    no.fintlabs.adapter: TRACE
+    no.fintlabs.library: INFO
 #    org.springframework.security: TRACE

@@ -371,7 +371,9 @@ class DynamicAdapterRuntimeService(
             while (scope.isActive) {
                 delay(props.fintProperties.heartbeatIntervalInMinutes * 60_000L)
                 lastHeartBeatAt.set(Instant.now())
-                adapter.giveHeartBeat()
+                if (!offline.get()) {
+                    adapter.giveHeartBeat()
+                }
             }
         } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
     }
@@ -430,7 +432,7 @@ class DynamicAdapterRuntimeService(
 
     // Controller functions
 
-    fun updateDataset(domains: List<String>): String {
+    fun setDataset(domains: List<String>): String {
         var returnString: String
 
         if (domains == activeDomains.get()) {
@@ -445,6 +447,8 @@ class DynamicAdapterRuntimeService(
                         + registeredCapabilities) as MutableSet<AdapterCapability>
             val registered = adapter.register(allCapabilities)
             if (registered.registered) {
+                logger.info("registration Successful with new domains: {}", domains)
+                activeDomains.set(domains)
                 "Dataset has been successfully updated. " +
                         "\n Dataset successfully registered to Provider." +
                         "\n If you want data from the new dataset, run a POST to /data/reset-data. "
