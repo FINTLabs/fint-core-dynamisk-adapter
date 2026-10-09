@@ -474,9 +474,11 @@ class DynamicAdapterRuntimeService(
             deltaLoopJob = scope.launch {
                 deltaLoop()
             }
+        logger.info("DELTA_SYNC HAS NOW BEEN ENABLED WITH ${deltaSyncIntervalInMinutes}MINUTE INTERVAL.")
     }
 
     fun setDisableDeltaSync() {
+        logger.info("DELTA_SYNC HAS NOW BEEN DISABLED.")
         enableDeltaSync.set(false)
         deltaLoopJob?.cancel()
     }
@@ -638,7 +640,7 @@ class DynamicAdapterRuntimeService(
     fun getLastDeltaSync(): Instant? = lastDeltaSyncAt.get()
 
     fun nextScheduledDeltaSync(): String {
-        if (!props.enableDeltaSync) return "Scheduled DeltaSync is DISABLED"
+        if (enableDeltaSync.get()) return "Scheduled DeltaSync is DISABLED"
 
         val lastRun = lastScheduledDeltaSyncAt.get()
             ?: deltaSyncLoopStartedAt.get() ?: return "no idea lol *shrug*"
