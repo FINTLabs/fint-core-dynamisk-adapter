@@ -357,7 +357,9 @@ class DynamicAdapterRuntimeService(
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
                 if (engine.verifyResourceLimitNotReached()) {
-                    submit(DeltaSyncCommand())
+                    if (enableDeltaSync.get()) {
+                        submit(DeltaSyncCommand())
+                    }
                 }
             }
         } else {
@@ -612,7 +614,7 @@ class DynamicAdapterRuntimeService(
             registered = registered.get(),
             offline = offline.get(),
             domains = activeDomains.get(),
-            deltaSyncEnabled = (deltaSyncIntervalInMinutes.get() != 0),
+            deltaSyncEnabled = (enableDeltaSync.get()),
             deltaSyncIntervalMinutes = deltaSyncIntervalInMinutes.get(),
             heartbeatEnabled = heartBeatActive.get(),
             lastHeartBeatAt = lastHeartBeatAt.get(),
