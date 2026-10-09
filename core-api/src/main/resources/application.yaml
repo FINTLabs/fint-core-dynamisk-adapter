@@ -41,8 +41,8 @@ dyna:
           max: 2
       delta-sync-interval-in-minutes: 10
       resources:
-        - "utdanning/vurdering/fravarsregistrering"
-        - "utdanning/vurdering/underveisfagvurdering"
+        - resource: "utdanning/vurdering/fravarsregistrering"
+        - resource: "utdanning/vurdering/underveisfagvurdering"
 
   engine:
     seed: "test-seed-1"
