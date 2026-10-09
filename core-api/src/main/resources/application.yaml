@@ -41,7 +41,7 @@ dyna:
           max: 2
       delta-sync-interval-in-minutes: 10
       resources:
-        - "utdanning/vurdering/favarsregistrering"
+        - "utdanning/vurdering/fravarsregistrering"
         - "utdanning/vurdering/underveisfagvurdering"
 
   engine:
