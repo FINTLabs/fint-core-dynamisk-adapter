@@ -357,9 +357,7 @@ class DynamicAdapterRuntimeService(
                 val interval = deltaSyncIntervalInMinutes.get()
                 delay(interval.toLong() * 60_000L)
                 if (engine.verifyResourceLimitNotReached()) {
-                    if (enableDeltaSync.get()) {
-                        submit(DeltaSyncCommand())
-                    }
+                    submit(DeltaSyncCommand())
                 }
             }
         } else {
@@ -478,7 +476,10 @@ class DynamicAdapterRuntimeService(
             }
     }
 
-    fun setDisableDeltaSync() = enableDeltaSync.set(false)
+    fun setDisableDeltaSync() {
+        enableDeltaSync.set(false)
+        deltaLoopJob?.cancel()
+    }
 
     fun setDeltaSyncInterval(intervalInMinutes: Int) = deltaSyncIntervalInMinutes.set(intervalInMinutes)
 
