@@ -222,7 +222,9 @@ class DynamicAdapterPublisher(
                     }
 
                 if (status != HttpStatus.CREATED) {
-                    logger.error("${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries) ")
+                    throw IllegalArgumentException(
+                        "${syncType.name}: HTTP $status, $resourceName page ${i + 1}/$totalPages (${entries.size} entries)"
+                    )
                 }
 
                 logger.trace(
