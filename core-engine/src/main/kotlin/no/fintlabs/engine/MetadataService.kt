@@ -1,9 +1,13 @@
 package no.fintlabs.engine
 
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.engine.util.generateIdMetadata
 import no.fintlabs.contract.data.ExpandedMetadata
+import no.fintlabs.contract.data.IdFieldType
 import no.fintlabs.contract.models.ResourceIdentifiers
+import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
+import no.novari.fint.model.resource.felles.PersonResource
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
 import org.slf4j.Logger
@@ -66,6 +70,19 @@ class MetadataService(
 
     fun getMetadataFor(identifier: ResourceIdentifiers): ExpandedMetadata? =
         metadataList.find { it.key == identifier.toKey() }
+
+    fun generatePersonMetadata(res: ResourceIdentifiers): ExpandedMetadata {
+        val newPerson = ExpandedMetadata(
+            resource = metadataList.find { it.key.endsWith("person") }?.resource
+                ?: throw NullPointerException("felles hovedklasse person not found in metamodel"),
+            key = "${res.domain}/${res.component}/${res.resource}",
+            amountTier = AmountTier.CORE,
+            idFieldType = IdFieldType.DIRECT_FIELD,
+            idPrefix = "fodselsnummer",
+        )
+        metadataList.add(newPerson)
+        return newPerson
+    }
 
     private fun Resource.generateMetadata(): ExpandedMetadata {
         val resourceKey = "${this.component.domainName}/${this.component.packageName}/${this.name}"

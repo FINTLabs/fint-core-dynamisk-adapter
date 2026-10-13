@@ -70,8 +70,13 @@ class DynamicAdapterEngine(
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
         val deltaMetadataList = mutableListOf<ExpandedMetadata>()
 
+
         for (identifier in identifiers) {
-            val meta = metadata.getMetadataFor(identifier.key)
+            println("generating delta data for ${identifier.key.toKey()}")
+            var meta = metadata.getMetadataFor(identifier.key)
+            if (meta == null && identifier.key.resource == "person") {
+                meta = metadata.generatePersonMetadata(identifier.key)
+            }
             if (meta == null) {
                 logger.error("No resource metadata found for ${identifier.key}")
                 continue
