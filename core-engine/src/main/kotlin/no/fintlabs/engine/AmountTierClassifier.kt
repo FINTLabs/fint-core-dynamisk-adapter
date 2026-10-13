@@ -68,7 +68,7 @@ class AmountTierClassifier {
                 changed = metadata.assignTier(AmountTier.CORE) || changed
             }
 
-            if (name.endsWith("gruppe") || name.endsWith("klasse")) {
+            if (name.endsWith("gruppe") || name.endsWith("klasse") || name.endsWith("skole")) {
                 changed = metadata.assignTier(AmountTier.GROUPING) || changed
             }
 
