@@ -10,6 +10,7 @@ data class DynaRuntimeConfig(
     val startupDomains: List<String> = listOf("utdanning"),
     val enableDeltaSync: Boolean = false,
     val resetEveryNight: Boolean = false,
+    val scheduledFullSyncIntervalInDays: Int = 1,
     val amountTierPolicy: ConfigAmountTierPolicy =
         ConfigAmountTierPolicy(
             grouping = DualInt(1, 2),

@@ -6,7 +6,9 @@ import no.fintlabs.contract.dto.AmountTierPolicyRequest
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import no.fintlabs.runtime.model.CreateDataCommand
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
+import no.fintlabs.runtime.model.FullSyncCommand
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,12 +51,17 @@ class DataController(
             )
         )
 
+    @PostMapping("/fullsync")
+    fun performFullSync() = runtime.submit(FullSyncCommand())
+
+    @PatchMapping("/fullsync-interval-in-days-{interval}")
+    fun setFullSyncInterval(@PathVariable interval: Int) = runtime.setFullSyncInterval(interval)
+
     @PatchMapping("/set-dataset")
     suspend fun setDataset(
         @RequestBody(required = true)
         domains: List<String>
     ) = runtime.setDataset(domains)
-
 
     @PatchMapping("/reset-dataset")
     suspend fun resetDataset(): String = runtime.resetDataset()

@@ -34,6 +34,7 @@ data class CreateSpecificDataCommand(
 data class FullSyncCommand(
     override val id: String = "fullSync_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
+    val scheduled: Boolean = false,
 ) : RuntimeCommand
 
 data class DeltaSyncCommand(

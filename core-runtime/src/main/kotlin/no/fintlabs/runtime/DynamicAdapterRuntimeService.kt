@@ -42,6 +42,8 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -70,6 +72,8 @@ class DynamicAdapterRuntimeService(
     private val offline = AtomicBoolean(false)
     private val registered = AtomicBoolean(false)
     private val lastFullSyncAt = AtomicReference<Instant?>(null)
+    private val lastScheduledFullSyncAt = AtomicReference<LocalDate?>(null)
+    private val scheduledFullSyncIntervalInDays = AtomicInteger(props.scheduledFullSyncIntervalInDays)
     private val lastHeartBeatAt = AtomicReference<Instant?>(null)
     private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
     private val lastScheduledDeltaSyncAt = AtomicReference<Instant?>(null)
@@ -138,7 +142,7 @@ class DynamicAdapterRuntimeService(
         logger.info("Handling ${command.javaClass.simpleName}, ${command.id}")
         when (command) {
             is StartupSequence -> handleStartup(command)
-            is FullSyncCommand -> handleFullSync()
+            is FullSyncCommand -> handleFullSync(command.scheduled)
             is CreateDataCommand -> {
                 val resources: MutableMap<ResourceIdentifiers, IntRange> = mutableMapOf()
                 for (res in command.resources) {
@@ -178,12 +182,14 @@ class DynamicAdapterRuntimeService(
     private suspend fun handleStartup(command: StartupSequence) {
         val capabilities = engine.generateCapabilitiesForDomains(command.domains)
         if (capabilities.isNotEmpty()) {
-            updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
 
-            val registration = adapter.register(capabilities)
-            registered.set(registration.registered)
-            heartBeatActive.set(registration.registered)
-            offline.set(registration.offline)
+            if (!registeredCapabilities.containsAll(capabilities)) {
+                updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
+                val registration = adapter.register(capabilities)
+                registered.set(registration.registered)
+                heartBeatActive.set(registration.registered)
+                offline.set(registration.offline)
+            }
 
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
@@ -231,8 +237,8 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    private suspend fun handleFullSync() {
-        logger.debug("Performing full sync...")
+    private suspend fun handleFullSync(scheduled: Boolean) {
+        logger.info("Performing full sync...")
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
         adapter.performSync(
@@ -241,6 +247,9 @@ class DynamicAdapterRuntimeService(
             syncType = SyncType.FULL,
             maxPageSize = maxPageSize.get(),
         )
+        if (scheduled) {
+            lastScheduledFullSyncAt.set(LocalDate.now(ZoneId.of("Europe/Oslo")))
+        }
     }
 
     private suspend fun handleGenerateResources(requested: Map<ResourceIdentifiers, IntRange>) {
@@ -346,6 +355,36 @@ class DynamicAdapterRuntimeService(
 
         scope.launch {
             hardReset()
+        }
+    }
+
+    @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
+    private fun scheduledFullSyncLoop() {
+        logger.trace("Scheduling fullSync function trigger...")
+        val intervalDays = scheduledFullSyncIntervalInDays.get()
+
+        if (intervalDays <= 0) return
+
+        if (resetEveryNight.get()) {
+            logger.trace("Scheduled fullSync suppressed by scheduledDataReset.")
+            return
+        }
+
+        val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
+        val lastScheduled = lastScheduledFullSyncAt.get()
+
+        val daysSinceLast =
+            lastScheduled?.let { ChronoUnit.DAYS.between(today, it) }?.toInt()
+
+        if (daysSinceLast == null || daysSinceLast >= intervalDays) {
+            submit(FullSyncCommand(scheduled = true))
+        } else {
+            logger.trace(
+                "Scheduled full sync not performed. interval: {}, lastScheduled: {}, today: {}",
+                intervalDays,
+                lastScheduled,
+                today
+            )
         }
     }
 
@@ -464,6 +503,8 @@ class DynamicAdapterRuntimeService(
             return "Dataset is already set as standard"
         } else return "Original dataset has been restored. run a POST to /data/reset-data to reset the generated data."
     }
+
+    fun setFullSyncInterval(interval: Int) = scheduledFullSyncIntervalInDays.set(interval)
 
     // Delta setup stuff
 
