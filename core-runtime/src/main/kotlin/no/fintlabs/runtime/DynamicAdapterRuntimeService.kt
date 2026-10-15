@@ -185,13 +185,11 @@ class DynamicAdapterRuntimeService(
         }
         if (capabilities.isNotEmpty()) {
 
-            if (!registeredCapabilities.containsAll(capabilities)) {
-                updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
-                val registration = adapter.register(capabilities)
-                registered.set(registration.registered)
-                heartBeatActive.set(registration.registered)
-                offline.set(registration.offline)
-            }
+            updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
+            val registration = adapter.register(capabilities)
+            registered.set(registration.registered)
+            heartBeatActive.set(registration.registered)
+            offline.set(registration.offline)
 
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
