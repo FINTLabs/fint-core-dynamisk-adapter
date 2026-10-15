@@ -43,7 +43,6 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -77,7 +76,7 @@ class DynamicAdapterRuntimeService(
     private val lastHeartBeatAt = AtomicReference<Instant?>(null)
     private val lastDeltaSyncAt = AtomicReference<Instant?>(null)
     private val lastScheduledDeltaSyncAt = AtomicReference<Instant?>(null)
-    private var deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
+    private val deltaSyncLoopStartedAt = AtomicReference<Instant?>(null)
 
     private val heartBeatActive = AtomicBoolean(true)
 
@@ -180,7 +179,10 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun handleStartup(command: StartupSequence) {
-        val capabilities = engine.generateCapabilitiesForDomains(command.domains)
+        var capabilities = engine.getAllGeneratedCapabilities()
+        if (capabilities.isEmpty()) {
+            capabilities = engine.generateCapabilitiesForDomains(command.domains)
+        }
         if (capabilities.isNotEmpty()) {
 
             if (!registeredCapabilities.containsAll(capabilities)) {
@@ -257,7 +259,6 @@ class DynamicAdapterRuntimeService(
             val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
 
             val resources = engine.generateDeltaSyncData(requested)
-
             for (res in requested) {
                 val metadata = engine.getMetadataFromIdentifier(res.key)
                 if (metadata != null) {
@@ -361,14 +362,16 @@ class DynamicAdapterRuntimeService(
     @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
     private fun scheduledFullSyncLoop() {
         logger.trace("Scheduling fullSync function trigger...")
-        val intervalDays = scheduledFullSyncIntervalInDays.get()
-
-        if (intervalDays <= 0) return
 
         if (resetEveryNight.get()) {
             logger.trace("Scheduled fullSync suppressed by scheduledDataReset.")
             return
         }
+
+        val intervalDays = scheduledFullSyncIntervalInDays.get()
+
+        if (intervalDays <= 0) return
+
 
         val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
         val lastScheduled = lastScheduledFullSyncAt.get()
@@ -417,59 +420,9 @@ class DynamicAdapterRuntimeService(
         } else logger.warn("HEARTBEAT HAS BEEN DEACTIVATED")
     }
 
-    // Events
-
-    private suspend fun eventCheckLoop() {
-        if (eventCheckIntervalMinutes.get() >= 1) {
-            logger.debug("Event check loop started with ${eventCheckIntervalMinutes.get()} minutes interval.")
-            while (scope.isActive) {
-                delay(eventCheckIntervalMinutes.toLong() * 60_000L)
-                submit(EventFetchCommand(), false)
-            }
-        } else logger.warn("EVENT CHECKING IS DEACTIVATED")
-    }
-
-    fun checkForEvents(command: EventFetchCommand) {
-        val events: List<RequestFintEvent> = adapter.getEvents()
-        if (events.isEmpty()) {
-            updateJobMessage(command.id, "Event check done, no events returned.", false)
-        } else {
-            for (event in events) {
-                eventCache[event.corrId] = event
-                submit(
-                    EventHandlingCommand(
-                        operationType = event.operationType,
-                        eventCorrId = event.corrId,
-                    )
-                )
-                logger.debug("EVENT: {} : {} added to queue.", event.operationType.name, event.corrId)
-            }
-        }
-        updateJobMessage(command.id, "Event check done, ${events.size} events added to queue.", false)
-    }
-
-    fun setEventInterval(int: Int) = eventCheckIntervalMinutes.set(int)
-
-    fun resetEventInterval() = eventCheckIntervalMinutes.set(props.fintProperties.eventCheckIntervalInMinutes)
-
-    fun disableEventCheck() = eventCheckIntervalMinutes.set(0)
-
-    private fun executeEventRequest(command: EventHandlingCommand) {
-        val request = eventCache[command.eventCorrId]
-        if (request != null) {
-            logger.trace(
-                "attempting to execute event request: {} : {}",
-                command.operationType.name,
-                command.eventCorrId
-            )
-            val execution = engine.executeEventRequest(request)
-            adapter.postEvent(execution)
-        } else {
-            throw NullPointerException("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
-        }
-    }
-
-    // Controller functions
+    // ------------------------
+    //   Controller functions
+    // ------------------------
 
     fun setDataset(domains: List<String>): String {
         var returnString: String
@@ -504,9 +457,27 @@ class DynamicAdapterRuntimeService(
         } else return "Original dataset has been restored. run a POST to /data/reset-data to reset the generated data."
     }
 
-    fun setFullSyncInterval(interval: Int) = scheduledFullSyncIntervalInDays.set(interval)
 
-    // Delta setup stuff
+    // --------------------------
+    //   Configuration tweaking
+    // --------------------------
+
+    fun setAmountTierPolicy(newPolicy: AmountTierPolicy) = amountTierPolicy.set(newPolicy)
+
+    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
+
+    fun setMaxGeneratedResources(int: Int) = engine.setMaxResources(int)
+
+    fun resetMaxGeneratedResources() = engine.resetMaxResources()
+
+    fun setFullSyncInterval(interval: Int) {
+        scheduledFullSyncIntervalInDays.set(interval)
+        engine.setFullSyncInterval(interval)
+    }
+
+    // ---------------------
+    //   Delta setup stuff
+    // ---------------------
 
     fun setEnableDeltaSync() {
         enableDeltaSync.set(true)
@@ -558,17 +529,63 @@ class DynamicAdapterRuntimeService(
         }
     }
 
-    // Configuration tweaking
+    // ----------
+    //   Events
+    // ----------
 
-    fun setAmountTierPolicy(newPolicy: AmountTierPolicy) = amountTierPolicy.set(newPolicy)
+    private suspend fun eventCheckLoop() {
+        if (eventCheckIntervalMinutes.get() >= 1) {
+            logger.debug("Event check loop started with ${eventCheckIntervalMinutes.get()} minutes interval.")
+            while (scope.isActive) {
+                delay(eventCheckIntervalMinutes.toLong() * 60_000L)
+                submit(EventFetchCommand(), false)
+            }
+        } else logger.warn("EVENT CHECKING IS DEACTIVATED")
+    }
 
-    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
+    fun checkForEvents(command: EventFetchCommand) {
+        val events: List<RequestFintEvent> = adapter.getEvents()
+        if (events.isEmpty()) {
+            updateJobMessage(command.id, "Event check done, no events returned.", false)
+        } else {
+            for (event in events) {
+                eventCache[event.corrId] = event
+                submit(
+                    EventHandlingCommand(
+                        operationType = event.operationType,
+                        eventCorrId = event.corrId,
+                    )
+                )
+                logger.debug("EVENT: {} : {} added to queue.", event.operationType.name, event.corrId)
+            }
+        }
+        updateJobMessage(command.id, "Event check done, ${events.size} events added to queue.", false)
+    }
 
-    fun setMaxGeneratedResources(int: Int) = engine.setMaxResources(int)
+    fun setEventInterval(int: Int) = eventCheckIntervalMinutes.set(int)
 
-    fun resetMaxGeneratedResources() = engine.resetMaxResources()
+    fun resetEventInterval() = eventCheckIntervalMinutes.set(props.fintProperties.eventCheckIntervalInMinutes)
 
-    // Job Status stuff
+    fun disableEventCheck() = eventCheckIntervalMinutes.set(0)
+
+    private fun executeEventRequest(command: EventHandlingCommand) {
+        val request = eventCache[command.eventCorrId]
+        if (request != null) {
+            logger.trace(
+                "attempting to execute event request: {} : {}",
+                command.operationType.name,
+                command.eventCorrId
+            )
+            val execution = engine.executeEventRequest(request)
+            adapter.postEvent(execution)
+        } else {
+            throw NullPointerException("executeEventRequest event[${command.eventCorrId}] not found in eventCache")
+        }
+    }
+
+    // --------------------
+    //   Job Status stuff
+    // --------------------
 
     private fun updateJobMessage(id: String, message: String, log: Boolean = true) {
         currentJobs[id]?.message = message
@@ -651,7 +668,9 @@ class DynamicAdapterRuntimeService(
         logger.error("JOB FAILED: ${command.id}, $error")
     }
 
-    // Status stuff
+    // ----------------
+    //   Status stuff
+    // ----------------
 
     fun getRuntimeStatus(): RuntimeStatus =
         RuntimeStatus(

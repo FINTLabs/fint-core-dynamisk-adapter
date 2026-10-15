@@ -43,6 +43,8 @@ class DynamicAdapterEngine(
         return metadata.generateCapabilities()
     }
 
+    fun getAllGeneratedCapabilities(): MutableSet<AdapterCapability> = metadata.getAllCapabilities()
+
     fun getAllGeneratedResources(
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> =
         getAllGeneratedResourcesForSetType(metadata.getAllMetadata(), SetType.INITIAL)
@@ -73,10 +75,7 @@ class DynamicAdapterEngine(
 
         for (identifier in identifiers) {
             println("generating delta data for ${identifier.key.toKey()}")
-            var meta = metadata.getMetadataFor(identifier.key)
-            if (meta == null && identifier.key.resource == "person") {
-                meta = metadata.generatePersonMetadata(identifier.key)
-            }
+            val meta = metadata.getMetadataFor(identifier.key)
             if (meta == null) {
                 logger.error("No resource metadata found for ${identifier.key}")
                 continue
@@ -160,6 +159,12 @@ class DynamicAdapterEngine(
         return fullList
     }
 
+    fun setFullSyncInterval(interval: Int) = metadata.setFullSyncInterval(interval)
+
+    // ----------
+    //   STATUS
+    // ----------
+
     private fun resourcesLeft(): Int = maxGeneratedResources.get() - storage.totalCount()
 
     fun verifyResourceLimitNotReached(): Boolean {
@@ -188,7 +193,9 @@ class DynamicAdapterEngine(
         }
     }
 
-    // Configuration Manipulation
+    // ------------------------------
+    //   Configuration Manipulation
+    // ------------------------------
 
     fun setMaxResources(amount: Int) = maxGeneratedResources.set(amount)
 
@@ -197,7 +204,9 @@ class DynamicAdapterEngine(
     fun debugGenCapPercentage() =
         logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")
 
-    // Status Stuff
+    // ----------------
+    //   Status Stuff
+    // ----------------
 
     private fun generationCapacityPercentage(): String {
         val percentage = (storage.totalCount().toDouble() / maxGeneratedResources.toDouble() * 100.0).toInt()

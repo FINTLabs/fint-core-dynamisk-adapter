@@ -43,7 +43,7 @@ dyna:
       resources:
         - resource: "utdanning/vurdering/fravarsregistrering"
         - resource: "utdanning/vurdering/underveisfagvurdering"
-    scheduled-full-sync-interval-in-days: 0
+    scheduled-full-sync-interval-in-days: 1
 
   engine:
     seed: "test-seed-1"

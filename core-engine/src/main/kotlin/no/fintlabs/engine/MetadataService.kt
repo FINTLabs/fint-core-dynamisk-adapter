@@ -1,19 +1,16 @@
 package no.fintlabs.engine
 
 import no.fintlabs.adapter.models.AdapterCapability
-import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.engine.util.generateIdMetadata
 import no.fintlabs.contract.data.ExpandedMetadata
-import no.fintlabs.contract.data.IdFieldType
 import no.fintlabs.contract.models.ResourceIdentifiers
-import no.novari.fint.model.felles.kompleksedatatyper.Identifikator
-import no.novari.fint.model.resource.felles.PersonResource
 import no.novari.metamodel.MetamodelService
 import no.novari.metamodel.model.Resource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class MetadataService(
@@ -24,6 +21,8 @@ class MetadataService(
     private val domainsGeneratedFor: MutableList<String> = mutableListOf()
     private val metadataList: MutableList<ExpandedMetadata> = mutableListOf()
     private val capabilities: MutableSet<AdapterCapability> = mutableSetOf()
+
+    private val fullSyncInterval = AtomicInteger(1)
 
     fun getAllMetadata(): MutableList<ExpandedMetadata> = metadataList
 
@@ -52,36 +51,34 @@ class MetadataService(
 
     fun generateCapabilities(): MutableSet<AdapterCapability> {
         for (it in metadataList) {
-            val keyParts = it.key.split("/")
-            val capability =
-                AdapterCapability(
-                    keyParts[0],
-                    keyParts[1],
-                    keyParts[2],
-                    1,
-                    AdapterCapability.DeltaSyncInterval.IMMEDIATE,
-                )
-            capabilities.add(capability)
+            capabilities.add(generateCapabilityFromMetadata(it))
         }
         return capabilities
     }
+
+    fun getAllCapabilities(): MutableSet<AdapterCapability> = capabilities
 
     fun getMetadataFromString(res: String): ExpandedMetadata = metadataList.first { it.key == res }
 
     fun getMetadataFor(identifier: ResourceIdentifiers): ExpandedMetadata? =
         metadataList.find { it.key == identifier.toKey() }
 
-    fun generatePersonMetadata(res: ResourceIdentifiers): ExpandedMetadata {
-        val newPerson = ExpandedMetadata(
-            resource = metadataList.find { it.key.endsWith("person") }?.resource
-                ?: throw NullPointerException("felles hovedklasse person not found in metamodel"),
-            key = "${res.domain}/${res.component}/${res.resource}",
-            amountTier = AmountTier.CORE,
-            idFieldType = IdFieldType.DIRECT_FIELD,
-            idPrefix = "fodselsnummer",
+    fun setFullSyncInterval(interval: Int) {
+        fullSyncInterval.set(interval)
+        for (capability in capabilities) {
+            capability.fullSyncIntervalInDays = fullSyncInterval.get()
+        }
+    }
+
+    private fun generateCapabilityFromMetadata(meta: ExpandedMetadata): AdapterCapability {
+        val keyParts = meta.key.split("/")
+        return AdapterCapability(
+            keyParts[0],
+            keyParts[1],
+            keyParts[2],
+            fullSyncInterval.get(),
+            AdapterCapability.DeltaSyncInterval.IMMEDIATE,
         )
-        metadataList.add(newPerson)
-        return newPerson
     }
 
     private fun Resource.generateMetadata(): ExpandedMetadata {
