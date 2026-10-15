@@ -322,7 +322,7 @@ class DynamicAdapterRuntimeService(
 
     suspend fun hardReset() {
         runtimeMutex.withLock {
-            logger.warn("Performing hard runtime reset...")
+            logger.info("Performing hard runtime reset...")
 
             activeWorkerJob?.cancelAndJoin()
 
