@@ -57,14 +57,14 @@ class DataController(
     @PatchMapping("/fullsync-interval-in-days-{interval}")
     fun setFullSyncInterval(@PathVariable interval: Int) = runtime.setFullSyncInterval(interval)
 
-    @PatchMapping("/set-dataset")
-    suspend fun setDataset(
+    @PatchMapping("/set-domains")
+    suspend fun setDomains(
         @RequestBody(required = true)
         domains: List<String>
     ) = runtime.setDataset(domains)
 
-    @PatchMapping("/reset-dataset")
-    suspend fun resetDataset(): String = runtime.resetDataset()
+    @PatchMapping("/reset-domains")
+    suspend fun resetDomains(): String = runtime.resetDataset()
 
     @PostMapping("/reset-data")
     suspend fun resetData() = runtime.hardReset()
