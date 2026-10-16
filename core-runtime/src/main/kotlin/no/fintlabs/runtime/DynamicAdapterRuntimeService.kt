@@ -18,6 +18,7 @@ import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
+import no.fintlabs.contract.data.DualInt
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.DynamicAdapterEngine
@@ -455,6 +456,16 @@ class DynamicAdapterRuntimeService(
         } else return "Original dataset has been restored. run a POST to /data/reset-data to reset the generated data."
     }
 
+    fun setResetDataNightly(bool: Boolean) {
+        if (bool) {
+            logger.info("NIGHTLY DATA RESET ENABLED")
+        } else {
+            logger.info("NIGHTLY DATA RESET DISABLED")
+        }
+
+        resetEveryNight.set(bool)
+    }
+
 
     // --------------------------
     //   Configuration tweaking
@@ -498,10 +509,21 @@ class DynamicAdapterRuntimeService(
     fun resetDeltaSyncInterval() = deltaSyncIntervalInMinutes.set(props.deltaConfig.deltaSyncIntervalInMinutes)
 
     fun setDeltaSyncResources(
-        resources: Map<String, IntRange?>,
+        resources: Map<String, DualInt?>,
         replace: Boolean = false
     ) {
-        val configResources = resources.toDeltaResourceConfigList()
+        val deltaWithRange: MutableMap<String, IntRange> = mutableMapOf()
+        for ((key, value) in resources) {
+            if (value == null) {
+                val defaultRange = engine.getMetadataFromKey(key)?.amountTier
+                deltaWithRange[key] = deltaSyncConfig.get().amountTierPolicy.toAmountTierPolicy()
+                    .getRange(defaultRange ?: AmountTier.UNKNOWN)
+            } else {
+                deltaWithRange[key] = value.toRange()
+            }
+        }
+        
+        val configResources = deltaWithRange.toDeltaResourceConfigList()
 
         if (!replace) {
             deltaSyncConfig.updateAndGet { current ->

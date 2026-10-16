@@ -69,6 +69,9 @@ class DataController(
     @PostMapping("/reset-data")
     suspend fun resetData() = runtime.hardReset()
 
+    @PatchMapping("/reset-data-nightly-{bool}")
+    suspend fun setResetDataNightly(@PathVariable bool: Boolean) = runtime.setResetDataNightly(bool)
+
     @PatchMapping("/set-amount-tier-policy")
     suspend fun setAmountTierPolicy(
         @RequestBody(required = true)
