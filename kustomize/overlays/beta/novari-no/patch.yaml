@@ -15,6 +15,12 @@ spec:
   onePassword:
     itemPath: "vaults/aks-beta-vault/items/fint-core-dynamisk-adapter-beta"
 
+  resources:
+    requests:
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+
   ingress:
     routes:
       - host: beta.felleskomponent.no
