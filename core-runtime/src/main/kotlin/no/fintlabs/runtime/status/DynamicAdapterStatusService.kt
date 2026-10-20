@@ -20,6 +20,8 @@ class DynamicAdapterStatusService(
         return DynaGeneralStatusResponse(
             offline = rts.offline,
             registered = rts.registered,
+            resetEveryNight = rts.resetEveryNight,
+            fullSyncIntervalInDays = rts.fullSyncIntervalInDays,
             registeredDomains = rts.domains,
 
             queueSize = runtime.queueSize(),

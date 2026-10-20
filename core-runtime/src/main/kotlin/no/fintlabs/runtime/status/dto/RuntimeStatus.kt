@@ -5,6 +5,8 @@ import java.time.Instant
 data class RuntimeStatus(
     val registered: Boolean = false,
     val offline: Boolean = false,
+    val resetEveryNight: Boolean = false,
+    val fullSyncIntervalInDays: Int = 0,
     val domains: List<String> = emptyList(),
 
     val deltaSyncEnabled: Boolean = false,

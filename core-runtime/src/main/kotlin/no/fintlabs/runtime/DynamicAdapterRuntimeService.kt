@@ -350,44 +350,41 @@ class DynamicAdapterRuntimeService(
     }
 
     @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
-    private fun scheduledDataReset() {
-        if (!resetEveryNight.get()) return
-
-        scope.launch {
-            hardReset()
-        }
-    }
-
-    @Scheduled(cron = "0 0 2 * * *", zone = "Europe/Oslo")
-    private fun scheduledFullSyncLoop() {
-        logger.trace("Scheduling fullSync function trigger...")
+    private fun nightlyScheduledTask() {
+        logger.info("Performing nightly scheduled task...")
+        logger.trace(
+            "resetEveryNight = {}, fullSyncIntervalInDays = {}",
+            resetEveryNight,
+            scheduledFullSyncIntervalInDays
+        )
 
         if (resetEveryNight.get()) {
-            logger.trace("Scheduled fullSync suppressed by scheduledDataReset.")
+
+            scope.launch {
+                hardReset()
+            }
             return
         }
 
-        val intervalDays = scheduledFullSyncIntervalInDays.get()
+        if (scheduledFullSyncIntervalInDays.get() != 0) {
+            val lastScheduled = lastScheduledFullSyncAt.get()
+            val intervalDays = scheduledFullSyncIntervalInDays.get()
+            val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
 
-        if (intervalDays <= 0) return
+            val daysSinceLast =
+                lastScheduled?.let { ChronoUnit.DAYS.between(today, it) }?.toInt()
 
-
-        val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
-        val lastScheduled = lastScheduledFullSyncAt.get()
-
-        val daysSinceLast =
-            lastScheduled?.let { ChronoUnit.DAYS.between(today, it) }?.toInt()
-
-        if (daysSinceLast == null || daysSinceLast >= intervalDays) {
-            submit(FullSyncCommand(scheduled = true))
-        } else {
-            logger.trace(
-                "Scheduled full sync not performed. interval: {}, lastScheduled: {}, today: {}",
-                intervalDays,
-                lastScheduled,
-                today
-            )
-        }
+            if (daysSinceLast == null || daysSinceLast >= intervalDays) {
+                submit(FullSyncCommand(scheduled = true))
+            } else {
+                logger.trace(
+                    "Scheduled full sync not performed. interval: {}, daysSinceLast: {}, today: {}",
+                    intervalDays,
+                    daysSinceLast,
+                    today
+                )
+            }
+        } else return
     }
 
     private suspend fun deltaLoop() {
@@ -522,7 +519,7 @@ class DynamicAdapterRuntimeService(
                 deltaWithRange[key] = value.toRange()
             }
         }
-        
+
         val configResources = deltaWithRange.toDeltaResourceConfigList()
 
         if (!replace) {
@@ -696,6 +693,8 @@ class DynamicAdapterRuntimeService(
         RuntimeStatus(
             registered = registered.get(),
             offline = offline.get(),
+            resetEveryNight = resetEveryNight.get(),
+            fullSyncIntervalInDays = scheduledFullSyncIntervalInDays.get(),
             domains = activeDomains.get(),
             deltaSyncEnabled = (enableDeltaSync.get()),
             deltaSyncIntervalMinutes = deltaSyncIntervalInMinutes.get(),

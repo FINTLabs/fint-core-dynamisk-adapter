@@ -7,6 +7,8 @@ import java.time.Instant
 data class DynaGeneralStatusResponse(
     val registered: Boolean,
     val offline: Boolean,
+    val resetEveryNight: Boolean = false,
+    val fullSyncIntervalInDays: Int = 0,
     val registeredDomains: List<String>,
 
     val queueSize: Int,
