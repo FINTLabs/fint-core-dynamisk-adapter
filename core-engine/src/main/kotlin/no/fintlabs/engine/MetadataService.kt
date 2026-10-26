@@ -58,7 +58,7 @@ class MetadataService(
 
     fun getAllCapabilities(): MutableSet<AdapterCapability> = capabilities
 
-    fun getMetadataFromString(res: String): ExpandedMetadata = metadataList.first { it.key == res }
+    fun getMetadataFromString(res: String): ExpandedMetadata? = metadataList.find { it.key == res }
 
     fun getMetadataFor(identifier: ResourceIdentifiers): ExpandedMetadata? =
         metadataList.find { it.key == identifier.toKey() }

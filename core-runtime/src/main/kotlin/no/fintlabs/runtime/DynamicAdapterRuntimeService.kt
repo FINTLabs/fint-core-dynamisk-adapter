@@ -282,12 +282,13 @@ class DynamicAdapterRuntimeService(
 
             val resources = engine
                 .generateResourceWithSpecifiedFieldValue(
-                    resourceToIdentifiers(command.resource),
-                    command.fieldName,
-                    command.fieldValue,
+                    command.specifiedResources,
+                    command.supportingResources,
                     command.amount
                 )
 
+            val resourceKeys =
+                listOf(command.supportingResources + (command.specifiedResources.map { it.resource }))
             if (resources!!.values.isNotEmpty()) {
                 val metadata = resources.keys.first()
 
@@ -299,7 +300,9 @@ class DynamicAdapterRuntimeService(
                 )
                 lastDeltaSyncAt.set(Instant.now())
 
-            } else throw IllegalStateException("Failed to generate specified resources for ${command.resource}")
+            } else throw IllegalStateException(
+                "Failed to generate specified resources for request ${command.id}, with requested resources: $resourceKeys"
+            )
         } else {
             enableDeltaSync.set(false)
             throw IllegalStateException("Failed to generate resources. Max amount of resources limit reached.")

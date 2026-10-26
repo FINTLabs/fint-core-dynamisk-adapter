@@ -8,6 +8,7 @@ import no.fintlabs.contract.data.AmountTier
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.data.ExpandedMetadata
 import no.fintlabs.contract.data.ResourceStatus
+import no.fintlabs.contract.dto.SpecifiedResource
 import no.fintlabs.contract.models.ResourceIdentifiers
 import no.fintlabs.engine.config.DynaEngineConfig
 import no.fintlabs.engine.store.ResourceStore
@@ -111,30 +112,45 @@ class DynamicAdapterEngine(
     ): ResponseFintEvent = eventHandler.handle(event)
 
     fun generateResourceWithSpecifiedFieldValue(
-        identifiers: ResourceIdentifiers,
-        fieldName: String,
-        fieldValue: String,
+        specifiedResources: List<SpecifiedResource>,
+        supportingResources: List<String> = emptyList(),
         amount: Int
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>>? {
-        val meta = metadata.getMetadataFor(identifiers)
-            ?: throw IllegalArgumentException("No resource metadata found for ${identifiers.toKey()}")
+        val metaList = mutableListOf<ExpandedMetadata>()
 
-        if (resourcesLeft() <= amount) {
-            throw IllegalStateException("max amount of resources reached. ")
+        for (resource in specifiedResources) {
+            val meta = metadata.getMetadataFromString(resource.resource)
+                ?: throw IllegalArgumentException("No resource metadata found for ${resource.resource}")
+
+            deltaStorage.addAllResources(
+                meta.key,
+                meta,
+                factory.createWithSingleSpecifiedValue(
+                    resource = meta.resource.resourceClass,
+                    fieldName = resource.fieldName,
+                    fieldValue = resource.fieldValue,
+                    amount = amount
+                )
+            )
+            metaList.add(meta)
+        }
+        for (resource in supportingResources) {
+            val meta = metadata.getMetadataFromString(resource)
+                ?: throw IllegalArgumentException("No resource metadata found for $resource")
+
+            deltaStorage.addAllResources(
+                meta.key,
+                meta,
+                factory.create(
+                    resource = meta.resource.resourceClass,
+                    amount = amount
+                ),
+            )
+            metaList.add(meta)
         }
 
-        deltaStorage.addAllResources(
-            meta.key,
-            meta,
-            factory.createWithSingleSpecifiedValue(
-                meta.resource.resourceClass,
-                fieldName,
-                fieldValue,
-                amount
-            )
-        )
-        relations.relateDataset(mutableListOf(meta), SetType.DELTA)
-        val resources = getAllGeneratedResourcesForSetType(mutableListOf(meta), SetType.DELTA)
+        relations.relateDataset(metaList, SetType.DELTA)
+        val resources = getAllGeneratedResourcesForSetType(metaList, SetType.DELTA)
         mergeDeltaStorageToFull(resources)
         deltaStorage.purge()
         debugGenCapPercentage()

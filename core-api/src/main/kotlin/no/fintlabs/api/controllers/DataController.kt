@@ -1,8 +1,8 @@
 package no.fintlabs.api.controllers
 
-import no.fintlabs.api.dto.GenerateSpecifiedValueResourceRequest
 import no.fintlabs.contract.data.AmountTierPolicy
 import no.fintlabs.contract.dto.AmountTierPolicyRequest
+import no.fintlabs.contract.dto.GenerateSpecifiedValueResourceRequest
 import no.fintlabs.runtime.DynamicAdapterRuntimeService
 import no.fintlabs.runtime.model.CreateDataCommand
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
@@ -44,9 +44,8 @@ class DataController(
     ) =
         runtime.submit(
             CreateSpecificDataCommand(
-                resource = request.resource,
-                fieldName = request.fieldName,
-                fieldValue = request.fieldValue,
+                specifiedResources = request.specifiedResource,
+                supportingResources = request.supportingResources,
                 amount = request.amount,
             )
         )

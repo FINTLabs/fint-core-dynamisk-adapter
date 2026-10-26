@@ -1,6 +1,7 @@
 package no.fintlabs.runtime.model
 
 import no.fintlabs.adapter.operation.OperationType
+import no.fintlabs.contract.dto.SpecifiedResource
 import java.time.Instant
 import java.util.UUID
 
@@ -25,9 +26,8 @@ data class CreateDataCommand(
 data class CreateSpecificDataCommand(
     override val id: String = "create_specific_" + UUID.randomUUID().toString(),
     override val requestedAt: Instant = Instant.now(),
-    val resource: String,
-    val fieldName: String,
-    val fieldValue: String,
+    val specifiedResources: List<SpecifiedResource>,
+    val supportingResources: List<String> = emptyList(),
     val amount: Int = 1,
 ) : RuntimeCommand
 
