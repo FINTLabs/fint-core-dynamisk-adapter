@@ -32,6 +32,7 @@ import java.time.LocalDateTime
 import java.util.Date
 import kotlin.collections.iterator
 import kotlin.random.Random
+import java.util.concurrent.atomic.AtomicReference
 
 private enum class FaultType {
     NONE,
@@ -43,25 +44,17 @@ private enum class FaultType {
 class ResourceFactory(
     private val config: ResourceFactoryConfig = ResourceFactoryConfig(),
 ) {
+    private val seed = AtomicReference<String>(config.seed)
+
     private var random: Random =
-        if (config.seed.isBlank()) {
+        if (seed.get().isBlank()) {
             Random.Default
         } else {
-            Random(config.seed.hashCode())
+            Random(seed.get().hashCode())
         }
 
     private val randomizer = CustomRandomizer(random, config)
     private val blueprintCache = mutableMapOf<String, Map<String, () -> Any?>>()
-
-    fun resetSeed() {
-        random =
-            if (config.seed.isBlank()) {
-                Random.Default
-            } else {
-                Random(config.seed.hashCode())
-            }
-        randomizer.updateRandom(random)
-    }
 
     //TODO: Error functions. One for specific error, one for random(seed) error
 
@@ -595,6 +588,21 @@ class ResourceFactory(
         }
     }
 
+    fun resetSeed() {
+        random =
+            if (seed.get().isBlank()) {
+                Random.Default
+            } else {
+                Random(seed.get().hashCode())
+            }
+        randomizer.updateRandom(random)
+    }
+
+    fun setSeedValue(newSeed: String? = null) {
+        if (newSeed != null) {
+            seed.set(newSeed)
+        } else seed.set(config.seed)
+    }
 
     private fun logIfEnabled(
         bool: Boolean,

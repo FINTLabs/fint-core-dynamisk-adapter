@@ -33,7 +33,6 @@ class DynamicAdapterEngine(
     private val eventHandler: EventHandler,
 ) {
     private val logger = LoggerFactory.getLogger(DynamicAdapterEngine::class.java)
-
     private val maxGeneratedResources = AtomicInteger(props.maxGeneratedResources)
 
     fun generateCapabilitiesForDomains(
@@ -60,12 +59,16 @@ class DynamicAdapterEngine(
             random.reset()
         }
         val metadata = metadata.getAllMetadata()
+        var amountOfResources = 0
+
         for (resource in metadata) {
             val amountRange: IntRange = amountTierPolicy.getRange(resource.amountTier ?: AmountTier.UNKNOWN)
             val amount = amountRange.random()
             val generated = factory.create(resource.resource.resourceClass, amount)
+            amountOfResources += amount
             storage.addAllResources(resource, generated)
         }
+        logger.info("$amountOfResources resources generated.")
         relations.relateDataset(metadata, setType = SetType.INITIAL)
     }
 
@@ -73,7 +76,7 @@ class DynamicAdapterEngine(
         identifiers: Map<ResourceIdentifiers, IntRange>,
     ): ConcurrentHashMap<ExpandedMetadata, List<FintResource>> {
         val deltaMetadataList = mutableListOf<ExpandedMetadata>()
-
+        var amountOfResources = 0
 
         for (identifier in identifiers) {
             println("generating delta data for ${identifier.key.toKey()}")
@@ -93,6 +96,7 @@ class DynamicAdapterEngine(
                         continue
                     }
                 }
+                amountOfResources += amount
                 deltaStorage.addAllResources(
                     meta.key,
                     meta,
@@ -100,6 +104,7 @@ class DynamicAdapterEngine(
                 )
             }
         }
+        logger.info("$amountOfResources new resources generated.")
         relations.relateDataset(deltaMetadataList, SetType.DELTA)
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
         mergeDeltaStorageToFull(fullList)
@@ -214,9 +219,15 @@ class DynamicAdapterEngine(
     //   Configuration Manipulation
     // ------------------------------
 
+
     fun setMaxResources(amount: Int) = maxGeneratedResources.set(amount)
 
     fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
+
+    fun setSeed(newSeed: String? = null) {
+        factory.setSeedValue(newSeed)
+        random.setSeed(newSeed)
+    }
 
     fun debugGenCapPercentage() =
         logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")

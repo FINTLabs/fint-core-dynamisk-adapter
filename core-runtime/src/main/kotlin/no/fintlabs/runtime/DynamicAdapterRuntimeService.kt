@@ -218,7 +218,6 @@ class DynamicAdapterRuntimeService(
 
     private suspend fun attemptRegistration(capabilities: MutableSet<AdapterCapability>) {
         val registration = adapter.register(capabilities)
-
         registered.set(registration.registered)
         heartBeatActive.set(registration.registered)
         offline.set(registration.offline)
@@ -504,6 +503,16 @@ class DynamicAdapterRuntimeService(
         logger.info("Full sync interval in days has been set to $interval")
         scheduledFullSyncIntervalInDays.set(interval)
         engine.setFullSyncInterval(interval)
+    }
+
+    fun setSeed(newSeed: String?) {
+        logger.info("Seed has been set to : '$newSeed'")
+        engine.setSeed(newSeed)
+    }
+
+    fun resetSeed() {
+        logger.info("Seed has been reset to configurated.")
+        engine.setSeed(null)
     }
 
     // ---------------------

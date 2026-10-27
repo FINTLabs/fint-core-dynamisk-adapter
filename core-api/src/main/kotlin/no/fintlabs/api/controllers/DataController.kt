@@ -85,7 +85,7 @@ class DataController(
             } else {
                 body.groupingMin..body.groupingMax
             }
-        
+
         runtime.setAmountTierPolicy(
             AmountTierPolicy(
                 grouping = body.groupingMin..body.groupingMax,
@@ -107,4 +107,16 @@ class DataController(
 
     @PatchMapping("/reset-max-generated-resources")
     fun resetMaxGeneratedResources() = runtime.resetMaxGeneratedResources()
+
+    @PatchMapping("/seed-set")
+    fun setSeed(
+        @RequestBody(required = true)
+        newSeed: String
+    ) = runtime.setSeed(newSeed)
+
+    @PatchMapping("/seed-reset")
+    fun resetSeed() = runtime.resetSeed()
+
+    @PatchMapping("/seed-disable")
+    fun disableSeed() = runtime.setSeed(null)
 }
