@@ -476,7 +476,6 @@ class DynamicAdapterRuntimeService(
         resetEveryNight.set(bool)
     }
 
-
     // --------------------------
     //   Configuration tweaking
     // --------------------------
@@ -605,16 +604,25 @@ class DynamicAdapterRuntimeService(
         updateJobMessage(command.id, "Event check done, ${events.size} events added to queue.", false)
     }
 
-    fun setEventInterval(int: Int) = eventCheckIntervalMinutes.set(int)
+    fun setEventInterval(int: Int) {
+        logger.info("Event check interval in minutes has been set to $int.")
+        eventCheckIntervalMinutes.set(int)
+    }
 
-    fun resetEventInterval() = eventCheckIntervalMinutes.set(props.fintProperties.eventCheckIntervalInMinutes)
+    fun resetEventInterval() {
+        logger.info("Event check interval has been reset to configurated.")
+        eventCheckIntervalMinutes.set(props.fintProperties.eventCheckIntervalInMinutes)
+    }
 
-    fun disableEventCheck() = eventCheckIntervalMinutes.set(0)
+    fun disableEventCheck() {
+        logger.info("AUTOMATIC EVENT CHECK HAS BEEN DEACTIVATED.")
+        eventCheckIntervalMinutes.set(0)
+    }
 
     private fun executeEventRequest(command: EventHandlingCommand) {
         val request = eventCache[command.eventCorrId]
         if (request != null) {
-            logger.trace(
+            logger.info(
                 "attempting to execute event request: {} : {}",
                 command.operationType.name,
                 command.eventCorrId
