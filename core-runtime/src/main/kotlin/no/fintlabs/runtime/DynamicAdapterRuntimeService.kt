@@ -112,7 +112,7 @@ class DynamicAdapterRuntimeService(
 
     fun submit(command: RuntimeCommand, log: Boolean = true): String {
         if (log) {
-            logger.info("Submitting ${command.javaClass.simpleName}, ${command.id}")
+            logger.info("Submitting command : ${command.javaClass.simpleName}, ${command.id}")
         }
         markQueued(command)
 
@@ -184,8 +184,10 @@ class DynamicAdapterRuntimeService(
         if (capabilities.isEmpty()) {
             capabilities = engine.generateCapabilitiesForDomains(command.domains)
         }
+
         if (capabilities.isNotEmpty()) {
-            updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
+            updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities", false)
+            logger.info("Registering adapter with ${capabilities.size} capabilities")
             attemptRegistration(capabilities)
 
             if (!registered.get()) {
@@ -248,7 +250,6 @@ class DynamicAdapterRuntimeService(
     }
 
     private suspend fun handleFullSync(scheduled: Boolean) {
-        logger.info("Performing full sync...")
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
         adapter.performSync(
@@ -322,7 +323,7 @@ class DynamicAdapterRuntimeService(
         engine.executeInitialDataset(amountTierPolicy.get())
         val metadata = engine.getAllMetadata()
         val allData = engine.getAllGeneratedResources()
-        updateJobMessage(command.id, "Attempting to deploy initial dataset...")
+        updateJobMessage(command.id, "Attempting to deploy initial dataset...", false)
         adapter.performSync(
             metadataList = metadata,
             dataList = allData,
@@ -333,6 +334,7 @@ class DynamicAdapterRuntimeService(
 
     suspend fun hardReset() {
         runtimeMutex.withLock {
+            logger.info("\n")
             logger.info("Performing hard runtime reset...")
 
             activeWorkerJob?.cancelAndJoin()
@@ -535,9 +537,15 @@ class DynamicAdapterRuntimeService(
         deltaLoopJob?.cancel()
     }
 
-    fun setDeltaSyncInterval(intervalInMinutes: Int) = deltaSyncIntervalInMinutes.set(intervalInMinutes)
+    fun setDeltaSyncInterval(intervalInMinutes: Int) {
+        logger.info("DeltaSync Interval has now been set to $intervalInMinutes minutes.")
+        deltaSyncIntervalInMinutes.set(intervalInMinutes)
+    }
 
-    fun resetDeltaSyncInterval() = deltaSyncIntervalInMinutes.set(props.deltaConfig.deltaSyncIntervalInMinutes)
+    fun resetDeltaSyncInterval() {
+        logger.info("DeltaSync Interval has now been reset to configurated (${props.deltaConfig.deltaSyncIntervalInMinutes} minutes).")
+        deltaSyncIntervalInMinutes.set(props.deltaConfig.deltaSyncIntervalInMinutes)
+    }
 
     fun setDeltaSyncResources(
         resources: Map<String, DualInt?>,
@@ -570,9 +578,11 @@ class DynamicAdapterRuntimeService(
                 )
             }
         }
+        logger.info("DeltaSync resources have been updated. ")
     }
 
     fun setDeltaAmountTierPolicy(newPolicy: AmountTierPolicy) {
+        logger.info("DeltaSync AmountTierPolicy has been updated.")
         deltaSyncConfig.updateAndGet {
             it.copy(
                 amountTierPolicy = newPolicy.toConfigAmountTier(),
@@ -651,7 +661,7 @@ class DynamicAdapterRuntimeService(
         currentJobs[id]?.message = message
         allJobs[id]?.message = message
         if (log) {
-            logger.info("JOB UPDATE ${Instant.now()} --- $id: $message")
+            logger.info("JOB UPDATE : $id: $message")
         }
     }
 

@@ -19,4 +19,7 @@ class StatusController(
     @GetMapping("/jobs")
     fun jobHistory(): List<RuntimeJobStatus> =
         statusService.allJobs()
+
+    // TODO: status/delta
+    //      Shows resources, AmountTierPolicy and all that stuff
 }

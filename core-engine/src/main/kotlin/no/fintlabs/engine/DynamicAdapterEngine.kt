@@ -109,7 +109,7 @@ class DynamicAdapterEngine(
         val fullList = getAllGeneratedResourcesForSetType(deltaMetadataList, SetType.DELTA)
         mergeDeltaStorageToFull(fullList)
         deltaStorage.purge()
-        debugGenCapPercentage()
+        showGenCapPercentage()
         return fullList
     }
 
@@ -159,7 +159,7 @@ class DynamicAdapterEngine(
         val resources = getAllGeneratedResourcesForSetType(metaList, SetType.DELTA)
         mergeDeltaStorageToFull(resources)
         deltaStorage.purge()
-        debugGenCapPercentage()
+        showGenCapPercentage()
         return resources
     }
 
@@ -206,7 +206,7 @@ class DynamicAdapterEngine(
         deltaStorage.purge()
         storage.purge()
         logger.info("Purged all stored resources")
-        debugGenCapPercentage()
+        showGenCapPercentage()
     }
 
     private fun mergeDeltaStorageToFull(collection: ConcurrentHashMap<ExpandedMetadata, List<FintResource>>) {
@@ -228,8 +228,8 @@ class DynamicAdapterEngine(
         random.setSeed(newSeed)
     }
 
-    fun debugGenCapPercentage() =
-        logger.debug("Percentage of max generated resources: ${generationCapacityPercentage()}")
+    fun showGenCapPercentage() =
+        logger.info("Percentage of max generated resources: ${generationCapacityPercentage()}")
 
     // ----------------
     //   Status Stuff

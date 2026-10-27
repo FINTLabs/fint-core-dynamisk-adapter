@@ -2,7 +2,7 @@ package no.fintlabs.contract.dto
 
 data class GenerateSpecifiedValueResourceRequest(
     val amount: Int = 1,
-    val specifiedResource: List<SpecifiedResource>,
+    val specifiedResources: List<SpecifiedResource>,
     val supportingResources: List<String> = emptyList(),
 )
 
