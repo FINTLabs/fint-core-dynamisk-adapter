@@ -9,8 +9,8 @@ import kotlin.random.Random
 class EngineRandom(
     private val props: DynaEngineConfig,
 ) {
+    private val seed = AtomicReference(props.seed)
     private var random: Random = createRandom()
-    private val seed = AtomicReference<String>(props.seed)
 
     fun reset() {
         random = createRandom()

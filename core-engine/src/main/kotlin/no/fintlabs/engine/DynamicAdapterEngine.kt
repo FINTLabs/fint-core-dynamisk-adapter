@@ -219,7 +219,6 @@ class DynamicAdapterEngine(
     //   Configuration Manipulation
     // ------------------------------
 
-
     fun setMaxResources(amount: Int) = maxGeneratedResources.set(amount)
 
     fun resetMaxResources() = maxGeneratedResources.set(props.maxGeneratedResources)
