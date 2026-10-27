@@ -16,11 +16,7 @@ class StatusController(
     fun status(): DynaGeneralStatusResponse =
         statusService.status()
 
-    @GetMapping("/jobs/current")
-    fun currentJobs(): List<RuntimeJobStatus> =
-        statusService.currentJobs()
-
-    @GetMapping("/jobs/history")
+    @GetMapping("/jobs")
     fun jobHistory(): List<RuntimeJobStatus> =
         statusService.allJobs()
 }
