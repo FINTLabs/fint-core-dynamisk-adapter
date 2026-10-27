@@ -486,13 +486,23 @@ class DynamicAdapterRuntimeService(
         amountTierPolicy.set(newPolicy)
     }
 
-    fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
+    fun resetAmountTierPolicy() {
+        logger.info("AmountTierPolicy has been reset to configurated.")
+        amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
+    }
 
-    fun setMaxGeneratedResources(int: Int) = engine.setMaxResources(int)
+    fun setMaxGeneratedResources(int: Int) {
+        logger.info("Max generated resources has been set to $int")
+        engine.setMaxResources(int)
+    }
 
-    fun resetMaxGeneratedResources() = engine.resetMaxResources()
+    fun resetMaxGeneratedResources() {
+        logger.info("Max generated resources has been reset to configurated.")
+        engine.resetMaxResources()
+    }
 
     fun setFullSyncInterval(interval: Int) {
+        logger.info("Full sync interval in days has been set to $interval")
         scheduledFullSyncIntervalInDays.set(interval)
         engine.setFullSyncInterval(interval)
     }
