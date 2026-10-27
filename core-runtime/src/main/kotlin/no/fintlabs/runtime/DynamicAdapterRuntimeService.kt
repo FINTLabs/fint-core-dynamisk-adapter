@@ -185,12 +185,15 @@ class DynamicAdapterRuntimeService(
             capabilities = engine.generateCapabilitiesForDomains(command.domains)
         }
         if (capabilities.isNotEmpty()) {
-
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
-            val registration = adapter.register(capabilities)
-            registered.set(registration.registered)
-            heartBeatActive.set(registration.registered)
-            offline.set(registration.offline)
+            attemptRegistration(capabilities)
+            
+            if (!registered.get()) {
+                updateJobMessage(command.id, "Registration failed, waiting 5 minutes to retry...")
+                delay(300_000L)
+                updateJobMessage(command.id, "Retrying registration...")
+                attemptRegistration(capabilities)
+            }
 
             if (registered.get()) {
                 updateJobMessage(command.id, "Registration successful")
@@ -212,6 +215,14 @@ class DynamicAdapterRuntimeService(
 
             )
         } else throw IllegalStateException("No capabilities to register")
+    }
+
+    private suspend fun attemptRegistration(capabilities: MutableSet<AdapterCapability>) {
+        val registration = adapter.register(capabilities)
+
+        registered.set(registration.registered)
+        heartBeatActive.set(registration.registered)
+        offline.set(registration.offline)
     }
 
     private var deltaLoopJob: Job? = null
