@@ -3,7 +3,7 @@ package no.fintlabs.contract.data
 data class ResourceStatus(
     val metadataCount: Int,
     val totalResources: Int,
-    val maxGeneratedResources: Int,
+    val maxGeneratedResources: String,
     val percentageOfMaxGenerated: String,
     val resourcesByKey: Map<String, Int>,
     val registeredCapabilities: List<String>,

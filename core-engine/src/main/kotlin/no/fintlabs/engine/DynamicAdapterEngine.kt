@@ -17,6 +17,7 @@ import no.fintlabs.engine.util.EngineRandom
 import no.fintlabs.library.ResourceFactory
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -229,11 +230,15 @@ class DynamicAdapterEngine(
         return "$percentage%"
     }
 
+    private fun formatMaxGenerated(): String {
+        return "%,d".format(Locale.GERMANY, maxGeneratedResources.get())
+    }
+
     fun resourceStatus(): ResourceStatus =
         ResourceStatus(
             metadataCount = metadata.getAllMetadata().size,
             totalResources = storage.totalCount(),
-            maxGeneratedResources = maxGeneratedResources.get(),
+            maxGeneratedResources = formatMaxGenerated(),
             percentageOfMaxGenerated = generationCapacityPercentage(),
             resourcesByKey = storage.countsByKey(),
             registeredCapabilities = metadata.getNamesOfCapabilities(),
