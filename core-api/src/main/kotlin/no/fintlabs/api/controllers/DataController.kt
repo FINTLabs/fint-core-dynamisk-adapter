@@ -85,7 +85,8 @@ class DataController(
             } else {
                 body.groupingMin..body.groupingMax
             }
-        runtime.setDeltaAmountTierPolicy(
+        
+        runtime.setAmountTierPolicy(
             AmountTierPolicy(
                 grouping = body.groupingMin..body.groupingMax,
                 core = body.core..body.core,

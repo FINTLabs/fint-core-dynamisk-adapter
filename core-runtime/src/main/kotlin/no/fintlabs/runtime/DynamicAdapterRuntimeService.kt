@@ -187,7 +187,7 @@ class DynamicAdapterRuntimeService(
         if (capabilities.isNotEmpty()) {
             updateJobMessage(command.id, "Registering adapter with ${capabilities.size} capabilities")
             attemptRegistration(capabilities)
-            
+
             if (!registered.get()) {
                 updateJobMessage(command.id, "Registration failed, waiting 5 minutes to retry...")
                 delay(300_000L)
@@ -212,7 +212,6 @@ class DynamicAdapterRuntimeService(
                             .joinToString("\n") { (component, keys) ->
                                 "$component:      ${keys.joinToString(", ") { it.substringAfterLast("/") }}"
                             }
-
             )
         } else throw IllegalStateException("No capabilities to register")
     }
@@ -482,7 +481,10 @@ class DynamicAdapterRuntimeService(
     //   Configuration tweaking
     // --------------------------
 
-    fun setAmountTierPolicy(newPolicy: AmountTierPolicy) = amountTierPolicy.set(newPolicy)
+    fun setAmountTierPolicy(newPolicy: AmountTierPolicy) {
+        logger.info("AmountTierPolicy updated.")
+        amountTierPolicy.set(newPolicy)
+    }
 
     fun resetAmountTierPolicy() = amountTierPolicy.set(props.amountTierPolicy.toAmountTierPolicy())
 

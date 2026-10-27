@@ -63,6 +63,7 @@ class DynamicAdapterPublisher(
                         }
                 }.block()
         logger.info("🔑 Adapter Registration :  $response")
+
         return AdapterRegistrationResponse(
             registered = response!!.first == 200,
             offline = false,

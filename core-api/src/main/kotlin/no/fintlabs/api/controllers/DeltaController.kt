@@ -56,7 +56,8 @@ class DeltaController(
             } else {
                 body.groupingMin..body.groupingMax
             }
-        runtime.setAmountTierPolicy(
+        
+        runtime.setDeltaAmountTierPolicy(
             AmountTierPolicy(
                 grouping = body.groupingMin..body.groupingMax,
                 core = body.core..body.core,
