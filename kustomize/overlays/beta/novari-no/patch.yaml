@@ -23,5 +23,5 @@ spec:
 
   ingress:
     routes:
-      - host: beta.felleskomponent.no/dyna/novari
-        path: /
+      - host: beta.felleskomponent.no
+        path: /dyna/novari
