@@ -6,6 +6,7 @@ import no.fintlabs.contract.dto.DynaGeneralStatusResponse
 import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.dto.DeltaSetupStatus
 import no.fintlabs.contract.dto.SystemStatus
+import no.fintlabs.runtime.config.DeltaConfig
 import org.springframework.stereotype.Service
 import java.lang.management.ManagementFactory
 
@@ -46,6 +47,8 @@ class DynamicAdapterStatusService(
             systemStatus = systemStatus(),
         )
     }
+
+    fun deltaSetup(): DeltaConfig = runtime.getDeltaSetup()
 
     fun allJobs(): List<RuntimeJobStatus> =
         runtime.getAllJobs().sortedByDescending { it.requestedAt }

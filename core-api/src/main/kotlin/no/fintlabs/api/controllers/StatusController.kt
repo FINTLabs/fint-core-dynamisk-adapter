@@ -2,6 +2,7 @@ package no.fintlabs.api.controllers
 
 import no.fintlabs.contract.dto.DynaGeneralStatusResponse
 import no.fintlabs.contract.data.RuntimeJobStatus
+import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.status.DynamicAdapterStatusService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,4 +23,7 @@ class StatusController(
 
     // TODO: status/delta
     //      Shows resources, AmountTierPolicy and all that stuff
+
+    @GetMapping("/delta")
+    fun deltaSetup(): DeltaConfig = statusService.deltaSetup()
 }

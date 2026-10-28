@@ -31,6 +31,7 @@ import no.fintlabs.runtime.model.RuntimeCommand
 import no.fintlabs.contract.data.RuntimeJobStatus
 import no.fintlabs.contract.util.getKeys
 import no.fintlabs.contract.util.resourceToIdentifiers
+import no.fintlabs.runtime.config.DeltaConfig
 import no.fintlabs.runtime.config.toDeltaResourceConfigList
 import no.fintlabs.runtime.model.CreateSpecificDataCommand
 import no.fintlabs.runtime.model.EventFetchCommand
@@ -760,6 +761,8 @@ class DynamicAdapterRuntimeService(
     fun getRunningJob(): RuntimeJobStatus? =
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
 
+    fun getDeltaSetup(): DeltaConfig = deltaSyncConfig.get()
+    
     fun getCurrentJobs(): List<RuntimeJobStatus> = currentJobs.values.sortedBy { it.requestedAt }
 
     fun getActiveDomains(): List<String> = activeDomains.get()
