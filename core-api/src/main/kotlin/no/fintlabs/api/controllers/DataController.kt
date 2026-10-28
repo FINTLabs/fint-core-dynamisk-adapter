@@ -44,7 +44,7 @@ class DataController(
     ) =
         runtime.submit(
             CreateSpecificDataCommand(
-                specifiedResources = request.specifiedResource,
+                specifiedResources = request.specifiedResources,
                 supportingResources = request.supportingResources,
                 amount = request.amount,
             )
