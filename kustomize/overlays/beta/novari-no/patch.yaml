@@ -17,11 +17,10 @@ spec:
 
   resources:
     requests:
-      memory: 1Gi
+      memory: 8Gi
     limits:
-      memory: 1Gi
+      memory: 8Gi
 
   ingress:
     routes:
-      - host: beta.felleskomponent.no
-        path: /dyna/novari
+      - host: beta.felleskomponent.no/dyna/novari
