@@ -79,7 +79,7 @@ class DynamicAdapterEngine(
         var amountOfResources = 0
 
         for (identifier in identifiers) {
-            println("generating delta data for ${identifier.key.toKey()}")
+            logger.debug("generating delta data for ${identifier.key.toKey()}")
             val meta = metadata.getMetadataFor(identifier.key)
             if (meta == null) {
                 logger.error("No resource metadata found for ${identifier.key}")

@@ -113,7 +113,7 @@ class DynamicAdapterRuntimeService(
 
     fun submit(command: RuntimeCommand, log: Boolean = true): String {
         if (log) {
-            logger.info("Submitting command : ${command.javaClass.simpleName}, ${command.id}")
+            logger.info("Submitting command : ${command.javaClass.simpleName}, ${command.id} \n ")
         }
         markQueued(command)
 
@@ -121,6 +121,7 @@ class DynamicAdapterRuntimeService(
         if (result.isFailure) {
             markFailed(command, IllegalStateException("Failed to submit ${command.id}"))
             logger.error("Failed to submit ${command.id}")
+            return "ERROR: Failed to submit ${command.id}"
         }
 
         return "command ${command.id} submitted. \n There are ${queueSize() - 1} queued jobs before yours."
@@ -338,7 +339,7 @@ class DynamicAdapterRuntimeService(
 
     suspend fun hardReset() {
         runtimeMutex.withLock {
-            logger.info("\n")
+            logger.info("._ / __._ .._ .. . _ / _... ._. . ._ _._ / ._._. \n")
             logger.info("Performing hard runtime reset... \n")
 
             activeWorkerJob?.cancelAndJoin()
@@ -712,7 +713,7 @@ class DynamicAdapterRuntimeService(
             )
         }
         val message: String = currentJobs[command.id]?.message ?: ""
-        logger.info("JOB DONE: ${command.id}; $message")
+        logger.info("JOB DONE: ${command.id}; $message \n ")
         when (command) {
             is StartupSequence -> lastFullSyncAt.set(Instant.now())
             is FullSyncCommand -> lastFullSyncAt.set(Instant.now())
