@@ -231,6 +231,9 @@ class DynamicAdapterRuntimeService(
     private var eventCheckLoopJob: Job? = null
 
     private fun startBackgroundLoops() {
+        eventCheckLoopJob = null
+        deltaLoopJob = null
+
         if (deltaLoopJob?.isActive != true) {
             deltaLoopJob = scope.launch {
                 deltaLoop()
@@ -336,7 +339,7 @@ class DynamicAdapterRuntimeService(
     suspend fun hardReset() {
         runtimeMutex.withLock {
             logger.info("\n")
-            logger.info("Performing hard runtime reset...")
+            logger.info("Performing hard runtime reset... \n")
 
             activeWorkerJob?.cancelAndJoin()
 
@@ -762,7 +765,7 @@ class DynamicAdapterRuntimeService(
         currentJobs.values.firstOrNull { it.state == JobState.RUNNING }
 
     fun getDeltaSetup(): DeltaConfig = deltaSyncConfig.get()
-    
+
     fun getCurrentJobs(): List<RuntimeJobStatus> = currentJobs.values.sortedBy { it.requestedAt }
 
     fun getActiveDomains(): List<String> = activeDomains.get()
