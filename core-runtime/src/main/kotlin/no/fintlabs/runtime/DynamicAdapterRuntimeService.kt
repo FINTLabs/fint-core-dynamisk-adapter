@@ -312,9 +312,7 @@ class DynamicAdapterRuntimeService(
                         syncType = SyncType.DELTA,
                         maxPageSize = maxPageSize.get(),
                     )
-
                 }
-
                 lastDeltaSyncAt.set(Instant.now())
 
             } else throw IllegalStateException(

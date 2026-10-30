@@ -129,7 +129,7 @@ class RelationFactory(
                     if (linkRule == LinkRule.UNIQUE_STRICT) {
                         secondaryIds.getOrNull(i) ?: "NOT_ENOUGH_$secondaryKey"
                     } else {
-                        if (setType == SetType.DELTA) {
+                        if (setType != SetType.DELTA) {
                             secondaryIds[Random.nextInt(secondaryIds.size)]
                         } else {
                             secondaryIds[i % secondaryIds.size]
