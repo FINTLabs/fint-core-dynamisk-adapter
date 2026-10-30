@@ -35,6 +35,7 @@ enum class SetType {
 
 @Component
 class RelationFactory(
+    private val metaDataService: MetadataService,
     private val storage: ResourceStore,
     private val deltaStorage: TempDeltaSyncStore,
 ) {
@@ -44,6 +45,7 @@ class RelationFactory(
         metadataList: MutableList<ExpandedMetadata>,
         setType: SetType,
     ) {
+        val fullMetadataList = metaDataService.getAllMetadata()
         val skip = mutableSetOf<Edge>()
 
         for (resource in metadataList) {
@@ -61,7 +63,7 @@ class RelationFactory(
                         }
 
                         FintMultiplicity.ONE_TO_MANY -> {
-                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key, metadataList)
+                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key, fullMetadataList)
                             if (secondaryMetadata != null) {
                                 val secondaryMultiplicity = getSecondaryMultiplicity(resource.key, secondaryMetadata)
                                 if (secondaryMultiplicity == FintMultiplicity.ONE_TO_MANY) {
@@ -78,7 +80,7 @@ class RelationFactory(
                         }
 
                         FintMultiplicity.ONE_TO_ONE -> {
-                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key, metadataList)
+                            val secondaryMetadata = getSecondaryMetadata(relation, resource.key, fullMetadataList)
                             if (secondaryMetadata != null) {
                                 val secondaryMultiplicity = getSecondaryMultiplicity(resource.key, secondaryMetadata)
                                 val linkRule =
