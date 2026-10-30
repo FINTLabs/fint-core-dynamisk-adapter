@@ -305,14 +305,16 @@ class DynamicAdapterRuntimeService(
             val resourceKeys =
                 listOf(command.supportingResources + (command.specifiedResources.map { it.resource }))
             if (resources!!.values.isNotEmpty()) {
-                val metadata = resources.keys.first()
+                for (resource in resources) {
+                    adapter.performSync(
+                        metadataList = mutableListOf(resource.key),
+                        dataList = resources,
+                        syncType = SyncType.DELTA,
+                        maxPageSize = maxPageSize.get(),
+                    )
 
-                adapter.performSync(
-                    metadataList = mutableListOf(metadata),
-                    dataList = resources,
-                    syncType = SyncType.DELTA,
-                    maxPageSize = maxPageSize.get(),
-                )
+                }
+
                 lastDeltaSyncAt.set(Instant.now())
 
             } else throw IllegalStateException(
