@@ -16,7 +16,7 @@ repositories {
     maven("https://repo.fintlabs.no/releases")
 }
 
-val fintVersion = "4.0.10"
+val fintVersion = "4.1.0"
 
 dependencies {
 

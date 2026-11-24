@@ -27,7 +27,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("no.novari:fint-core-metamodel:3.0.0")
-    implementation("no.fintlabs:fint-core-infra-models:2.1.2")
+    implementation("no.fintlabs:fint-core-infra-models:3.4.3")
     implementation("no.novari:fint-arkiv-resource-model-java:$fintVersion")
     implementation("no.novari:fint-felles-resource-model-java:$fintVersion")
     implementation("no.novari:fint-ressurs-resource-model-java:$fintVersion")
