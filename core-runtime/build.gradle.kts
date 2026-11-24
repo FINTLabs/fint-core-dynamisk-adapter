@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":core-adapter"))
     implementation(project(":core-engine"))
 
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:4.2.0"))
 
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
