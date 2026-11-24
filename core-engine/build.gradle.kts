@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":core-lib"))
     implementation(project(":core-contract"))
 
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:4.2.0"))
 
     // SPRING
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
