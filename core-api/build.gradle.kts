@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":core-adapter"))
 
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-web")

@@ -25,9 +25,9 @@ repositories {
 dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.21")
 
     // FINT resource/model dependencies
     implementation("no.novari:fint-core-metamodel:3.0.0")
@@ -73,7 +73,7 @@ publishing {
 
 configurations.all {
     resolutionStrategy {
-        force("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
+        force("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
     }
 }
 
