@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Build deployment matrix
         id: targets
@@ -67,10 +67,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 25
@@ -87,14 +87,14 @@ jobs:
           echo "image=ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -123,7 +123,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Azure login
         uses: azure/login@v3
@@ -166,7 +166,7 @@ jobs:
           echo "manifests=$destination" >> "$GITHUB_OUTPUT"
 
       - name: Deploy
-        uses: azure/k8s-deploy@v7.0.0
+        uses: azure/k8s-deploy@v7.0.1
         with:
           action: deploy
           manifests: ${{ steps.deploy-manifests.outputs.manifests }}
@@ -197,10 +197,10 @@ jobs:
 #
 #    steps:
 #      - name: Checkout
-#        uses: actions/checkout@v5
+#        uses: actions/checkout@v7
 #
 #      - name: Set up Java
-#        uses: actions/setup-java@v4
+#        uses: actions/setup-java@v6
 #        with:
 #          distribution: temurin
 #          java-version: 25
@@ -217,14 +217,14 @@ jobs:
 #          echo "image=ghcr.io/fintlabs/fint-core-dynamisk-adapter-backend:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 #
 #      - name: Login to GHCR
-#        uses: docker/login-action@v3
+#        uses: docker/login-action@v4
 #        with:
 #          registry: ghcr.io
 #          username: ${{ github.actor }}
 #          password: ${{ secrets.GITHUB_TOKEN }}
 #
 #      - name: Build and push Docker image
-#        uses: docker/build-push-action@v6
+#        uses: docker/build-push-action@v7
 #        with:
 #          context: .
 #          push: true
@@ -237,7 +237,7 @@ jobs:
 #
 #    steps:
 #      - name: Checkout
-#        uses: actions/checkout@v5
+#        uses: actions/checkout@v7
 #
 #      - name: Azure login
 #        uses: azure/login@v3
@@ -285,7 +285,7 @@ jobs:
 #
 #
 #      - name: Deploy
-#        uses: azure/k8s-deploy@v7.0.0
+#        uses: azure/k8s-deploy@v7.0.1
 #        with:
 #          action: deploy
 #          manifests: ${{ steps.deploy-manifests.outputs.manifests }}
