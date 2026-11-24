@@ -46,7 +46,7 @@ dependencies {
     implementation("no.novari:fint-utdanning-resource-model-java:$fintVersion")
     implementation("no.novari:fint-personvern-resource-model-java:$fintVersion")
     implementation("no.novari:fint-administrasjon-resource-model-java:$fintVersion")
-    implementation("no.fintlabs:fint-core-infra-models:2.1.2")
+    implementation("no.fintlabs:fint-core-infra-models:3.4.3")
 
     // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test")
